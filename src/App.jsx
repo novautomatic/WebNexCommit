@@ -69,9 +69,9 @@ function App() {
                 Nuestros Servicios
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
-              <button className="btn btn-secondary border-white/30 bg-white/10 hover:bg-white/20 text-white shadow-lg backdrop-blur-sm">
-                Contactar Ventas
-              </button>
+              <a href="https://wa.me/56929237511" target="_blank" rel="noopener noreferrer" className="btn btn-secondary border-white/30 bg-white/10 hover:bg-white/20 text-white shadow-lg backdrop-blur-sm flex items-center justify-center">
+                Contactar
+              </a>
             </div>
           </div>
         </div>
@@ -149,9 +149,9 @@ function App() {
         <div className="container relative z-10 text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">¿Listo para escalar tu negocio?</h2>
           <p className="text-xl text-white/80 max-w-2xl mx-auto mb-10">Agenda una llamada de descubrimiento gratuita y conversemos sobre tus objetivos tecnológicos.</p>
-          <button className="btn btn-primary" style={{ backgroundColor: 'var(--color-neutral-dark)', color: 'white', border: 'none' }}>
-            Agendar Llamada Ahora
-          </button>
+          <a href="https://wa.me/56929237511?text=Hola,%20quisiera%20m%C3%A1s%20informaci%C3%B3n" target="_blank" rel="noopener noreferrer" className="btn btn-primary inline-flex items-center justify-center" style={{ backgroundColor: 'var(--color-neutral-dark)', color: 'white', border: 'none' }}>
+            Contacto
+          </a>
         </div>
       </section>
       
