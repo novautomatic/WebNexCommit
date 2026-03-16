@@ -6,13 +6,13 @@
 
 :root {
   /* Colors */
-  --color-primary: #2563EB;
+  --color-primary: #3B82F6; /* Azul eléctrico vibrante */
   --color-secondary: #06B6D4;
-  --color-neutral-dark: #111827;
+  --color-neutral-dark: #080B14; /* Fondo oscuro profundo */
   --color-neutral-light: #FFFFFF;
-  --color-neutral-muted: #F3F4F6;
-  --color-accent: #10B981;
-  --color-accent-hover: #0EA5E9; /* Un poquito menos brillante o el mismo verde oscuro */
+  --color-neutral-muted: #A0AEC0; /* Texto descriptivo gris claro */
+  --color-accent: #10B981; /* Verde esmeralda saturado */
+  --color-accent-hover: #0EA5E9;
   --color-accent-dark: #059669; /* Verde oscuro para hover del CTA */
 
   /* Typography */
@@ -123,3 +123,14 @@ body {
 .delay-100 { animation-delay: 100ms; }
 .delay-200 { animation-delay: 200ms; }
 .delay-300 { animation-delay: 300ms; }
+
+/* Custom Animations */
+@keyframes floatRotate {
+  0% { transform: translateY(0px) rotate3d(1, 1, 0, 0deg); }
+  50% { transform: translateY(-15px) rotate3d(1, 1, 0, 2deg); }
+  100% { transform: translateY(0px) rotate3d(1, 1, 0, 0deg); }
+}
+
+.animate-float-rotate {
+  animation: floatRotate 12s ease-in-out infinite;
+}

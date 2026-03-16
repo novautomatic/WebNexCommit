@@ -1,85 +1,139 @@
-import React from 'react';
-import Spline from '@splinetool/react-spline';
+import React, { Suspense } from 'react';
 import { Globe, RefreshCw, Database, ArrowRight } from 'lucide-react';
+import Hero3D from './Hero3D';
 import './index.css';
 
 function App() {
   return (
-    <div className="w-full min-h-screen">
-      {/* Navbar (Hacemos la barra más transparente quitando la clase glass pesada o usando bg-transparent/blur suave) */}
-      <nav className="fixed top-0 left-0 w-full z-50 padding-4 flex justify-between items-center px-8 py-6 bg-black/10 backdrop-blur-sm border-b border-white/5">
-        <div className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>
-          Nex<span style={{ color: 'var(--color-neutral-light)' }}>Commit</span>
+    <div className="w-full min-h-screen" style={{ backgroundColor: '#080B14' }}>
+      {/* Navbar — Dark premium, glassmorphism sutil */}
+      <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-5 border-b border-white/5"
+        style={{
+          backgroundColor: 'rgba(8, 11, 20, 0.65)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+        }}
+      >
+        <div className="text-2xl font-bold tracking-tight">
+          <span style={{ color: '#3B82F6' }}>Nex</span>
+          <span style={{ color: '#FFFFFF' }}>Commit</span>
+        </div>
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium" style={{ color: '#A0AEC0' }}>
+          <a href="#services" className="hover:text-white transition-colors duration-200">Servicios</a>
+          <a href="https://wa.me/56929237511" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors duration-200">Contacto</a>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative w-full h-screen overflow-hidden flex items-center bg-[#a2b5c3]">
-        {/*
-          Cálculo Matemático Perfecto:
-          - Usar width/height iguales en % (130%) preserva la relación de aspecto exacta de la pantalla (16:9),
-            garantizando que la cámara de Spline no mutile los cubos.
-          - Con transform: scale(0.85) desde el 'center center', el tamaño visual de la lona pasa a ser 110.5% (fuera de la pantalla).
-          - Esto empuja el logo de Spline (derecha) y el ratón de scroll (abajo) fuera de los límites de la pantalla,
-            dejando los cubos pequeños (85% de su tamaño nativo) nítidos en el centro.
-        */}
-        <div 
-          className="absolute z-0 pointer-events-auto" 
-          style={{ 
-            top: '-15%', 
-            left: '-15%', 
-            width: '130%', 
-            height: '130%', 
-            transform: 'scale(0.85) translateX(2%)',
-            transformOrigin: 'center center'
+      <section className="relative w-full h-screen overflow-hidden flex items-center" style={{ backgroundColor: '#080B14' }}>
+
+        {/* Grid de puntos técnicos — profundidad sutil */}
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)',
+            backgroundSize: '32px 32px',
+            opacity: 0.5,
+          }}
+        />
+
+        {/* Luz ambiental radial azul detrás del objeto 3D */}
+        <div
+          className="absolute z-0 pointer-events-none"
+          style={{
+            top: '0%',
+            right: '0%',
+            width: '60%',
+            height: '100%',
+            background: 'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.15) 0%, transparent 70%)',
+            filter: 'blur(60px)',
+          }}
+        />
+
+        {/* Objeto 3D — React Three Fiber (fondo transparente, alta calidad) */}
+        <div
+          className="absolute z-0 pointer-events-none"
+          style={{
+            top: 0,
+            right: '-2%',
+            width: '56%',
+            height: '100%',
           }}
         >
-          <Spline scene="https://prod.spline.design/c0CbD41iKHlfGcNq/scene.splinecode" />
+          <Suspense fallback={null}>
+            <Hero3D />
+          </Suspense>
         </div>
-        
-        {/* Máscara de desenfoque pura para el texto indeseado ("Build an AI..."). 
-            Cubrimos desde la izq hasta el centro para fundir el texto con el fondo, dejando los cubos de la derecha intactos. */}
-        <div 
-          className="absolute inset-0 z-0 pointer-events-none" 
-          style={{ 
-            backdropFilter: 'blur(50px)',
-            WebkitBackdropFilter: 'blur(50px)',
-            backgroundColor: 'rgba(162, 181, 195, 0.4)',
-            maskImage: 'linear-gradient(to right, black 0%, black 55%, transparent 75%)',
-            WebkitMaskImage: 'linear-gradient(to right, black 0%, black 55%, transparent 75%)'
-          }}
-        ></div>
-        
-        {/* Overlay transparente para un pelín más de legibilidad sin opacar el 3D */}
-        <div className="absolute inset-0 bg-black/10 z-0 pointer-events-none mix-blend-multiply"></div>
 
         {/* Hero Content */}
-        {/* Usamos pointer-events-none para que el ratón pueda interactuar con el 3D a través de los espacios vacíos */}
-        <div className="container relative z-10 w-full h-full flex flex-col justify-center pointer-events-none">
-          <div className="max-w-2xl px-4 animate-fade-in pointer-events-auto">
-            <h1 className="text-5xl md:text-7xl font-bold mb-4 leading-tight text-white drop-shadow-xl">
+        <div className="relative z-10 w-full h-full flex flex-col justify-center pointer-events-none" style={{ paddingLeft: '10%' }}>
+          <div className="max-w-xl animate-fade-in pointer-events-auto">
+            <h1
+              className="text-5xl md:text-7xl font-bold mb-5 leading-tight"
+              style={{
+                color: '#FFFFFF',
+                textShadow: '0 0 40px rgba(59, 130, 246, 0.25)',
+              }}
+            >
               Más que un proyecto, <br/>
-              <span className="text-gradient drop-shadow-md">una alianza</span>
+              <span style={{ color: '#3B82F6' }}>una alianza</span>
             </h1>
-            <p className="text-xl text-gray-100 mb-8 max-w-lg delay-100 animate-fade-in drop-shadow-lg font-medium">
+            <p
+              className="text-xl mb-10 max-w-md font-normal animate-fade-in delay-100"
+              style={{ color: '#A0AEC0' }}
+            >
               Desarrollamos tecnología que impulsa tu negocio. Desde sitios web hasta aplicaciones a la medida.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 delay-200 animate-fade-in">
-              <button className="btn btn-primary group border-none shadow-lg" onClick={() => document.getElementById('services').scrollIntoView({ behavior: 'smooth' })}>
+            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in delay-200">
+              {/* CTA Principal — Verde saturado brillante */}
+              <button
+                className="btn group border-none"
+                style={{
+                  backgroundColor: '#10B981',
+                  color: '#FFFFFF',
+                  boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)',
+                }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#059669'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#10B981'}
+                onClick={() => document.getElementById('services').scrollIntoView({ behavior: 'smooth' })}
+              >
                 Nuestros Servicios
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
-              <a href="https://wa.me/56929237511" target="_blank" rel="noopener noreferrer" className="btn btn-secondary border-white/30 bg-white/10 hover:bg-white/20 text-white shadow-lg backdrop-blur-sm flex items-center justify-center">
+              {/* CTA Secundario — Glassmorphism real */}
+              <a
+                href="https://wa.me/56929237511"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn flex items-center justify-center"
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  color: '#FFFFFF',
+                }}
+              >
                 Contactar
               </a>
             </div>
           </div>
         </div>
-        
+
         {/* Scroll Indicator */}
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 animate-bounce cursor-pointer pointer-events-auto" onClick={() => document.getElementById('services').scrollIntoView({ behavior: 'smooth' })}>
-          <div className="w-8 h-12 rounded-full border-2 border-white/50 flex justify-center p-2 bg-black/20 backdrop-blur-sm shadow-md">
-            <div className="w-1.5 h-3 bg-white rounded-full"></div>
+        <div
+          className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 animate-bounce cursor-pointer pointer-events-auto"
+          onClick={() => document.getElementById('services').scrollIntoView({ behavior: 'smooth' })}
+        >
+          <div
+            className="w-8 h-12 rounded-full flex justify-center p-2"
+            style={{
+              border: '2px solid rgba(255,255,255,0.25)',
+              backgroundColor: 'rgba(8, 11, 20, 0.5)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            <div className="w-1.5 h-3 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.6)' }} />
           </div>
         </div>
       </section>
