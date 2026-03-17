@@ -3,6 +3,13 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import * as THREE from 'three';
 
+const COLORS = {
+  inkSoft: '#123D69',
+  brand: '#248BDE',
+  sky: '#67C8F3',
+  cloud: '#D8F3FF',
+};
+
 /* ─── Icosaedro wireframe principal (capa exterior) ─── */
 function OuterIcosahedron() {
   const ref = useRef();
@@ -14,7 +21,7 @@ function OuterIcosahedron() {
     <mesh ref={ref}>
       <icosahedronGeometry args={[2.2, 1]} />
       <meshBasicMaterial
-        color="#3B82F6"
+        color={COLORS.brand}
         wireframe
         transparent
         opacity={0.55}
@@ -34,7 +41,7 @@ function MidDodecahedron() {
     <mesh ref={ref}>
       <dodecahedronGeometry args={[1.5]} />
       <meshBasicMaterial
-        color="#60A5FA"
+        color={COLORS.sky}
         wireframe
         transparent
         opacity={0.35}
@@ -54,7 +61,7 @@ function CoreOctahedron() {
     <mesh ref={ref}>
       <octahedronGeometry args={[0.8, 0]} />
       <meshBasicMaterial
-        color="#93C5FD"
+        color={COLORS.cloud}
         wireframe
         transparent
         opacity={0.9}
@@ -101,7 +108,7 @@ function Particles({ count = 80 }) {
         />
       </bufferGeometry>
       <pointsMaterial
-        color="#93C5FD"
+        color={COLORS.cloud}
         size={0.04}
         transparent
         opacity={0.7}
@@ -143,7 +150,7 @@ function GlowEdges() {
   return (
     <lineSegments ref={ref} geometry={lineGeometry}>
       <lineBasicMaterial
-        color="#60A5FA"
+        color={COLORS.sky}
         transparent
         opacity={0.8}
         linewidth={1}
@@ -157,9 +164,9 @@ function Scene() {
   return (
     <>
       <ambientLight intensity={0.05} />
-      <pointLight position={[4, 4, 4]}   intensity={2.0} color="#3B82F6" />
-      <pointLight position={[-4, -2, -4]} intensity={1.0} color="#1D4ED8" />
-      <pointLight position={[0, 5, -3]}  intensity={0.8} color="#93C5FD" />
+      <pointLight position={[4, 4, 4]} intensity={2.0} color={COLORS.brand} />
+      <pointLight position={[-4, -2, -4]} intensity={1.0} color={COLORS.inkSoft} />
+      <pointLight position={[0, 5, -3]} intensity={0.8} color={COLORS.cloud} />
 
       <Float speed={1.2} rotationIntensity={0.15} floatIntensity={0.5}>
         <GlowEdges />
