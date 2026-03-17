@@ -88,7 +88,7 @@ function App() {
             Servicios
           </a>
           <a
-            href="https://wa.me/56929237511"
+            href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-white transition-colors duration-200"
@@ -149,7 +149,7 @@ function App() {
                 </button>
 
                 <a
-                  href="https://wa.me/56929237511"
+                  href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-ghost"
@@ -221,7 +221,7 @@ function App() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
-                href="https://wa.me/56929237511?text=Hola,%20quisiera%20mas%20informacion"
+                href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-brand group px-10 py-4"
@@ -248,7 +248,7 @@ function App() {
                 Servicios
               </a>
               <a
-                href="https://wa.me/56929237511"
+                href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-white transition-colors"
