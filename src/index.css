@@ -190,11 +190,11 @@ img {
 }
 
 .tone-deep {
-  --tone-main: #123d69;
-  --tone-soft: rgba(18, 61, 105, 0.16);
-  --tone-border: rgba(36, 139, 222, 0.18);
-  --tone-pill: #84bae6;
-  --tone-line: rgba(18, 61, 105, 0.85);
+  --tone-main: #3b82f6;
+  --tone-soft: rgba(59, 130, 246, 0.14);
+  --tone-border: rgba(59, 130, 246, 0.22);
+  --tone-pill: #93c5fd;
+  --tone-line: rgba(59, 130, 246, 0.85);
 }
 
 .tone-brand {
