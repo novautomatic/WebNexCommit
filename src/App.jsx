@@ -55,8 +55,8 @@ function BrandAsset({ sources, alt, className }) {
 
 function BrandLogo({ compact = false }) {
   const sources = compact
-    ? ['/nexcommit-icon.svg', '/nexcommit-icon.png']
-    : ['/nexcommit-logo-inverse.svg', '/nexcommit-logo-inverse.png'];
+    ? ['/nexcommit-icon.png']
+    : ['/nexcommit-logo-inverse.png'];
 
   return (
     <BrandAsset
