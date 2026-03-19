@@ -161,15 +161,7 @@ function App() {
           </div>
         </div>
 
-        <button
-          className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 animate-bounce cursor-pointer pointer-events-auto"
-          onClick={scrollToServices}
-          aria-label="Ir a servicios"
-        >
-          <div className="scroll-indicator">
-            <div className="scroll-indicator__dot" />
-          </div>
-        </button>
+
       </section>
 
       <section id="services" className="py-28 md:py-32 relative">
