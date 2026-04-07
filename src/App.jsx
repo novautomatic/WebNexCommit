@@ -9,7 +9,7 @@ const services = [
     tone: 'tone-deep',
     title: 'Sitios web que convierten',
     description:
-      'Disenamos y lanzamos tu web a medida: rapida, responsive y pensada para que tus visitas se vuelvan clientes.',
+      'Diseñamos y lanzamos tu web a medida: rapida, responsive y pensada para que tus visitas se vuelvan clientes.',
     benefit: 'Beneficio: +15% leads',
     cta: 'Presencia profesional',
   },
