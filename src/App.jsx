@@ -1,5 +1,5 @@
 import React, { Suspense, useState } from 'react';
-import { Globe, RefreshCw, Database, ArrowRight } from 'lucide-react';
+import { Globe, RefreshCw, Database, ArrowRight, ExternalLink } from 'lucide-react';
 import Hero3D from './Hero3D';
 import './index.css';
 
@@ -30,6 +30,44 @@ const services = [
       'Desarrollamos apps web y bases de datos seguras para agenda, inventarios, reportes y operaciones criticas.',
     benefit: 'Beneficio: 100% control',
     cta: 'Operacion ordenada',
+  },
+];
+
+const clients = [
+  {
+    name: 'Fibra Eyewear',
+    url: 'https://fibraeyewear.cl/',
+    gradient: 'from-pink-500/20 to-rose-500/20',
+    accent: '#f472b6',
+    thumbnail: '/clients/fibra-eyewear.png',
+  },
+  {
+    name: 'Dyetales',
+    url: 'https://dyetales.cl/',
+    gradient: 'from-violet-500/20 to-purple-500/20',
+    accent: '#a78bfa',
+    thumbnail: '/clients/dyetales.png',
+  },
+  {
+    name: 'Tarot-Dann',
+    url: 'https://tarot-dann.vercel.app/',
+    gradient: 'from-amber-500/20 to-orange-500/20',
+    accent: '#fbbf24',
+    thumbnail: '/clients/tarot-dann.png',
+  },
+  {
+    name: 'Reveal',
+    url: 'https://reveal-rhythm-refinery.lovable.app/',
+    gradient: 'from-emerald-500/20 to-teal-500/20',
+    accent: '#34d399',
+    thumbnail: '/clients/reveal.png',
+  },
+  {
+    name: 'Nova Dialing',
+    url: 'https://nova-dialing.vercel.app/',
+    gradient: 'from-cyan-500/20 to-blue-500/20',
+    accent: '#22d3ee',
+    thumbnail: '/clients/nova-dialing.png',
   },
 ];
 
@@ -64,6 +102,59 @@ function BrandLogo({ compact = false }) {
       alt="NexCommit"
       className={compact ? 'brand-mark' : 'brand-logo'}
     />
+  );
+}
+
+function ClientCard({ name, url, gradient, accent, thumbnail }) {
+  const [thumbnailError, setThumbnailError] = useState(false);
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="client-card group relative overflow-hidden rounded-2xl glass-dark border-white/5 hover:border-white/10 transition-all duration-300 block"
+    >
+      <div
+        className="relative h-48 overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${gradient.replace('/20', '/15')}, rgba(8, 25, 42, 0.8))`,
+        }}
+      >
+        {!thumbnailError && thumbnail ? (
+          <img
+            src={thumbnail}
+            alt={`Vista previa de ${name}`}
+            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+            onError={() => setThumbnailError(true)}
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center text-5xl font-bold text-white/20"
+            style={{
+              background: `linear-gradient(135deg, ${accent}22, ${accent}08)`,
+            }}
+          >
+            {name.charAt(0)}
+          </div>
+        )}
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-60 transition-opacity duration-500"
+          style={{
+            background: `radial-gradient(circle at 50% 50%, ${accent}40, transparent 70%)`,
+          }}
+        />
+      </div>
+      <div className="p-5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-white group-hover:text-brand-light transition-colors">
+            {name}
+          </h3>
+          <ExternalLink className="w-5 h-5 text-brand-muted group-hover:text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
+        </div>
+        <p className="text-sm text-brand-muted mt-1">Visitar sitio</p>
+      </div>
+    </a>
   );
 }
 
@@ -192,6 +283,27 @@ function App() {
                   {cta} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="clients" className="py-28 md:py-32 relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+        <div className="container relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
+            <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-white tracking-tight">
+              Proyectos que <span className="text-gradient">hablan por nosotros</span>
+            </h2>
+            <p className="text-lg text-brand-muted">
+              Cada sitio refleja nuestro compromiso con el diseño, la performance y la identidad de marca.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {clients.map((client) => (
+              <ClientCard key={client.name} {...client} />
             ))}
           </div>
         </div>
