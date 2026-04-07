@@ -275,7 +275,7 @@ function App() {
         <div className="container relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
             <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-white tracking-tight">
-              Servicios disenados para <span className="text-gradient">escalar</span>
+              Servicios diseñados para <span className="text-gradient">escalar</span>
             </h2>
             <p className="text-lg text-brand-muted">
               La paleta, el logo y el sistema visual ya pueden vivir de forma consistente dentro de una experiencia moderna y comercial.
