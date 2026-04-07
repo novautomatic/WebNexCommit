@@ -69,6 +69,20 @@ const clients = [
     accent: '#22d3ee',
     thumbnail: '/clients/nova-dialing.png',
   },
+  {
+    name: 'Fiedler Corredores',
+    url: 'https://fiedlercorredores.cl/',
+    gradient: 'from-slate-500/20 to-gray-500/20',
+    accent: '#94a3b8',
+    thumbnail: '/clients/fiedler-corredores.jpeg',
+  },
+  {
+    name: 'Vizzion 360',
+    url: 'https://vizzion360.cl/',
+    gradient: 'from-indigo-500/20 to-blue-500/20',
+    accent: '#6366f1',
+    thumbnail: '/clients/vizzion-360.jpeg',
+  },
 ];
 
 const scrollToServices = () => {
