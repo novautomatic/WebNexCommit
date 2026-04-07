@@ -16,7 +16,7 @@ const services = [
   {
     icon: RefreshCw,
     tone: 'tone-brand',
-    title: 'Procesos autonomos',
+    title: 'Procesos autónomos',
     description:
       'Conectamos tus herramientas y automatizamos flujos para que tu operacion gane velocidad y reduzca friccion.',
     benefit: 'Beneficio: -30% tiempo adm.',
