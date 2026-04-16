@@ -13,23 +13,46 @@ npm run preview   # Preview production build locally
 
 ## Architecture
 
-**Stack:** React 19 + Vite + Tailwind CSS + Three.js (react-three/fiber)
+**Stack:** React 19 + Vite + Tailwind CSS + Three.js (react-three/fiber) + InsForge (Backend/DB)
 
-**Structure:**
-- `src/main.jsx` - Entry point, renders App with StrictMode
-- `src/App.jsx` - Main component with navigation, hero, services, clients showcase, CTA, and footer sections
-- `src/Hero3D.jsx` - Three.js canvas with layered wireframe geometry and floating particles
-- `src/index.css` - Global styles with CSS custom properties, Tailwind directives, and custom component classes
+**Frontend Structure:**
+- `src/main.jsx` - Entry point, wraps App in `BrowserRouter` and `AuthProvider`
+- `src/App.jsx` - Main router configuration and layout (nav/footer)
+- `src/pages/` - Page components:
+  - `Home.jsx` - Landing page with 3D hero and services
+  - `BlogIndex.jsx` - List of published articles
+  - `PostDetail.jsx` - Individual article view
+  - `Login.jsx` - Auth entry point for admins
+  - `NCAdmin.jsx` - Protected dashboard for content management
+- `src/components/` - Reusable UI:
+  - `Brand.jsx` - Logo and brand assets with fallback logic
+  - `AuthContext.jsx` - Global auth state and InsForge session management
+  - `ProtectedRoute.jsx` - Guard component for admin routes
+- `src/Hero3D.jsx` - Three.js canvas with layered wireframe geometry
+- `src/index.css` - Global styles and Tailwind configuration
+
+**Backend Structure (InsForge):**
+- `backend/functions/` - Serverless edge functions deployed to `https://ut8vwhk6.functions.insforge.app`:
+  - `get-posts.js`, `get-post.js`, `get-categories.js` (Public Read)
+  - `create-post.js`, `update-post.js`, `delete-post.js` (Admin Write - requires `is_admin` flag)
+  - `get-comments.js`, `delete-comment.js`, `add-comment.js` (Moderation)
+  - `check-admin.js` (Auth validation - returns `{ isAdmin, user }`)
+- **OAuth Flow:** Login redirects to `https://ut8vwhk6.functions.insforge.app/login`, logout to `https://insforge.dev/logout`
+- **Admin Panel:** `/ncadmin` - Tab-based UI (Posts/Comments) with inline editor, category selector, and CRUD operations.
 
 **Key patterns:**
-- Component-based architecture with inline Tailwind classes.
-- 3D hero section uses `@react-three/fiber` Canvas with `@react-three/drei` utilities (Float, Canvas).
-- Hero3D layers: OuterIcosahedron (r=2.2) → MidDodecahedron (r=1.5) → CoreOctahedron (r=0.8) + Particles + GlowEdges.
-- Brand colors defined as CSS variables in `:root` (ink: #071b31, brand: #248bde, sky: #67c8f3).
-- Glass morphism effects via `.glass-dark` class with backdrop-filter.
-- Smooth scroll navigation between sections.
-- WhatsApp integration for contact links (`wa.me/56929237511`).
-- Image handling: Components (`BrandAsset`, `ClientCard`) implement fallback logic (e.g., showing initial letters or alternative sources if images fail to load).
+- **Routing:** SPA routing using `react-router-dom` with `vercel.json` rewrites for production.
+- **Security:** Access control based on `is_admin` flag in the `profiles` table.
+- **3D Hero:** Layered composition in `Hero3D.jsx`:
+  - `OuterIcosahedron` (r=2.2, wireframe, opacity 0.55) - slow rotation
+  - `MidDodecahedron` (r=1.5, wireframe, opacity 0.35) - counter-rotation
+  - `CoreOctahedron` (r=0.8, wireframe, opacity 0.9) - fast rotation
+  - `Particles` (100 points, radial distribution r=2.5-4.5)
+  - `GlowEdges` (pulsing opacity 0.6-0.9)
+  - All wrapped in `Float` for subtle movement
+- **Styling:** Brand colors via CSS variables in `:root` (ink: #071b31, brand: #248bde, sky: #67c8f3) and `.glass-dark` morphisms.
+- **Data Flow:** Frontend → InsForge Edge Functions (`https://ut8vwhk6.functions.insforge.app`) → PostgreSQL.
+- **Blog URLs:** Posts use slug-based routing (`/blog/:slug`), fetched via `get-post?slug={slug}`.
 
 **Custom CSS utilities:**
 - `.eyebrow` - Pill badge above hero heading
@@ -38,8 +61,4 @@ npm run preview   # Preview production build locally
 - `.btn-brand` / `.btn-ghost` - Primary and secondary buttons
 - `.text-gradient` - Gradient text effect
 
-**Data structures:**
-- `services` array (3 items): icon, tone, title, description, benefit, cta
-- `clients` array (7 items): name, url, gradient, accent, thumbnail
-
-**Build output:** `dist/` directory (static files for Vercel deployment)
+**Build output:** `dist/` directory (deployed via Vercel)

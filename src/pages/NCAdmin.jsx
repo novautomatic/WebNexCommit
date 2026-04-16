@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, Trash2, Plus, Edit3, MessageSquare, LogOut } from 'lucide-react';
+import { Save, Trash2, Plus, Edit3 } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
 
-const API_BASE = 'https://ut8vwhk6.functions.insforge.app';
+const supabase = createClient(
+  'https://rhifvtrzetamrfhflfzw.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoaWZ2dHJ6ZXRhbXJmaGZsZnp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNDIzOTEsImV4cCI6MjA5MTkxODM5MX0.BDmWZeePQyIqTPquqwNbRmAMYvLu5-DEPL7feIamA-k'
+);
 
 export default function NCAdmin() {
   const [activeTab, setActiveTab] = useState('posts'); // 'posts', 'comments'
@@ -11,7 +14,6 @@ export default function NCAdmin() {
   const [loading, setLoading] = useState(true);
   const [editingPost, setEditingPost] = useState(null);
   const [categories, setCategories] = useState([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAdminData();
@@ -20,15 +22,39 @@ export default function NCAdmin() {
   async function fetchAdminData() {
     setLoading(true);
     try {
-      const [postsRes, catsRes, commsRes] = await Promise.all([
-        fetch(`${API_BASE}/get-posts`), // In real scenario, we'd have a get-all-posts (including drafts)
-        fetch(`${API_BASE}/get-categories`),
-        fetch(`${API_BASE}/get-comments`) // Need to create this function
-      ]);
-      setPosts(await postsRes.json());
-      setCategories(await catsRes.json());
-      // Comments might fail until we deploy get-comments, so we catch it
-      try { setComments(await commsRes.json()); } catch(e) {}
+      // Fetch all posts (including drafts) directly from database
+      const { data: postsData, error: postsError } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          profiles!inner(username),
+          categories(name)
+        `)
+        .order('published_at', { ascending: false, nullsFirst: false });
+
+      // Fetch categories
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('categories')
+        .select('*');
+
+      // Fetch comments
+      const { data: commentsData } = await supabase
+        .from('comments')
+        .select('*');
+
+      if (postsError) throw postsError;
+      if (categoriesError) throw categoriesError;
+
+      // Format posts data
+      const formattedPosts = (postsData || []).map(post => ({
+        ...post,
+        author_name: post.profiles?.username,
+        category_name: post.categories?.name,
+      }));
+
+      setPosts(formattedPosts);
+      setCategories(categoriesData || []);
+      setComments(commentsData || []);
     } catch (e) {
       console.error('Admin fetch error:', e);
     } finally {
@@ -49,22 +75,34 @@ export default function NCAdmin() {
       is_published: formData.get('is_published') === 'true',
     };
 
-    const method = editingPost ? 'PUT' : 'POST';
-    const endpoint = editingPost ? '/update-post' : '/create-post';
-    if (editingPost) payload.id = editingPost.id;
-
     try {
-      const res = await fetch(`${API_BASE}${endpoint}`, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        alert('Guardado exitosamente');
-        setEditingPost(null);
-        fetchAdminData();
+      if (editingPost?.id) {
+        // Update existing post
+        const { error } = await supabase
+          .from('posts')
+          .update({
+            ...payload,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', editingPost.id);
+        if (error) throw error;
+      } else {
+        // Create new post
+        const { error } = await supabase
+          .from('posts')
+          .insert({
+            ...payload,
+            published_at: payload.is_published ? new Date().toISOString() : null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        if (error) throw error;
       }
+      alert('Guardado exitosamente');
+      setEditingPost(null);
+      fetchAdminData();
     } catch (e) {
+      console.error('Error saving post:', e);
       alert('Error al guardar');
     }
   };
@@ -72,13 +110,16 @@ export default function NCAdmin() {
   const deletePost = async (id) => {
     if (!confirm('¿Eliminar este post?')) return;
     try {
-      await fetch(`${API_BASE}/delete-post`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
       fetchAdminData();
-    } catch (e) { alert('Error al eliminar'); }
+    } catch (e) {
+      console.error('Error deleting post:', e);
+      alert('Error al eliminar');
+    }
   };
 
   if (loading) return <div className="container py-32 text-white text-center">Cargando panel...</div>;
@@ -183,7 +224,15 @@ export default function NCAdmin() {
                   <p className="text-[10px] text-brand-footer mt-2 uppercase tracking-widest">Post ID: {com.post_id}</p>
                 </div>
                 <button
-                  onClick={async () => { if(confirm('Eliminar comentario?')) { await fetch(`${API_BASE}/delete-comment`, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: com.id}) }); fetchAdminData(); } }}
+                  onClick={async () => {
+                    if(confirm('Eliminar comentario?')) {
+                      await supabase
+                        .from('comments')
+                        .delete()
+                        .eq('id', com.id);
+                      fetchAdminData();
+                    }
+                  }}
                   className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />

@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, User, Tag } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
 
-const API_BASE = 'https://ut8vwhk6.functions.insforge.app';
+const supabase = createClient(
+  'https://rhifvtrzetamrfhflfzw.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoaWZ2dHJ6ZXRhbXJmaGZsZnp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNDIzOTEsImV4cCI6MjA5MTkxODM5MX0.BDmWZeePQyIqTPquqwNbRmAMYvLu5-DEPL7feIamA-k'
+);
 
 export default function PostDetail() {
   const { slug } = useParams();
@@ -12,10 +16,27 @@ export default function PostDetail() {
   useEffect(() => {
     async function fetchPost() {
       try {
-        const res = await fetch(`${API_BASE}/get-post?slug=${slug}`);
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-        setPost(data);
+        const { data, error } = await supabase
+          .from('posts')
+          .select(`
+            *,
+            profiles!inner(username),
+            categories(name)
+          `)
+          .eq('slug', slug)
+          .eq('is_published', true)
+          .single();
+
+        if (error) throw error;
+
+        // Format the post data to match expected structure
+        const formattedPost = {
+          ...data,
+          author_name: data.profiles?.username,
+          category_name: data.categories?.name,
+        };
+
+        setPost(formattedPost);
       } catch (e) {
         console.error('Error fetching post:', e);
       } finally {

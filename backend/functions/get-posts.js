@@ -25,7 +25,10 @@ export default async (req) => {
       ORDER BY p.published_at DESC
     `);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Database error:', error);
+      throw error;
+    }
 
     return {
       status: 200,
@@ -33,6 +36,7 @@ export default async (req) => {
       body: JSON.stringify(data),
     };
   } catch (e) {
+    console.error('Function error:', e);
     return {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

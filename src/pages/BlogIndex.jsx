@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
 
-const API_BASE = 'https://ut8vwhk6.functions.insforge.app';
+const supabase = createClient(
+  'https://rhifvtrzetamrfhflfzw.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoaWZ2dHJ6ZXRhbXJmaGZsZnp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNDIzOTEsImV4cCI6MjA5MTkxODM5MX0.BDmWZeePQyIqTPquqwNbRmAMYvLu5-DEPL7feIamA-k'
+);
 
 export default function BlogIndex() {
   const [posts, setPosts] = useState([]);
@@ -11,13 +15,43 @@ export default function BlogIndex() {
 
   useEffect(() => {
     async function fetchData() {
+      console.log('Fetching blog data...');
       try {
-        const [postsRes, catsRes] = await Promise.all([
-          fetch(`${API_BASE}/get-posts`),
-          fetch(`${API_BASE}/get-categories`)
-        ]);
-        setPosts(await postsRes.json());
-        setCategories(await catsRes.json());
+        // Fetch posts using Supabase SDK
+        console.log('Fetching posts with Supabase SDK...');
+        const { data: postsData, error: postsError } = await supabase
+          .from('posts')
+          .select(`
+            *,
+            profiles!inner(username),
+            categories(name)
+          `)
+          .eq('is_published', true)
+          .order('published_at', { ascending: false });
+        console.log('Posts response:', { postsData, postsError });
+
+        // Fetch categories using Supabase SDK
+        console.log('Fetching categories with Supabase SDK...');
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('categories')
+          .select('*');
+        console.log('Categories response:', { categoriesData, categoriesError });
+
+        if (postsError) throw postsError;
+        if (categoriesError) throw categoriesError;
+
+        // Format posts data
+        const formattedPosts = (postsData || []).map(post => ({
+          ...post,
+          author_name: post.profiles?.username,
+          category_name: post.categories?.name,
+        }));
+
+        console.log('Formatted posts:', formattedPosts);
+        console.log('Posts length:', formattedPosts.length);
+
+        setPosts(formattedPosts);
+        setCategories(categoriesData || []);
       } catch (e) {
         console.error('Error fetching blog data:', e);
       } finally {
