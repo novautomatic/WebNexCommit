@@ -1,0 +1,285 @@
+import React, { Suspense } from 'react';
+import { ArrowRight, Globe, RefreshCw, Database } from 'lucide-react';
+import Hero3D from '../Hero3D';
+import { BrandLogo } from '../components/Brand';
+
+const services = [
+  {
+    icon: Globe,
+    tone: 'tone-deep',
+    title: 'Sitios web que convierten',
+    description: 'Diseñamos y lanzamos tu web a medida: rapida, responsive y pensada para que tus visitas se vuelvan clientes.',
+    benefit: 'Beneficio: +15% leads',
+    cta: 'Presencia profesional',
+  },
+  {
+    icon: RefreshCw,
+    tone: 'tone-brand',
+    title: 'Procesos autónomos',
+    description: 'Conectamos tus herramientas y automatizamos flujos para que tu operacion gane velocidad y reduzca friccion.',
+    benefit: 'Beneficio: -30% tiempo adm.',
+    cta: 'Optimiza tus flujos',
+  },
+  {
+    icon: Database,
+    tone: 'tone-sky',
+    title: 'Apps y datos',
+    description: 'Desarrollamos apps web y bases de datos seguras para agenda, inventarios, reportes y operaciones criticas.',
+    benefit: 'Beneficio: 100% control',
+    cta: 'Operacion ordenada',
+  },
+];
+
+const clients = [
+  {
+    name: 'Fibra Eyewear',
+    url: 'https://fibraeyewear.cl/',
+    gradient: 'from-pink-500/20 to-rose-500/20',
+    accent: '#f472b6',
+    thumbnail: '/clients/fibra-eyewear.png',
+  },
+  {
+    name: 'Dyetales',
+    url: 'https://dyetales.cl/',
+    gradient: 'from-violet-500/20 to-purple-500/20',
+    accent: '#a78bfa',
+    thumbnail: '/clients/dyetales.png',
+  },
+  {
+    name: 'Tarot-Dann',
+    url: 'https://tarot-dann.vercel.app/',
+    gradient: 'from-amber-500/20 to-orange-500/20',
+    accent: '#fbbf24',
+    thumbnail: '/clients/tarot-dann.png',
+  },
+  {
+    name: 'Reveal',
+    url: 'https://reveal-rhythm-refinery.lovable.app/',
+    gradient: 'from-emerald-500/20 to-teal-500/20',
+    accent: '#34d399',
+    thumbnail: '/clients/reveal.png',
+  },
+  {
+    name: 'Nova Dialing',
+    url: 'https://nova-dialing.vercel.app/',
+    gradient: 'from-cyan-500/20 to-blue-500/20',
+    accent: '#22d3ee',
+    thumbnail: '/clients/nova-dialing.png',
+  },
+  {
+    name: 'Fiedler Corredores',
+    url: 'https://fiedlercorredores.cl/',
+    gradient: 'from-slate-500/20 to-gray-500/20',
+    accent: '#94a3b8',
+    thumbnail: '/clients/fiedler-corredores.jpeg',
+  },
+  {
+    name: 'Vizzion 360',
+    url: 'https://vizzion360.cl/',
+    gradient: 'from-indigo-500/20 to-blue-500/20',
+    accent: '#6366f1',
+    thumbnail: '/clients/vizzion-360.jpeg',
+  },
+];
+
+function ClientCard({ name, url, gradient, accent, thumbnail }) {
+  const [thumbnailError, setThumbnailError] = React.useState(false);
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="client-card group relative overflow-hidden rounded-2xl glass-dark border-white/5 hover:border-white/10 transition-all duration-300 block"
+    >
+      <div
+        className="relative h-48 overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${gradient.replace('/20', '/15')}, rgba(8, 25, 42, 0.8))`,
+        }}
+      >
+        {!thumbnailError && thumbnail ? (
+          <img
+            src={thumbnail}
+            alt={`Vista previa de ${name}`}
+            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+            onError={() => setThumbnailError(true)}
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center text-5xl font-bold text-white/20"
+            style={{
+              background: `linear-gradient(135deg, ${accent}22, ${accent}08)`,
+            }}
+          >
+            {name.charAt(0)}
+          </div>
+        )}
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-60 transition-opacity duration-500"
+          style={{
+            background: `radial-gradient(circle at 50% 50%, ${accent}40, transparent 70%)`,
+          }}
+        />
+      </div>
+      <div className="p-5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-white group-hover:text-brand-light transition-colors">
+            {name}
+          </h3>
+          <span className="w-5 h-5 text-brand-muted group-hover:text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-all">↗</span>
+        </div>
+        <p className="text-sm text-brand-muted mt-1">Visitar sitio</p>
+      </div>
+    </a>
+  );
+}
+
+export default function Home() {
+  const scrollToServices = () => {
+    document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  return (
+    <>
+      <section id="top" className="relative w-full min-h-screen overflow-hidden flex items-center">
+        <div className="hero-grid absolute inset-0 z-0 pointer-events-none" />
+        <div
+          className="absolute inset-y-0 right-0 z-0 pointer-events-none"
+          style={{
+            width: '62%',
+            background: 'radial-gradient(ellipse at center, rgba(35, 136, 218, 0.18) 0%, rgba(98, 198, 244, 0.08) 35%, transparent 72%)',
+            filter: 'blur(60px)',
+          }}
+        />
+        <div
+          className="absolute z-0 pointer-events-none hero-canvas"
+          style={{
+            top: 0,
+            right: '-2%',
+            width: '56%',
+            height: '100%',
+          }}
+        >
+          <Suspense fallback={null}>
+            <Hero3D />
+          </Suspense>
+        </div>
+        <div className="relative z-10 w-full h-full flex flex-col justify-center pointer-events-none">
+          <div className="container pt-32 md:pt-24">
+            <div className="max-w-2xl animate-fade-in pointer-events-auto">
+              <div className="eyebrow mb-6">
+                <BrandLogo compact />
+                <span>Tecnologia a medida para crecer con foco comercial</span>
+              </div>
+              <h1 className="text-5xl md:text-7xl font-semibold mb-5 leading-tight text-white">
+                Convertimos ideas en{' '}
+                <span className="text-gradient">plataformas con identidad</span>
+              </h1>
+              <p className="text-lg md:text-xl mb-10 max-w-xl font-normal animate-fade-in delay-100 text-brand-muted">
+                Integramos diseno, automatizacion y desarrollo a medida para que tu negocio avance con una marca coherente y una operacion mas solida.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 animate-fade-in delay-200">
+                <button className="btn btn-brand group" onClick={scrollToServices}>
+                  Nuestros servicios
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+                <a
+                  href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-ghost"
+                >
+                  Contactar
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="services" className="py-28 md:py-32 relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <div className="container relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
+            <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-white tracking-tight">
+              Servicios diseñados para <span className="text-gradient">escalar</span>
+            </h2>
+            <p className="text-lg text-brand-muted">
+              La paleta, el logo y el sistema visual ya pueden vivir de forma consistente dentro de una experiencia moderna y comercial.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {services.map((service) => {
+              const Icon = service.icon;
+              return (
+                <div key={service.title} className={`service-card glass-dark ${service.tone} p-10 rounded-3xl group`}>
+                  <div className="service-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-transform group-hover:scale-110 duration-500">
+                    <Icon className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-2xl font-semibold mb-4 text-white">{service.title}</h3>
+                  <p className="mb-8 min-h-[88px] leading-relaxed text-brand-muted">{service.description}</p>
+                  <div className="service-pill inline-block px-4 py-1.5 rounded-full text-xs font-semibold mb-6">
+                    {service.benefit}
+                  </div>
+                  <div className="service-link flex items-center gap-2 text-sm font-semibold transition-colors">
+                    {service.cta} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section id="clients" className="py-28 md:py-32 relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <div className="container relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
+            <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-white tracking-tight">
+              Proyectos que <span className="text-gradient">hablan por nosotros</span>
+            </h2>
+            <p className="text-lg text-brand-muted">
+              Cada sitio refleja nuestro compromiso con el diseño, la performance y la identidad de marca.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {clients.map((client) => (
+              <ClientCard key={client.name} {...client} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-28 md:py-32 relative overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-full w-full pointer-events-none cta-glow" />
+        <div className="container relative z-10 text-center">
+          <div className="max-w-4xl mx-auto p-10 md:p-12 rounded-[32px] glass-dark border-white/5 shadow-2xl">
+            <div className="flex justify-center mb-8">
+              <BrandLogo compact />
+            </div>
+            <h2 className="text-4xl md:text-5xl font-semibold text-white mb-6 tracking-tight">
+              Listo para alinear tu <span className="text-gradient">marca y producto</span>?
+            </h2>
+            <p className="text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed text-brand-muted">
+              El sitio ya admite la identidad de NexCommit. El siguiente paso es terminar de aterrizar los assets definitivos para dejar la marca consistente en web, favicon y piezas futuras.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a
+                href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-brand group px-10 py-4"
+              >
+                Hablar con un experto
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </a>
+              <a href="#services" className="btn btn-ghost px-10 py-4">
+                Ver servicios
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
