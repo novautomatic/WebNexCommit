@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import BlogIndex from './pages/BlogIndex';
 import PostDetail from './pages/PostDetail';
@@ -22,14 +22,14 @@ function App() {
             WebkitBackdropFilter: 'blur(18px)',
           }}
         >
-          <a href="/" aria-label="Ir al inicio">
+          <Link to="/" aria-label="Ir al inicio">
             <BrandLogo />
-          </a>
+          </Link>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-brand-muted">
-            <a href="/blog" className="hover:text-white transition-colors duration-200">
+            <Link to="/blog" className="hover:text-white transition-colors duration-200">
               Blog
-            </a>
+            </Link>
             <a
               href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
               target="_blank"
@@ -59,13 +59,13 @@ function App() {
         <footer className="py-16 border-t border-white/5">
           <div className="container">
             <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-12">
-              <a href="/" aria-label="Ir al inicio">
+              <Link to="/" aria-label="Ir al inicio">
                 <BrandLogo />
-              </a>
+              </Link>
               <div className="flex items-center gap-8 text-sm font-medium text-brand-muted">
-                <a href="/blog" className="hover:text-white transition-colors">
+                <Link to="/blog" className="hover:text-white transition-colors">
                   Blog
-                </a>
+                </Link>
                 <a
                   href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
                   target="_blank"
