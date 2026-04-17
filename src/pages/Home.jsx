@@ -53,13 +53,6 @@ const clients = [
     thumbnail: '/clients/tarot-dann.png',
   },
   {
-    name: 'Reveal',
-    url: 'https://reveal-rhythm-refinery.lovable.app/',
-    gradient: 'from-emerald-500/20 to-teal-500/20',
-    accent: '#34d399',
-    thumbnail: '/clients/reveal.png',
-  },
-  {
     name: 'Nova Dialing',
     url: 'https://nova-dialing.vercel.app/',
     gradient: 'from-cyan-500/20 to-blue-500/20',

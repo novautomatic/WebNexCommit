@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Trash2, Plus, Edit3 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
+import { useAuth } from '../components/AuthContext';
 
 const supabase = createClient(
   'https://rhifvtrzetamrfhflfzw.supabase.co',
@@ -8,6 +9,7 @@ const supabase = createClient(
 );
 
 export default function NCAdmin() {
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('posts'); // 'posts', 'comments'
   const [posts, setPosts] = useState([]);
   const [comments, setComments] = useState([]);
@@ -64,6 +66,13 @@ export default function NCAdmin() {
 
   const handleSavePost = async (e) => {
     e.preventDefault();
+
+    // Check authentication
+    if (!user) {
+      alert('Error: No hay sesión activa. Por favor inicia sesión nuevamente.');
+      return;
+    }
+
     const formData = new FormData(e.target);
     const payload = {
       title: formData.get('title'),
@@ -73,11 +82,13 @@ export default function NCAdmin() {
       category_id: formData.get('category_id'),
       featured_image: formData.get('featured_image'),
       is_published: formData.get('is_published') === 'true',
+      author_id: user.id, // Required field
     };
 
     try {
       if (editingPost?.id) {
         // Update existing post
+        delete payload.author_id; // Don't update author_id on edit
         const { error } = await supabase
           .from('posts')
           .update({
@@ -103,7 +114,7 @@ export default function NCAdmin() {
       fetchAdminData();
     } catch (e) {
       console.error('Error saving post:', e);
-      alert('Error al guardar');
+      alert(`Error al guardar: ${e.message}`);
     }
   };
 
@@ -132,6 +143,12 @@ export default function NCAdmin() {
           <p className="text-brand-muted">Gestión de contenidos NexCommit</p>
         </div>
         <div className="flex gap-4">
+          <button
+            onClick={logout}
+            className="px-4 py-2 rounded-xl border border-white/10 text-white/70 hover:text-white hover:border-white/20 transition-colors text-sm"
+          >
+            Cerrar Sesión
+          </button>
           <button
             onClick={() => setEditingPost({})}
             className="btn btn-brand flex items-center gap-2"
