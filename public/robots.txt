@@ -1,0 +1,14 @@
+# robots.txt para NexCommit
+# Permite a todos los crawlers indexar el sitio
+
+User-agent: *
+Allow: /
+
+# Bloquear acceso a directorios privados
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
+Disallow: /.well-known/
+
+# Sitemap
+Sitemap: https://nomadlexis.com/sitemap.xml

@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { ArrowRight, Globe, RefreshCw, Database } from 'lucide-react';
 import Hero3D from '../Hero3D';
 import { BrandLogo } from '../components/Brand';
+import SEO from '../components/SEO';
 
 const services = [
   {
@@ -134,6 +135,12 @@ export default function Home() {
 
   return (
     <>
+      <SEO 
+        title="NexCommit - Convertimos ideas en plataformas con identidad"
+        description="Integramos diseño, automatización y desarrollo a medida para que tu negocio avance con una marca coherente y una operación más sólida. Servicios de desarrollo web, automatización y apps a medida."
+        keywords="NexCommit, desarrollo web, automatización, diseño digital, plataformas a medida, desarrollo de apps, Chile, tecnología, innovación digital"
+        canonicalUrl="https://nomadlexis.com"
+      />
       <section id="top" className="relative w-full min-h-screen overflow-hidden flex items-center">
         <div className="hero-grid absolute inset-0 z-0 pointer-events-none" />
         <div

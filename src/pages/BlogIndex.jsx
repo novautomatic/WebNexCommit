@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
+import SEO from '../components/SEO';
 
 const supabase = createClient(
   'https://rhifvtrzetamrfhflfzw.supabase.co',
@@ -70,8 +71,15 @@ export default function BlogIndex() {
   }
 
   return (
-    <div className="pb-20">
-      <div className="container">
+    <>
+      <SEO 
+        title="Blog de NexCommit - Desarrollo, Automatización y Diseño Digital"
+        description="Explora nuestros conocimientos sobre desarrollo web, automatización de procesos y diseño de productos digitales. Artículos y recursos para innovar tu negocio."
+        keywords="blog NexCommit, desarrollo web, automatización, diseño digital, tecnología, programación, artículos técnicos, innovación"
+        canonicalUrl="https://nomadlexis.com/blog"
+      />
+      <div className="pb-20">
+        <div className="container">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h1 className="text-5xl md:text-6xl font-semibold mb-6 text-white tracking-tight">
             Nuestro <span className="text-gradient">Blog</span>
@@ -149,5 +157,6 @@ export default function BlogIndex() {
         </div>
       </div>
     </div>
+    </>
   );
 }

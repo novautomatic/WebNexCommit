@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { Lock, Mail } from 'lucide-react';
+import SEO from '../components/SEO';
 
 export default function Login() {
   const { login } = useAuth();
@@ -19,7 +20,14 @@ export default function Login() {
   };
 
   return (
-    <div className="container py-32 flex items-center justify-center min-h-screen">
+    <>
+      <SEO 
+        title="Acceso Administrativo - NexCommit"
+        description="Panel de acceso exclusivo para administradores de NexCommit."
+        noIndex={true}
+        canonicalUrl="https://nomadlexis.com/login"
+      />
+      <div className="container py-32 flex items-center justify-center min-h-screen">
       <div className="max-w-md w-full p-10 rounded-3xl glass-dark border-white/10">
         <div className="w-16 h-16 bg-brand/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
           <Lock className="w-8 h-8 text-brand-light" />
@@ -67,5 +75,6 @@ export default function Login() {
         </form>
       </div>
     </div>
+    </>
   );
 }

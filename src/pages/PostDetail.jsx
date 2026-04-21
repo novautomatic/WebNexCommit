@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, User, Tag } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
+import SEO from '../components/SEO';
 
 const supabase = createClient(
   'https://rhifvtrzetamrfhflfzw.supabase.co',
@@ -64,7 +65,14 @@ export default function PostDetail() {
   }
 
   return (
-    <div className="pb-20 container max-w-4xl">
+    <>
+      <SEO 
+        title={`${post.title} | Blog NexCommit`}
+        description={post.excerpt || post.content?.substring(0, 160) || 'Artículo del blog de NexCommit sobre desarrollo, automatización y diseño digital.'}
+        keywords={`blog, ${post.category_name}, ${post.title}, NexCommit, desarrollo web, tecnología`}
+        canonicalUrl={`https://nomadlexis.com/blog/${post.slug}`}
+      />
+      <div className="pb-20 container max-w-4xl">
       <Link to="/blog" className="inline-flex items-center gap-2 text-brand-muted hover:text-white transition-colors mb-12 group">
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
         Volver al blog
@@ -109,5 +117,6 @@ export default function PostDetail() {
         />
       </div>
     </div>
+    </>
   );
 }

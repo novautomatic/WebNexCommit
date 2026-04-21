@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Save, Trash2, Plus, Edit3 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { useAuth } from '../components/AuthContext';
+import SEO from '../components/SEO';
 
 const supabase = createClient(
   'https://rhifvtrzetamrfhflfzw.supabase.co',
@@ -136,7 +137,14 @@ export default function NCAdmin() {
   if (loading) return <div className="container py-32 text-white text-center">Cargando panel...</div>;
 
   return (
-    <div className="container pb-20">
+    <>
+      <SEO 
+        title="Panel de Administración - NexCommit"
+        description="Panel de gestión de contenidos exclusivo para administradores de NexCommit."
+        noIndex={true}
+        canonicalUrl="https://nomadlexis.com/ncadmin"
+      />
+      <div className="container pb-20">
       <div className="flex justify-between items-center mb-12">
         <div>
           <h1 className="text-4xl font-semibold text-white">NC Admin</h1>
@@ -260,5 +268,6 @@ export default function NCAdmin() {
         </div>
       )}
     </div>
+    </>
   );
 }
