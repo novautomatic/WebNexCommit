@@ -70,7 +70,7 @@ export default function PostDetail() {
         title={`${post.title} | Blog NexCommit`}
         description={post.excerpt || post.content?.substring(0, 160) || 'Artículo del blog de NexCommit sobre desarrollo, automatización y diseño digital.'}
         keywords={`blog, ${post.category_name}, ${post.title}, NexCommit, desarrollo web, tecnología`}
-        canonicalUrl={`https://nomadlexis.com/blog/${post.slug}`}
+        canonicalUrl={`https://nexcommit.com/blog/${post.slug}`}
       />
       <div className="pb-20 container max-w-4xl">
       <Link to="/blog" className="inline-flex items-center gap-2 text-brand-muted hover:text-white transition-colors mb-12 group">

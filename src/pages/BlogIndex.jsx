@@ -76,7 +76,7 @@ export default function BlogIndex() {
         title="Blog de NexCommit - Desarrollo, Automatización y Diseño Digital"
         description="Explora nuestros conocimientos sobre desarrollo web, automatización de procesos y diseño de productos digitales. Artículos y recursos para innovar tu negocio."
         keywords="blog NexCommit, desarrollo web, automatización, diseño digital, tecnología, programación, artículos técnicos, innovación"
-        canonicalUrl="https://nomadlexis.com/blog"
+        canonicalUrl="https://nexcommit.com/blog"
       />
       <div className="pb-20">
         <div className="container">

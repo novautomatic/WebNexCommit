@@ -11,4 +11,4 @@ Disallow: /private/
 Disallow: /.well-known/
 
 # Sitemap
-Sitemap: https://nomadlexis.com/sitemap.xml
+Sitemap: https://nexcommit.com/sitemap.xml
