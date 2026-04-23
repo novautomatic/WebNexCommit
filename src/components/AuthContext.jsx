@@ -14,8 +14,17 @@ export function AuthProvider({ children }) {
     checkSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'TOKEN_REFRESHED') {
+        // Token refreshed successfully
+        setUser(session?.user ?? null);
+      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        // User signed out or deleted
+        setUser(null);
+      } else if (event === 'SIGNED_IN') {
+        // User signed in
+        setUser(session?.user ?? null);
+      }
       setLoading(false);
     });
 
@@ -24,10 +33,16 @@ export function AuthProvider({ children }) {
 
   async function checkSession() {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Session check error:', error);
+        setUser(null);
+      } else {
+        setUser(session?.user ?? null);
+      }
     } catch (e) {
       console.error('Session check failed', e);
+      setUser(null);
     } finally {
       setLoading(false);
     }
