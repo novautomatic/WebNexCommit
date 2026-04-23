@@ -1,21 +1,28 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
 import { Menu, X } from 'lucide-react';
 import Home from './pages/Home';
-import BlogIndex from './pages/BlogIndex';
-import PostDetail from './pages/PostDetail';
+import { BlogList } from './pages/blog/BlogList';
+import { BlogPost } from './pages/blog/BlogPost';
+import { BlogAdmin } from './pages/blog/BlogAdmin';
 import NCAdmin from './pages/NCAdmin';
 import Login from './pages/Login';
 import { AuthProvider } from './components/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { BrandLogo } from './components/Brand';
 
+const queryClient = new QueryClient();
+
 function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <AuthProvider>
-      <div className="app-shell w-full min-h-screen">
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <div className="app-shell w-full min-h-screen">
         <nav
           className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 md:px-8 py-5 border-b"
           style={{
@@ -88,8 +95,16 @@ function App() {
 
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/blog" element={<BlogIndex />} />
-          <Route path="/blog/:slug" element={<PostDetail />} />
+          <Route path="/blog" element={<BlogList />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route
+            path="/blog/admin"
+            element={
+              <ProtectedRoute>
+                <BlogAdmin />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/login" element={<Login />} />
           <Route
             path="/ncadmin"
@@ -132,6 +147,8 @@ function App() {
         </footer>
       </div>
     </AuthProvider>
+    </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 

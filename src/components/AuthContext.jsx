@@ -1,11 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
-
-const supabase = createClient(
-  'https://rhifvtrzetamrfhflfzw.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoaWZ2dHJ6ZXRhbXJmaGZsZnp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNDIzOTEsImV4cCI6MjA5MTkxODM5MX0.BDmWZeePQyIqTPquqwNbRmAMYvLu5-DEPL7feIamA-k'
-);
+import { supabase } from '../lib/supabaseClient';
 
 const AuthContext = createContext(null);
 
@@ -39,25 +34,20 @@ export function AuthProvider({ children }) {
   }
 
   const login = async (email, password) => {
-    console.log('Login function called with email:', email);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      console.log('Login response:', { data, error });
       if (error) {
-        console.error('Login error:', error);
         throw error;
       }
       if (data.user) {
-        console.log('Setting user:', data.user);
         setUser(data.user);
-        // Redirect to admin panel after successful login using React Router
-        navigate('/ncadmin');
+        // Redirect to blog admin panel after successful login using React Router
+        navigate('/blog/admin');
       }
     } catch (e) {
-      console.error('Login failed', e);
       throw e;
     }
   };

@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Trash2, Plus, Edit3 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../components/AuthContext';
 import SEO from '../components/SEO';
-
-const supabase = createClient(
-  'https://rhifvtrzetamrfhflfzw.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoaWZ2dHJ6ZXRhbXJmaGZsZnp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNDIzOTEsImV4cCI6MjA5MTkxODM5MX0.BDmWZeePQyIqTPquqwNbRmAMYvLu5-DEPL7feIamA-k'
-);
 
 export default function NCAdmin() {
   const { user, logout } = useAuth();
