@@ -19,8 +19,8 @@ export function BlogAdmin() {
     content: '',
     excerpt: '',
     image_url: '',
-    published: false,
-    status: 'draft',
+    published: true,
+    status: 'published',
   });
 
   if (!user) {
@@ -77,8 +77,8 @@ export function BlogAdmin() {
             content: '',
             excerpt: '',
             image_url: '',
-            published: false,
-            status: 'draft',
+            published: true,
+            status: 'published',
           });
         },
       }
@@ -155,8 +155,8 @@ export function BlogAdmin() {
           content: generatedPost.content,
           excerpt: generatedPost.excerpt || '',
           image_url: '',
-          published: false,
-          status: 'draft',
+          published: true,
+          status: 'published',
           author_id: authorId,
           seo_metadata: generatedPost.seo_metadata || {
             meta_description: generatedPost.excerpt || '',
@@ -172,8 +172,8 @@ export function BlogAdmin() {
               content: generatedPost.content,
               excerpt: generatedPost.excerpt || '',
               image_url: '',
-              published: false,
-              status: 'draft',
+              published: true,
+              status: 'published',
             });
             alert('Post generado y guardado exitosamente con IA');
             setShowAiGenerator(false);
