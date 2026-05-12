@@ -3,6 +3,7 @@ import { useCreatePost, useGetAllPosts, useUpdatePost, useDeletePost } from '../
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 
 export function BlogAdmin() {
   const { user, logout } = useAuth() || { user: null, logout: () => {} };
@@ -12,6 +13,8 @@ export function BlogAdmin() {
   const updatePost = useUpdatePost();
   const deletePost = useDeletePost();
   const [showAiGenerator, setShowAiGenerator] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
   const [aiTopic, setAiTopic] = useState('');
   const [aiKeywords, setAiKeywords] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
@@ -349,19 +352,49 @@ export function BlogAdmin() {
                 </div>
 
                 <div>
-                  <label htmlFor="content" className="block text-sm font-medium text-white mb-2">
-                    ✍️ Contenido (Markdown)
-                  </label>
-                  <textarea
-                    id="content"
-                    name="content"
-                    value={formData.content}
-                    onChange={handleChange}
-                    required
-                    placeholder="Contenido del post en formato Markdown"
-                    rows={10}
-                    className="w-full px-4 py-3 rounded-xl glass-dark border-white/10 text-white placeholder-brand-muted focus:border-brand-light focus:outline-none transition-colors resize-none"
-                  />
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="content" className="block text-sm font-medium text-white">
+                      ✍️ Contenido (Markdown)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPreview(!showPreview)}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                        showPreview
+                          ? 'bg-brand-light/20 text-brand-light border border-brand-light/30'
+                          : 'bg-white/10 text-brand-muted border border-white/10 hover:bg-white/20'
+                      }`}
+                    >
+                      {showPreview ? '✏️ Editar' : '👁️ Vista previa'}
+                    </button>
+                  </div>
+                  {showPreview ? (
+                    <div className="min-h-[260px] px-4 py-3 rounded-xl glass-dark border border-brand-light/30 text-white text-sm prose prose-invert prose-sm max-w-none overflow-auto">
+                      {formData.content ? (
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <p style={{ marginBottom: '1rem', lineHeight: '1.8' }}>{children}</p>,
+                            li: ({ children }) => <li style={{ marginBottom: '0.25rem' }}>{children}</li>,
+                          }}
+                        >
+                          {formData.content}
+                        </ReactMarkdown>
+                      ) : (
+                        <p className="text-brand-muted italic">Sin contenido aún...</p>
+                      )}
+                    </div>
+                  ) : (
+                    <textarea
+                      id="content"
+                      name="content"
+                      value={formData.content}
+                      onChange={handleChange}
+                      required
+                      placeholder="Contenido del post en formato Markdown"
+                      rows={10}
+                      className="w-full px-4 py-3 rounded-xl glass-dark border-white/10 text-white placeholder-brand-muted focus:border-brand-light focus:outline-none transition-colors resize-none"
+                    />
+                  )}
                 </div>
 
                 <div>
@@ -425,48 +458,74 @@ export function BlogAdmin() {
             ) : (
               <div className="space-y-3">
                 {allPosts.map(post => (
-                  <div key={post.id} className="flex items-center gap-4 p-4 rounded-xl bg-[#0f172a]/60 border border-white/5 hover:border-white/10 transition-colors">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-white text-sm font-medium truncate">{post.title}</span>
-                        <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-                          post.published
-                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                            : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-                        }`}>
-                          {post.published ? 'Publicado' : 'Borrador'}
-                        </span>
+                  <div key={post.id}>
+                    <div className="flex items-center gap-4 p-4 rounded-xl bg-[#0f172a]/60 border border-white/5 hover:border-white/10 transition-colors">
+                      <button
+                        onClick={() => setExpandedPostId(expandedPostId === post.id ? null : post.id)}
+                        className="shrink-0 text-brand-muted hover:text-white transition-colors"
+                      >
+                        {expandedPostId === post.id ? '▼' : '▶'}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-white text-sm font-medium truncate">{post.title}</span>
+                          <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
+                            post.published
+                              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                              : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                          }`}>
+                            {post.published ? 'Publicado' : 'Borrador'}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-brand-muted">
+                          {post.slug} · {new Date(post.created_at).toLocaleDateString('es-CL')}
+                        </div>
                       </div>
-                      <div className="text-[11px] text-brand-muted">
-                        {post.slug} · {new Date(post.created_at).toLocaleDateString('es-CL')}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => {
+                            if (confirm(post.published ? '¿Mover a borrador?' : '¿Publicar este post?')) {
+                              updatePost.mutate({ id: post.id, published: !post.published, status: post.published ? 'draft' : 'published' });
+                            }
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                            post.published
+                              ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 hover:bg-yellow-500/20'
+                              : 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20'
+                          }`}
+                        >
+                          {post.published ? 'Despublicar' : 'Publicar'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`¿Eliminar "${post.title}"? Esta acción no se puede deshacer.`)) {
+                              deletePost.mutate(post.id);
+                            }
+                          }}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                        >
+                          Eliminar
+                        </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => {
-                          if (confirm(post.published ? '¿Mover a borrador?' : '¿Publicar este post?')) {
-                            updatePost.mutate({ id: post.id, published: !post.published, status: post.published ? 'draft' : 'published' });
-                          }
-                        }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                          post.published
-                            ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 hover:bg-yellow-500/20'
-                            : 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20'
-                        }`}
-                      >
-                        {post.published ? 'Despublicar' : 'Publicar'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm(`¿Eliminar "${post.title}"? Esta acción no se puede deshacer.`)) {
-                            deletePost.mutate(post.id);
-                          }
-                        }}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all"
-                      >
-                        Eliminar
-                      </button>
-                    </div>
+                    {expandedPostId === post.id && (
+                      <div className="mx-4 mb-3 p-4 rounded-xl bg-[#0a1628] border border-white/10 text-sm text-brand-muted prose prose-invert prose-sm max-w-none overflow-auto">
+                        {post.excerpt && (
+                          <div className="mb-3 p-3 rounded-lg bg-brand-light/10 border border-brand-light/20">
+                            <span className="text-[11px] font-semibold uppercase tracking-wider text-brand-light">Extracto</span>
+                            <p className="mt-1 text-white">{post.excerpt}</p>
+                          </div>
+                        )}
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <p style={{ marginBottom: '1rem', lineHeight: '1.8' }}>{children}</p>,
+                            li: ({ children }) => <li style={{ marginBottom: '0.25rem' }}>{children}</li>,
+                          }}
+                        >
+                          {post.content}
+                        </ReactMarkdown>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
