@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCreatePost } from '../../hooks/blog';
+import { useCreatePost, useGetAllPosts, useUpdatePost, useDeletePost } from '../../hooks/blog';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,9 @@ export function BlogAdmin() {
   const { user, logout } = useAuth() || { user: null, logout: () => {} };
   const navigate = useNavigate();
   const createPost = useCreatePost();
+  const { data: allPosts, isLoading: postsLoading } = useGetAllPosts();
+  const updatePost = useUpdatePost();
+  const deletePost = useDeletePost();
   const [showAiGenerator, setShowAiGenerator] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
   const [aiKeywords, setAiKeywords] = useState('');
@@ -406,6 +409,69 @@ export function BlogAdmin() {
               </div>
             </div>
           </form>
+
+          {/* Posts List */}
+          <div className="mt-12 p-6 rounded-3xl glass-dark border border-white/10">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="text-2xl">📋</div>
+              <h2 className="text-2xl font-bold text-white">Posts existentes</h2>
+              <span className="text-sm text-brand-muted">({allPosts?.length || 0} total)</span>
+            </div>
+
+            {postsLoading ? (
+              <div className="text-brand-muted text-sm animate-pulse">Cargando posts...</div>
+            ) : !allPosts?.length ? (
+              <div className="text-brand-muted text-sm italic">No hay posts aún.</div>
+            ) : (
+              <div className="space-y-3">
+                {allPosts.map(post => (
+                  <div key={post.id} className="flex items-center gap-4 p-4 rounded-xl bg-[#0f172a]/60 border border-white/5 hover:border-white/10 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-white text-sm font-medium truncate">{post.title}</span>
+                        <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
+                          post.published
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                            : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                        }`}>
+                          {post.published ? 'Publicado' : 'Borrador'}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-brand-muted">
+                        {post.slug} · {new Date(post.created_at).toLocaleDateString('es-CL')}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => {
+                          if (confirm(post.published ? '¿Mover a borrador?' : '¿Publicar este post?')) {
+                            updatePost.mutate({ id: post.id, published: !post.published, status: post.published ? 'draft' : 'published' });
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          post.published
+                            ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 hover:bg-yellow-500/20'
+                            : 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20'
+                        }`}
+                      >
+                        {post.published ? 'Despublicar' : 'Publicar'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`¿Eliminar "${post.title}"? Esta acción no se puede deshacer.`)) {
+                            deletePost.mutate(post.id);
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
