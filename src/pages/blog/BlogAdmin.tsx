@@ -32,14 +32,13 @@ export function BlogAdmin() {
   }
 
   const generateSlug = () => {
-    const base = formData.title
+    const slug = formData.title
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
-    const suffix = Math.random().toString(36).substring(2, 8);
-    setFormData({ ...formData, slug: `${base}-${suffix}` });
+    setFormData({ ...formData, slug });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,10 +49,19 @@ export function BlogAdmin() {
       return;
     }
 
+    const baseSlug = formData.slug || formData.title
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    const suffix = Math.random().toString(36).substring(2, 8);
+    const uniqueSlug = `${baseSlug}-${suffix}`;
+
     createPost.mutate(
       {
         title: formData.title,
-        slug: formData.slug,
+        slug: uniqueSlug,
         content: formData.content,
         excerpt: formData.excerpt || undefined,
         image_url: formData.image_url || undefined,
