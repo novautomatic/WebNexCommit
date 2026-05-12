@@ -127,13 +127,31 @@ export function BlogPost() {
             <div className="mt-12 p-6 rounded-2xl glass-dark border border-white/10">
               <h3 className="text-lg font-bold text-white mb-4">📢 Compartir este post</h3>
               <div className="flex gap-2">
-                <button className="flex-1 px-4 py-2 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 transition-all">
+                <button
+                  onClick={() => {
+                    const url = `${window.location.origin}/blog/${post.slug}`;
+                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer');
+                  }}
+                  className="flex-1 px-4 py-2 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 transition-all"
+                >
                   Twitter
                 </button>
-                <button className="flex-1 px-4 py-2 rounded-xl bg-blue-600/20 border border-blue-600/30 text-blue-400 hover:bg-blue-600/30 transition-all">
+                <button
+                  onClick={() => {
+                    const url = `${window.location.origin}/blog/${post.slug}`;
+                    window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(post.title)}`, '_blank', 'noopener,noreferrer');
+                  }}
+                  className="flex-1 px-4 py-2 rounded-xl bg-blue-600/20 border border-blue-600/30 text-blue-400 hover:bg-blue-600/30 transition-all"
+                >
                   LinkedIn
                 </button>
-                <button className="flex-1 px-4 py-2 rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 hover:bg-green-500/30 transition-all">
+                <button
+                  onClick={() => {
+                    const url = `${window.location.origin}/blog/${post.slug}`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(`${post.title} ${url}`)}`, '_blank', 'noopener,noreferrer');
+                  }}
+                  className="flex-1 px-4 py-2 rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 hover:bg-green-500/30 transition-all"
+                >
                   WhatsApp
                 </button>
               </div>
