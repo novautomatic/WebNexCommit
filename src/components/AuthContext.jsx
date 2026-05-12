@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
       if (data.user) {
         setUser(data.user);
         // Redirect to blog admin panel after successful login using React Router
-        navigate('/blog/admin');
+        navigate('/admin');
       }
     } catch (e) {
       throw e;
