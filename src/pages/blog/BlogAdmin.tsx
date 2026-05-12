@@ -32,11 +32,14 @@ export function BlogAdmin() {
   }
 
   const generateSlug = () => {
-    const slug = formData.title
+    const base = formData.title
       .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
-    setFormData({ ...formData, slug });
+    const suffix = Math.random().toString(36).substring(2, 8);
+    setFormData({ ...formData, slug: `${base}-${suffix}` });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
