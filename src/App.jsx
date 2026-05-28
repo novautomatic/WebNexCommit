@@ -8,6 +8,8 @@ import { BlogList } from './pages/blog/BlogList';
 import { BlogPost } from './pages/blog/BlogPost';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import { AuthProvider } from './components/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { BrandLogo } from './components/Brand';
@@ -110,6 +112,8 @@ function App() {
             }
           />
           <Route path="/login" element={<Login />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
         </Routes>
 
         {!isAdmin && (<>
@@ -134,6 +138,12 @@ function App() {
                 <a href="#" className="hover:text-white transition-colors">
                   LinkedIn
                 </a>
+                <Link to="/privacy" className="hover:text-white transition-colors">
+                  Política de Privacidad
+                </Link>
+                <Link to="/terms" className="hover:text-white transition-colors">
+                  Términos y Condiciones
+                </Link>
               </div>
             </div>
             <div className="text-center text-sm border-t border-white/5 pt-8 text-brand-footer">
