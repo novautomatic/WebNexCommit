@@ -1,0 +1,12 @@
+# NexCommit
+
+> NexCommit es una agencia de desarrollo tecnológico que une diseño, automatización y desarrollo a medida para que negocios avancen con una marca coherente y una operación más sólida.
+
+NexCommit ofrece desarrollo web a medida, automatización de procesos comerciales y operativos, y desarrollo de apps y dashboards con bases de datos seguras (agenda, inventario, reportes). Trabaja de forma remota con clientes en Chile y fuera del país, usando stacks modernos como React, Supabase/PostgreSQL y despliegue en Vercel.
+
+## Páginas
+
+- [Inicio](https://nexcommit.com/) — Presentación de servicios, proyectos realizados y preguntas frecuentes.
+- [Blog](https://nexcommit.com/blog) — Artículos sobre desarrollo web, automatización y tecnología.
+
+Los artículos individuales del blog están disponibles bajo `/blog/:slug` (por ejemplo, `https://nexcommit.com/blog/mi-articulo`).

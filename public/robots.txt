@@ -1,14 +1,29 @@
 # robots.txt para NexCommit
-# Permite a todos los crawlers indexar el sitio
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /login
 
-# Bloquear acceso a directorios privados
-Disallow: /api/
-Disallow: /admin/
-Disallow: /private/
-Disallow: /.well-known/
+User-agent: GPTBot
+Allow: /
 
-# Sitemap
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
 Sitemap: https://nexcommit.com/sitemap.xml
