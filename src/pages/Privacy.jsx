@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../components/SEO';
 
 export default function Privacy() {
   return (
     <>
-      <Helmet>
-        <title>Política de Privacidad | NexCommit</title>
-        <meta name="description" content="Política de privacidad de NexCommit. Conoce cómo protegemos y tratamos tus datos personales." />
-        <meta name="robots" content="index, follow" />
-      </Helmet>
+      <SEO
+        title="Política de Privacidad | NexCommit"
+        description="Conoce cómo NexCommit recopila, utiliza y protege los datos personales de clientes y visitantes en sus formularios, plataformas y servicios."
+        canonicalUrl="https://nexcommit.com/privacy"
+      />
 
       <div className="pb-20">
         <div className="container">

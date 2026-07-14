@@ -10,9 +10,12 @@ import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import ServicesIndex from './pages/ServicesIndex';
+import Services from './pages/Services';
 import { AuthProvider } from './components/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { BrandLogo } from './components/Brand';
+import SiteMeta from './components/SiteMeta';
 
 const queryClient = new QueryClient();
 
@@ -25,6 +28,7 @@ function App() {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
+          <SiteMeta />
           <div className={`${isAdmin ? '' : 'app-shell'} w-full min-h-screen`}>
         {!isAdmin && (<>
           <nav
@@ -42,6 +46,9 @@ function App() {
 
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center gap-8 text-sm font-medium text-brand-muted">
+              <Link to="/servicios" className="hover:text-white transition-colors duration-200">
+                Servicios
+              </Link>
               <Link to="/blog" className="hover:text-white transition-colors duration-200">
                 Blog
               </Link>
@@ -78,6 +85,13 @@ function App() {
             >
               <div className="container py-4 flex flex-col gap-4">
                 <Link
+                  to="/servicios"
+                  className="text-white text-sm font-medium py-2 hover:text-brand-light transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Servicios
+                </Link>
+                <Link
                   to="/blog"
                   className="text-white text-sm font-medium py-2 hover:text-brand-light transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
@@ -100,6 +114,8 @@ function App() {
 
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/servicios" element={<ServicesIndex />} />
+          <Route path="/servicios/:slug" element={<Services />} />
           <Route path="/blog" element={<BlogList />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/blog/admin" element={<Navigate to="/admin" replace />} />

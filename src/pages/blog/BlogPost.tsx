@@ -1,7 +1,8 @@
 import { useParams, Link } from 'react-router-dom';
 import { useGetPostBySlug } from '../../hooks/blog';
 import ReactMarkdown from 'react-markdown';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
+import Breadcrumbs from '../../components/Breadcrumbs';
 
 export function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -32,21 +33,49 @@ export function BlogPost() {
     day: 'numeric',
   });
 
+  const seoTitle = post.seo_metadata?.og_title || post.title;
+  const seoDescription =
+    post.seo_metadata?.og_description ||
+    post.seo_metadata?.meta_description ||
+    post.excerpt ||
+    post.content.slice(0, 160);
+  const canonicalUrl = `https://nexcommit.com/blog/${post.slug}`;
+  const authorName = post.profiles?.username || 'NexCommit';
+
+  const blogPostingJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: seoDescription,
+    image: post.image_url,
+    datePublished: post.created_at,
+    dateModified: post.updated_at || post.created_at,
+    author: {
+      '@type': 'Person',
+      name: authorName,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'NexCommit',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://nexcommit.com/nexcommit-icon-v2.png',
+      },
+    },
+  };
+
   return (
     <>
-      <Helmet>
-        <title>{post.title} | NexCommit Blog</title>
-        <meta name="description" content={post.seo_metadata?.meta_description || post.excerpt || post.content.slice(0, 160)} />
-        <meta name="keywords" content={post.seo_metadata?.meta_keywords || 'desarrollo, automatización, diseño digital, NexCommit, blog'} />
-        <meta property="og:title" content={post.seo_metadata?.og_title || post.title} />
-        <meta property="og:description" content={post.seo_metadata?.og_description || post.seo_metadata?.meta_description || post.excerpt || post.content.slice(0, 160)} />
-        <meta property="og:type" content="article" />
-        {post.image_url && <meta property="og:image" content={post.image_url} />}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={post.seo_metadata?.og_title || post.title} />
-        <meta name="twitter:description" content={post.seo_metadata?.og_description || post.seo_metadata?.meta_description || post.excerpt || post.content.slice(0, 160)} />
-        {post.image_url && <meta name="twitter:image" content={post.image_url} />}
-      </Helmet>
+      <SEO
+        title={`${seoTitle} | NexCommit Blog`}
+        description={seoDescription}
+        keywords={post.seo_metadata?.meta_keywords || 'desarrollo, automatización, diseño digital, NexCommit, blog'}
+        ogImage={post.image_url || undefined}
+        twitterImage={post.image_url || undefined}
+        canonicalUrl={canonicalUrl}
+        type="article"
+        jsonLd={[blogPostingJsonLd]}
+      />
       <div className="pb-20">
         <div className="container">
           <Link
@@ -56,6 +85,14 @@ export function BlogPost() {
             <span className="group-hover:-translate-x-1 transition-transform">←</span>
             Volver al blog
           </Link>
+
+          <Breadcrumbs
+            items={[
+              { label: 'Inicio', path: '/' },
+              { label: 'Blog', path: '/blog' },
+              { label: post.title },
+            ]}
+          />
 
           <article className="max-w-4xl mx-auto">
             {/* Hero Image with gradient overlay */}

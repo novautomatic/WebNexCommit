@@ -1,0 +1,16 @@
+{
+  "name": "NexCommit",
+  "short_name": "NexCommit",
+  "description": "NexCommit es una plataforma innovadora que une a desarrolladores, empresas y visionarios para crear proyectos tecnológicos de alto impacto. Colabora, innova y transforma ideas en realidad.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#071B31",
+  "theme_color": "#071B31",
+  "icons": [
+    {
+      "src": "/nexcommit-icon-v2.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

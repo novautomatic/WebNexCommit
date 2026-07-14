@@ -8,7 +8,7 @@ export function useUpdatePost() {
     mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
       const { data, error } = await supabase
         .from('posts')
-        .update(updates)
+        .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
         .single();
