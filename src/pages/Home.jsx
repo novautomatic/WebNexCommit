@@ -76,6 +76,52 @@ const clients = [
   },
 ];
 
+const faqs = [
+  {
+    question: '¿Qué servicios ofrece NexCommit?',
+    answer:
+      'Desarrollamos sitios web a medida, automatizamos procesos comerciales y operativos, y construimos apps y dashboards con bases de datos seguras para agenda, inventario y reportes. Todo se adapta al tamaño y objetivos del negocio, desde una landing hasta una plataforma SaaS completa.',
+  },
+  {
+    question: '¿Cuánto tiempo toma un proyecto?',
+    answer:
+      'Depende del alcance: una landing page toma alrededor de 1 semana, un sitio corporativo cerca de 3 semanas, un ecommerce cerca de 4 semanas, y proyectos SaaS o enterprise entre 10 y 12 semanas. Definimos el plazo exacto durante la cotización según los módulos y funcionalidades que necesites.',
+  },
+  {
+    question: '¿Cómo funciona el proceso de cotización/inicio de un proyecto?',
+    answer:
+      'Partimos con una conversación por WhatsApp o formulario para entender tu negocio y objetivos. Con eso armamos una propuesta con alcance, funcionalidades y precio claro antes de empezar, sin letra chica. Una vez aprobada, iniciamos el desarrollo con hitos y comunicación constante.',
+  },
+  {
+    question: '¿Trabajan con empresas fuera de Chile / remoto?',
+    answer:
+      'Sí, trabajamos 100% remoto con clientes en Chile y fuera del país. La comunicación es por WhatsApp, email y videollamadas, y usamos infraestructura cloud (Vercel, AWS, GCP, Azure) que no depende de ubicación geográfica.',
+  },
+  {
+    question: '¿Qué tecnologías usan?',
+    answer:
+      'Construimos con stacks modernos como React y bases de datos Supabase/PostgreSQL, con despliegue en Vercel. Integramos pasarelas de pago (Stripe, Flow, Mercado Pago, Transbank), CRMs (HubSpot, ActiveCampaign, GoHighLevel), WhatsApp API y automatizaciones con IA cuando el proyecto lo requiere.',
+  },
+  {
+    question: '¿Ofrecen soporte o mantenimiento después de lanzar el proyecto?',
+    answer:
+      'Sí, ofrecemos planes de hosting, mantención y soporte prioritario post-lanzamiento para que la plataforma siga funcionando sin fricción. También hacemos monitoreo y backups automáticos como servicios mensuales opcionales.',
+  },
+];
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((faq) => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.answer,
+    },
+  })),
+};
+
 function ClientCard({ name, url, gradient, accent, thumbnail }) {
   const [thumbnailError, setThumbnailError] = React.useState(false);
   return (
@@ -95,6 +141,7 @@ function ClientCard({ name, url, gradient, accent, thumbnail }) {
           <img
             src={thumbnail}
             alt={`Vista previa de ${name}`}
+            loading="lazy"
             className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
             onError={() => setThumbnailError(true)}
           />
@@ -140,6 +187,7 @@ export default function Home() {
         description="Integramos diseño, automatización y desarrollo a medida para que tu negocio avance con una marca coherente y una operación más sólida. Servicios de desarrollo web, automatización y apps a medida."
         keywords="NexCommit, desarrollo web, automatización, diseño digital, plataformas a medida, desarrollo de apps, Chile, tecnología, innovación digital"
         canonicalUrl="https://nexcommit.com"
+        jsonLd={[faqJsonLd]}
       />
       <section id="top" className="relative w-full min-h-screen overflow-hidden flex items-center">
         <div className="hero-grid absolute inset-0 z-0 pointer-events-none" />
@@ -245,6 +293,34 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {clients.map((client) => (
               <ClientCard key={client.name} {...client} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" className="py-28 md:py-32 relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <div className="container relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
+            <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-white tracking-tight">
+              Preguntas <span className="text-gradient">frecuentes</span>
+            </h2>
+            <p className="text-lg text-brand-muted">
+              Resolvemos las dudas más comunes antes de partir un proyecto con nosotros.
+            </p>
+          </div>
+          <div className="max-w-3xl mx-auto flex flex-col gap-4">
+            {faqs.map((faq) => (
+              <details
+                key={faq.question}
+                className="glass-dark rounded-2xl p-6 group"
+              >
+                <summary className="text-lg font-semibold text-white cursor-pointer list-none flex items-center justify-between gap-4">
+                  {faq.question}
+                  <span className="text-brand-muted transition-transform group-open:rotate-45 text-2xl leading-none">+</span>
+                </summary>
+                <p className="mt-4 leading-relaxed text-brand-muted">{faq.answer}</p>
+              </details>
             ))}
           </div>
         </div>
