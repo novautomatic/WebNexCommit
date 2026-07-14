@@ -1,6 +1,6 @@
 import { useGetPosts } from '../../hooks/blog';
 import { PostCard } from '../../components/blog/PostCard';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
 
 export function BlogList() {
   const { data: posts, isLoading, error } = useGetPosts();
@@ -23,17 +23,12 @@ export function BlogList() {
 
   return (
     <>
-      <Helmet>
-        <title>Blog | NexCommit</title>
-        <meta name="description" content="Explora nuestros conocimientos sobre desarrollo, automatización y diseño de productos digitales." />
-        <meta name="keywords" content="desarrollo, automatización, diseño digital, NexCommit, blog" />
-        <meta property="og:title" content="Blog | NexCommit" />
-        <meta property="og:description" content="Explora nuestros conocimientos sobre desarrollo, automatización y diseño de productos digitales." />
-        <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content="Blog | NexCommit" />
-        <meta name="twitter:description" content="Explora nuestros conocimientos sobre desarrollo, automatización y diseño de productos digitales." />
-      </Helmet>
+      <SEO
+        title="Blog | NexCommit"
+        description="Artículos sobre desarrollo web, automatización de procesos y diseño de productos digitales. Ideas y aprendizajes del equipo de NexCommit para transformar tu operación."
+        keywords="desarrollo, automatización, diseño digital, NexCommit, blog"
+        canonicalUrl="https://nexcommit.com/blog"
+      />
       <div className="pb-20">
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-16">

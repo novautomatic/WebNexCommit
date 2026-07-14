@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../components/SEO';
 
 export default function Terms() {
   return (
     <>
-      <Helmet>
-        <title>Términos y Condiciones | NexCommit</title>
-        <meta name="description" content="Términos y condiciones de uso de los servicios de NexCommit." />
-        <meta name="robots" content="index, follow" />
-      </Helmet>
+      <SEO
+        title="Términos y Condiciones | NexCommit"
+        description="Condiciones de uso de los servicios de NexCommit: cotizaciones, propiedad intelectual, confidencialidad y responsabilidades para clientes y visitantes del sitio."
+        canonicalUrl="https://nexcommit.com/terms"
+      />
 
       <div className="pb-20">
         <div className="container">
