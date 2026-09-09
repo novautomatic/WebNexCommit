@@ -203,7 +203,7 @@ export default function Home() {
         canonicalUrl="https://nexcommit.com"
         jsonLd={[faqJsonLd]}
       />
-      <section id="top" className="relative w-full min-h-screen overflow-hidden flex">
+      <section id="top" className="relative w-full min-h-[640px] overflow-hidden flex pb-20 md:pb-24">
         <div className="hero-grid absolute inset-0 z-0 pointer-events-none" />
         <div
           className="absolute inset-y-0 right-0 z-0 pointer-events-none"
