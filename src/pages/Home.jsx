@@ -72,18 +72,21 @@ const clients = [
     url: 'https://www.acupunturamtch.cl/',
     gradient: 'from-emerald-500/20 to-green-500/20',
     accent: '#34d399',
+    thumbnail: '/clients/acupuntura.jpeg',
   },
   {
     name: 'Dropit',
     url: 'https://www.dropit.cl/',
     gradient: 'from-red-500/20 to-rose-500/20',
     accent: '#f87171',
+    thumbnail: '/clients/dropit.jpeg',
   },
   {
     name: 'Frances NomadLexis',
     url: 'https://frances.nomadlexis.com/',
     gradient: 'from-teal-500/20 to-sky-500/20',
     accent: '#2dd4bf',
+    thumbnail: '/clients/frances_nomadlexis.png',
   },
 ];
 
