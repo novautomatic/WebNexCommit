@@ -168,7 +168,7 @@ function Scene() {
       <pointLight position={[-4, -2, -4]} intensity={1.0} color={COLORS.inkSoft} />
       <pointLight position={[0, 5, -3]} intensity={0.8} color={COLORS.cloud} />
 
-      <Float speed={1.2} rotationIntensity={0.15} floatIntensity={0.5}>
+      <Float speed={1.2} rotationIntensity={0.15} floatIntensity={0.25}>
         <GlowEdges />
         <OuterIcosahedron />
         <MidDodecahedron />
