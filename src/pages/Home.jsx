@@ -33,13 +33,6 @@ const services = [
 
 const clients = [
   {
-    name: 'Fibra Eyewear',
-    url: 'https://fibraeyewear.cl/',
-    gradient: 'from-pink-500/20 to-rose-500/20',
-    accent: '#f472b6',
-    thumbnail: '/clients/fibra-eyewear.png',
-  },
-  {
     name: 'Dyetales',
     url: 'https://dyetales.cl/',
     gradient: 'from-violet-500/20 to-purple-500/20',

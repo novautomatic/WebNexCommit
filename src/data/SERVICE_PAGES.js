@@ -102,7 +102,7 @@ export const SERVICE_PAGES = [
       'Estamos documentando el impacto real de nuestros proyectos. Pronto vas a encontrar aquí casos de éxito detallados con métricas y resultados.',
     intro:
       'Estamos documentando el impacto de nuestros proyectos — pronto vas a encontrar aquí casos de éxito detallados con métricas y resultados reales.',
-    benefits: ['Fibra Eyewear', 'Dyetales', 'Tarot-Dann', 'Nova Dialing', 'Fiedler Corredores', 'Vizzion 360'],
+    benefits: ['Dyetales', 'Nova Dialing', 'Fiedler Corredores', 'Vizzion 360', 'Acupuntura Mtch', 'Dropit', 'Frances NomadLexis'],
     noIndex: true,
   },
 ];
