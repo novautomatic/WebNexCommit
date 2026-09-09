@@ -2,9 +2,9 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
 const SEO = ({
-  title = 'NexCommit - Más que un proyecto, una alianza',
-  description = 'NexCommit es una plataforma innovadora que une a desarrolladores, empresas y visionarios para crear proyectos tecnológicos de alto impacto. Colabora, innova y transforma ideas en realidad.',
-  keywords = 'NexCommit, colaboración, desarrollo tecnológico, proyectos, innovación, alianzas, desarrollo web, programación, startups, tecnología',
+  title = 'NexCommit - Convertimos ideas en plataformas con identidad',
+  description = 'Integramos diseño, automatización y desarrollo a medida para que tu negocio avance con una marca coherente y una operación más sólida.',
+  keywords = 'NexCommit, desarrollo web, automatización, diseño digital, plataformas a medida, desarrollo de apps, Chile, tecnología, innovación digital',
   ogImage = 'https://nexcommit.com/nexcommit-og-image.png',
   twitterImage = 'https://nexcommit.com/nexcommit-twitter-image.png',
   canonicalUrl = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : 'https://nexcommit.com',

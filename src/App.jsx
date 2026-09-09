@@ -151,9 +151,6 @@ function App() {
                 >
                   WhatsApp
                 </a>
-                <a href="#" className="hover:text-white transition-colors">
-                  LinkedIn
-                </a>
                 <Link to="/privacy" className="hover:text-white transition-colors">
                   Política de Privacidad
                 </Link>
