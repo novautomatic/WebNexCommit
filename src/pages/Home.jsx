@@ -227,7 +227,7 @@ export default function Home() {
           </Suspense>
         </div>
         <div className="relative z-10 w-full h-full flex flex-col justify-center pointer-events-none">
-          <div className="container pt-32 md:pt-24">
+          <div className="container">
             <div className="max-w-2xl animate-fade-in pointer-events-auto">
               <div className="eyebrow mb-6">
                 <BrandLogo compact />
