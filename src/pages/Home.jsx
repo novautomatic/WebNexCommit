@@ -47,13 +47,6 @@ const clients = [
     thumbnail: '/clients/dyetales.png',
   },
   {
-    name: 'Tarot-Dann',
-    url: 'https://tarot-dann.vercel.app/',
-    gradient: 'from-amber-500/20 to-orange-500/20',
-    accent: '#fbbf24',
-    thumbnail: '/clients/tarot-dann.png',
-  },
-  {
     name: 'Nova Dialing',
     url: 'https://nova-dialing.vercel.app/',
     gradient: 'from-cyan-500/20 to-blue-500/20',
@@ -73,6 +66,24 @@ const clients = [
     gradient: 'from-indigo-500/20 to-blue-500/20',
     accent: '#6366f1',
     thumbnail: '/clients/vizzion-360.jpeg',
+  },
+  {
+    name: 'Acupuntura Mtch',
+    url: 'https://www.acupunturamtch.cl/',
+    gradient: 'from-emerald-500/20 to-green-500/20',
+    accent: '#34d399',
+  },
+  {
+    name: 'Dropit',
+    url: 'https://www.dropit.cl/',
+    gradient: 'from-red-500/20 to-rose-500/20',
+    accent: '#f87171',
+  },
+  {
+    name: 'Frances NomadLexis',
+    url: 'https://frances.nomadlexis.com/',
+    gradient: 'from-teal-500/20 to-sky-500/20',
+    accent: '#2dd4bf',
   },
 ];
 
@@ -184,7 +195,7 @@ export default function Home() {
     <>
       <SEO 
         title="NexCommit - Convertimos ideas en plataformas con identidad"
-        description="Integramos diseño, automatización y desarrollo a medida para que tu negocio avance con una marca coherente y una operación más sólida. Servicios de desarrollo web, automatización y apps a medida."
+        description="Integramos diseño, automatización y desarrollo a medida para que tu negocio avance con una marca coherente y una operación más sólida."
         keywords="NexCommit, desarrollo web, automatización, diseño digital, plataformas a medida, desarrollo de apps, Chile, tecnología, innovación digital"
         canonicalUrl="https://nexcommit.com"
         jsonLd={[faqJsonLd]}
@@ -337,7 +348,7 @@ export default function Home() {
               Listo para alinear tu <span className="text-gradient">marca y producto</span>?
             </h2>
             <p className="text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed text-brand-muted">
-              El sitio ya admite la identidad de NexCommit. El siguiente paso es terminar de aterrizar los assets definitivos para dejar la marca consistente en web, favicon y piezas futuras.
+              Conversemos sobre tu proyecto y definamos juntos el plan de trabajo, los tiempos y el alcance que necesitas.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a

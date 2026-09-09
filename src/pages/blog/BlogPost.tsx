@@ -59,7 +59,7 @@ export function BlogPost() {
       name: 'NexCommit',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://nexcommit.com/nexcommit-icon-v2.png',
+        url: 'https://nexcommit.com/icon-512.png',
       },
     },
   };

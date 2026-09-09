@@ -6,7 +6,7 @@ const organizationJsonLd = {
   '@type': 'Organization',
   name: 'NexCommit',
   url: 'https://nexcommit.com',
-  logo: 'https://nexcommit.com/nexcommit-icon-v2.png',
+  logo: 'https://nexcommit.com/icon-512.png',
   description: 'Plataforma innovadora que une a desarrolladores, empresas y visionarios para crear proyectos tecnológicos de alto impacto. Colabora, innova y transforma ideas en realidad.',
   slogan: 'Más que un proyecto, una alianza',
   contactPoint: {
