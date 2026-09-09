@@ -216,7 +216,7 @@ export default function Home() {
         <div
           className="absolute z-0 pointer-events-none hero-canvas"
           style={{
-            top: 0,
+            top: '-16%',
             right: '-2%',
             width: '56%',
             height: '100%',
