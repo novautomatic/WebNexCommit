@@ -47,13 +47,6 @@ const clients = [
     thumbnail: '/clients/dyetales.png',
   },
   {
-    name: 'Tarot-Dann',
-    url: 'https://tarot-dann.vercel.app/',
-    gradient: 'from-amber-500/20 to-orange-500/20',
-    accent: '#fbbf24',
-    thumbnail: '/clients/tarot-dann.png',
-  },
-  {
     name: 'Nova Dialing',
     url: 'https://nova-dialing.vercel.app/',
     gradient: 'from-cyan-500/20 to-blue-500/20',
@@ -73,6 +66,24 @@ const clients = [
     gradient: 'from-indigo-500/20 to-blue-500/20',
     accent: '#6366f1',
     thumbnail: '/clients/vizzion-360.jpeg',
+  },
+  {
+    name: 'Acupuntura Mtch',
+    url: 'https://www.acupunturamtch.cl/',
+    gradient: 'from-emerald-500/20 to-green-500/20',
+    accent: '#34d399',
+  },
+  {
+    name: 'Dropit',
+    url: 'https://www.dropit.cl/',
+    gradient: 'from-red-500/20 to-rose-500/20',
+    accent: '#f87171',
+  },
+  {
+    name: 'Frances NomadLexis',
+    url: 'https://frances.nomadlexis.com/',
+    gradient: 'from-teal-500/20 to-sky-500/20',
+    accent: '#2dd4bf',
   },
 ];
 
