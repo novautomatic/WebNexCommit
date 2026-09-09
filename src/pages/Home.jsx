@@ -203,7 +203,7 @@ export default function Home() {
         canonicalUrl="https://nexcommit.com"
         jsonLd={[faqJsonLd]}
       />
-      <section id="top" className="relative w-full min-h-screen overflow-hidden flex items-center">
+      <section id="top" className="relative w-full min-h-screen overflow-hidden flex">
         <div className="hero-grid absolute inset-0 z-0 pointer-events-none" />
         <div
           className="absolute inset-y-0 right-0 z-0 pointer-events-none"
@@ -226,8 +226,8 @@ export default function Home() {
             <Hero3D />
           </Suspense>
         </div>
-        <div className="relative z-10 w-full h-full flex flex-col justify-center pointer-events-none">
-          <div className="container">
+        <div className="relative z-10 w-full h-full flex flex-col pointer-events-none">
+          <div className="container pt-10 md:pt-12">
             <div className="max-w-2xl animate-fade-in pointer-events-auto">
               <div className="eyebrow mb-6">
                 <BrandLogo compact />
