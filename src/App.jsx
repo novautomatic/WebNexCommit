@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
@@ -18,11 +18,19 @@ import { BrandLogo } from './components/Brand';
 import SiteMeta from './components/SiteMeta';
 
 const queryClient = new QueryClient();
+const GA_MEASUREMENT_ID = 'G-FBHZGW2YB7';
 
 function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
+
+  useEffect(() => {
+    if (typeof window.gtag !== 'function') return;
+    window.gtag('config', GA_MEASUREMENT_ID, {
+      page_path: location.pathname + location.search,
+    });
+  }, [location.pathname, location.search]);
 
   return (
     <HelmetProvider>
