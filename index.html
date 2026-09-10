@@ -10,6 +10,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#071B31" />
 
+    <!-- Google tag (gtag.js) — page views are sent per-route from App.jsx
+         (see the useLocation effect), so no initial `config` call here. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FBHZGW2YB7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    </script>
+
     <!-- Fallback metadata for pre-hydration crawlers; per-route metadata is
          set at runtime via react-helmet-async (see src/components/SEO.jsx). -->
     <title>NexCommit - Convertimos ideas en plataformas con identidad</title>
