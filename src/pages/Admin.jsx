@@ -3,7 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import SEO from '../components/SEO';
 import {
+  BarChart3,
   Briefcase,
+  CalendarDays,
   Calculator,
   Contact,
   FileText,
@@ -29,8 +31,10 @@ const GRUPOS = [
   {
     titulo: 'Tareas',
     items: [
+      { id: 'resumen', label: 'Resumen', icon: BarChart3 },
       { id: 'tablero', label: 'Tablero', icon: LayoutGrid },
       { id: 'lista', label: 'Lista', icon: List },
+      { id: 'calendario', label: 'Calendario', icon: CalendarDays },
       { id: 'areas', label: 'Por área', icon: Briefcase },
     ],
   },
@@ -52,7 +56,7 @@ const GRUPOS = [
   },
 ];
 const SECCIONES = GRUPOS.flatMap((g) => g.items);
-const VISTAS_TAREAS = ['tablero', 'lista', 'areas'];
+const VISTAS_TAREAS = ['resumen', 'tablero', 'lista', 'calendario', 'areas'];
 const CLAVE_BARRA = 'nc_panel_barra_contraida';
 
 function leerContraida() {
@@ -68,8 +72,8 @@ function seccionDe(params) {
   const tab = params.get('tab');
   if (SECCIONES.some((s) => s.id === tab)) return tab;
   const vista = params.get('vista');
-  if (tab === 'tareas' && SECCIONES.some((s) => s.id === vista)) return vista;
-  return 'tablero';
+  if (tab === 'tareas') return SECCIONES.some((s) => s.id === vista) ? vista : 'tablero';
+  return 'resumen';
 }
 
 export default function Admin() {

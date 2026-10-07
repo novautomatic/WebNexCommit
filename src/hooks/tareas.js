@@ -3,14 +3,19 @@ import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
 
+// State colors validated for the dark panel surface (#0d1e30) with the dataviz
+// palette checker, in the stacking order used by the charts:
+// completada → en revisión → en progreso → pendiente → bloqueada.
 export const ESTADOS = [
-  { id: 'pendiente', label: 'Pendiente', color: '#9aafc3' },
-  { id: 'en_progreso', label: 'En progreso', color: '#67c8f3' },
-  { id: 'en_revision', label: 'En revisión', color: '#a78bfa' },
-  { id: 'bloqueada', label: 'Bloqueada', color: '#f87171' },
-  { id: 'completada', label: 'Completada', color: '#34d399' },
+  { id: 'pendiente', label: 'Pendiente', color: '#3987e5' },
+  { id: 'en_progreso', label: 'En progreso', color: '#c98500' },
+  { id: 'en_revision', label: 'En revisión', color: '#9085e9' },
+  { id: 'bloqueada', label: 'Bloqueada', color: '#e66767' },
+  { id: 'completada', label: 'Completada', color: '#199e70' },
   { id: 'cancelada', label: 'Cancelada', color: '#64748b' },
 ];
+// Order for stacked bars / legends (keeps every adjacent pair distinguishable).
+export const ORDEN_GRAFICOS = ['completada', 'en_revision', 'en_progreso', 'pendiente', 'bloqueada'];
 export const ESTADO = Object.fromEntries(ESTADOS.map((e) => [e.id, e]));
 
 export const PRIORIDADES = [

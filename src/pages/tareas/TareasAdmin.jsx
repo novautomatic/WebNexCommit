@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AlertTriangle, Briefcase, CalendarClock, LayoutGrid, List, Plus, RefreshCw, Search } from 'lucide-react';
+import { AlertTriangle, BarChart3, Briefcase, CalendarClock, CalendarDays, LayoutGrid, List, Plus, RefreshCw, Search } from 'lucide-react';
 import {
   ESTADOS,
   PRIORIDAD,
@@ -21,18 +21,22 @@ import {
   useTareasRealtime,
 } from '../../hooks/tareas';
 import TareaModal from './TareaModal';
+import ResumenVista from './ResumenVista';
+import CalendarioVista from './CalendarioVista';
 import { Avatar, EstadoPill, ErrorBox, Pill, PrioridadPill, btnPrimary, card, inputClass } from './ui';
 
 // Task views only; projects, clients, team and shortcuts live in the panel sidebar.
 const VISTAS = [
+  { id: 'resumen', label: 'Resumen', icon: BarChart3 },
   { id: 'tablero', label: 'Tablero', icon: LayoutGrid },
   { id: 'lista', label: 'Lista', icon: List },
+  { id: 'calendario', label: 'Calendario', icon: CalendarDays },
   { id: 'areas', label: 'Por área', icon: Briefcase },
 ];
 const COLUMNAS = ESTADOS.filter((e) => e.id !== 'cancelada');
 const CATORCE_DIAS = 14 * 24 * 60 * 60 * 1000;
 
-export default function TareasAdmin({ vista = 'tablero', irA }) {
+export default function TareasAdmin({ vista = 'resumen', irA }) {
   const [params, setParams] = useSearchParams();
   const yo = useMiEquipoId();
   const equipoQ = useEquipo();
@@ -170,7 +174,7 @@ export default function TareasAdmin({ vista = 'tablero', irA }) {
         })}
       </div>
 
-      {(vista === 'tablero' || vista === 'lista') && (
+      {vista !== 'areas' && (
         <div className="flex flex-wrap gap-2 items-center">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9aafc3]" />
@@ -211,6 +215,17 @@ export default function TareasAdmin({ vista = 'tablero', irA }) {
         <Tablero tareas={filtradas} miembro={miembro} proyecto={proyecto} onAbrir={abrir} onNueva={nuevaTarea} />
       )}
       {vista === 'lista' && <Lista tareas={filtradas} miembro={miembro} proyecto={proyecto} onAbrir={abrir} />}
+      {vista === 'resumen' && (
+        <ResumenVista
+          tareas={filtradas}
+          proyecto={proyecto}
+          miembro={miembro}
+          onAbrir={abrir}
+          onElegirProyecto={(id) => { setFiltros((f) => ({ ...f, proyecto: id })); setVista('tablero'); }}
+          onElegirPersona={(id) => { setFiltros((f) => ({ ...f, responsable: id })); setVista('tablero'); }}
+        />
+      )}
+      {vista === 'calendario' && <CalendarioVista tareas={filtradas} onAbrir={abrir} />}
       {vista === 'areas' && areaActiva && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
