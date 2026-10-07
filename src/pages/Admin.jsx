@@ -1,15 +1,17 @@
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import SEO from '../components/SEO';
-import { FileText, Calculator, LogOut, ListChecks } from 'lucide-react';
+import { FileText, Calculator, LogOut, ListChecks, Settings } from 'lucide-react';
 import { BlogAdmin } from './blog/BlogAdmin';
 import Cotizador from './Cotizador';
 import TareasAdmin from './tareas/TareasAdmin';
+import ConfiguracionAdmin from './configuracion/ConfiguracionAdmin';
 
 const TABS = [
   { id: 'tareas', label: 'Tareas', icon: ListChecks },
   { id: 'blog', label: 'Blog', icon: FileText },
   { id: 'cotizador', label: 'Cotizador', icon: Calculator },
+  { id: 'configuracion', label: 'Configuración', icon: Settings },
 ];
 
 export default function Admin() {
@@ -87,6 +89,7 @@ export default function Admin() {
             {activeTab === 'tareas' && <TareasAdmin />}
             {activeTab === 'blog' && <BlogAdmin />}
             {activeTab === 'cotizador' && <Cotizador />}
+            {activeTab === 'configuracion' && <ConfiguracionAdmin />}
           </main>
         </div>
       </div>
