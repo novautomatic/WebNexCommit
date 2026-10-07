@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
@@ -6,7 +6,7 @@ import { Menu, X } from 'lucide-react';
 import Home from './pages/Home';
 import { BlogList } from './pages/blog/BlogList';
 import { BlogPost } from './pages/blog/BlogPost';
-import Admin from './pages/Admin';
+const Admin = lazy(() => import('./pages/Admin'));
 import Login from './pages/Login';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
@@ -16,14 +16,31 @@ import { AuthProvider } from './components/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { BrandLogo } from './components/Brand';
 import SiteMeta from './components/SiteMeta';
+import AdLanding from './pages/AdLanding';
+import { ContactDock, WhatsAppLink } from './components/ContactButtons';
+import { captureAdClick, GOOGLE_ADS } from './config/contact';
+import { getAdLanding } from './data/ADS_LANDINGS';
 
 const queryClient = new QueryClient();
+
+// Run before the first render so every WhatsApp link already carries the [Google] tag.
+captureAdClick();
 const GA_MEASUREMENT_ID = 'G-FBHZGW2YB7';
 
 function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
+  const hideDock = isAdmin || location.pathname === '/login';
+  const lpMatch = location.pathname.match(/^\/lp\/([^/]+)/);
+  const dockTopic = lpMatch ? getAdLanding(lpMatch[1])?.topic : undefined;
+
+  // Load the Google Ads tag (once).
+  useEffect(() => {
+    if (GOOGLE_ADS.conversionId && typeof window.gtag === 'function') {
+      window.gtag('config', GOOGLE_ADS.conversionId);
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window.gtag !== 'function') return;
@@ -37,7 +54,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <SiteMeta />
-          <div className={`${isAdmin ? '' : 'app-shell'} w-full min-h-screen`}>
+          <div className={`${isAdmin ? '' : 'app-shell pb-24 md:pb-0'} w-full min-h-screen`}>
         {!isAdmin && (<>
           <nav
             className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 md:px-8 py-5 border-b"
@@ -60,14 +77,12 @@ function App() {
               <Link to="/blog" className="hover:text-white transition-colors duration-200">
                 Blog
               </Link>
-              <a
-                href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors duration-200"
+              <WhatsAppLink
+                  placement="nav"
+                  className="hover:text-white transition-colors duration-200"
               >
                 Contacto
-              </a>
+              </WhatsAppLink>
             </div>
 
             {/* Mobile Menu Button */}
@@ -106,15 +121,13 @@ function App() {
                 >
                   Blog
                 </Link>
-                <a
-                  href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <WhatsAppLink
+                  placement="nav"
                   className="text-white text-sm font-medium py-2 hover:text-brand-light transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Contacto
-                </a>
+                </WhatsAppLink>
               </div>
             </div>
           )}
@@ -131,13 +144,16 @@ function App() {
             path="/admin"
             element={
               <ProtectedRoute>
-                <Admin />
+                <Suspense fallback={null}>
+                  <Admin />
+                </Suspense>
               </ProtectedRoute>
             }
           />
           <Route path="/login" element={<Login />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/lp/:slug" element={<AdLanding />} />
         </Routes>
 
         {!isAdmin && (<>
@@ -151,14 +167,12 @@ function App() {
                 <Link to="/blog" className="hover:text-white transition-colors">
                   Blog
                 </Link>
-                <a
-                  href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <WhatsAppLink
+                  placement="footer"
                   className="hover:text-white transition-colors"
                 >
                   WhatsApp
-                </a>
+                </WhatsAppLink>
                 <Link to="/privacy" className="hover:text-white transition-colors">
                   Política de Privacidad
                 </Link>
@@ -174,6 +188,7 @@ function App() {
           </div>
         </footer>
         </>)}
+        {!hideDock && <ContactDock topic={dockTopic} />}
       </div>
     </AuthProvider>
     </QueryClientProvider>

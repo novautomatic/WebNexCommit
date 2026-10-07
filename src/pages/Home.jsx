@@ -1,8 +1,11 @@
-import React, { Suspense } from 'react';
-import { ArrowRight, Globe, RefreshCw, Database } from 'lucide-react';
-import Hero3D from '../Hero3D';
+import React, { Suspense, lazy } from 'react';
+import { ArrowRight, Globe, RefreshCw, Database, Phone } from 'lucide-react';
+const Hero3D = lazy(() => import('../Hero3D'));
 import { BrandLogo } from '../components/Brand';
 import SEO from '../components/SEO';
+import ClientCard from '../components/ClientCard';
+import { CLIENTS } from '../data/CLIENTS';
+import { WhatsAppLink, CallLink } from '../components/ContactButtons';
 
 const services = [
   {
@@ -31,57 +34,7 @@ const services = [
   },
 ];
 
-const clients = [
-  {
-    name: 'Dyetales',
-    url: 'https://dyetales.cl/',
-    gradient: 'from-violet-500/20 to-purple-500/20',
-    accent: '#a78bfa',
-    thumbnail: '/clients/dyetales.png',
-  },
-  {
-    name: 'Nova Dialing',
-    url: 'https://nova-dialing.vercel.app/',
-    gradient: 'from-cyan-500/20 to-blue-500/20',
-    accent: '#22d3ee',
-    thumbnail: '/clients/nova-dialing.png',
-  },
-  {
-    name: 'Fiedler Corredores',
-    url: 'https://fiedlercorredores.cl/',
-    gradient: 'from-slate-500/20 to-gray-500/20',
-    accent: '#94a3b8',
-    thumbnail: '/clients/fiedler-corredores.jpeg',
-  },
-  {
-    name: 'Vizzion 360',
-    url: 'https://vizzion360.cl/',
-    gradient: 'from-indigo-500/20 to-blue-500/20',
-    accent: '#6366f1',
-    thumbnail: '/clients/vizzion-360.jpeg',
-  },
-  {
-    name: 'Acupuntura Mtch',
-    url: 'https://www.acupunturamtch.cl/',
-    gradient: 'from-emerald-500/20 to-green-500/20',
-    accent: '#34d399',
-    thumbnail: '/clients/acupuntura.jpeg',
-  },
-  {
-    name: 'Dropit',
-    url: 'https://www.dropit.cl/',
-    gradient: 'from-red-500/20 to-rose-500/20',
-    accent: '#f87171',
-    thumbnail: '/clients/dropit.jpeg',
-  },
-  {
-    name: 'Frances NomadLexis',
-    url: 'https://frances.nomadlexis.com/',
-    gradient: 'from-teal-500/20 to-sky-500/20',
-    accent: '#2dd4bf',
-    thumbnail: '/clients/frances_nomadlexis.png',
-  },
-];
+
 
 const faqs = [
   {
@@ -128,59 +81,6 @@ const faqJsonLd = {
     },
   })),
 };
-
-function ClientCard({ name, url, gradient, accent, thumbnail }) {
-  const [thumbnailError, setThumbnailError] = React.useState(false);
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="client-card group relative overflow-hidden rounded-2xl glass-dark border-white/5 hover:border-white/10 transition-all duration-300 block"
-    >
-      <div
-        className="relative h-48 overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, ${gradient.replace('/20', '/15')}, rgba(8, 25, 42, 0.8))`,
-        }}
-      >
-        {!thumbnailError && thumbnail ? (
-          <img
-            src={thumbnail}
-            alt={`Vista previa de ${name}`}
-            loading="lazy"
-            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
-            onError={() => setThumbnailError(true)}
-          />
-        ) : (
-          <div
-            className="w-full h-full flex items-center justify-center text-5xl font-bold text-white/20"
-            style={{
-              background: `linear-gradient(135deg, ${accent}22, ${accent}08)`,
-            }}
-          >
-            {name.charAt(0)}
-          </div>
-        )}
-        <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-60 transition-opacity duration-500"
-          style={{
-            background: `radial-gradient(circle at 50% 50%, ${accent}40, transparent 70%)`,
-          }}
-        />
-      </div>
-      <div className="p-5">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white group-hover:text-brand-light transition-colors">
-            {name}
-          </h3>
-          <span className="w-5 h-5 text-brand-muted group-hover:text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-all">↗</span>
-        </div>
-        <p className="text-sm text-brand-muted mt-1">Visitar sitio</p>
-      </div>
-    </a>
-  );
-}
 
 export default function Home() {
   const scrollToServices = () => {
@@ -238,14 +138,12 @@ export default function Home() {
                   Nuestros servicios
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                <a
-                  href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-ghost"
-                >
-                  Contactar
-                </a>
+                <WhatsAppLink placement="home_hero" className="btn btn-ghost">
+                  Cotizar por WhatsApp
+                </WhatsAppLink>
+                <CallLink placement="home_hero" className="btn btn-ghost">
+                  <Phone className="w-5 h-5" /> Llamar
+                </CallLink>
               </div>
             </div>
           </div>
@@ -298,7 +196,7 @@ export default function Home() {
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {clients.map((client) => (
+            {CLIENTS.map((client) => (
               <ClientCard key={client.name} {...client} />
             ))}
           </div>
@@ -347,15 +245,10 @@ export default function Home() {
               Conversemos sobre tu proyecto y definamos juntos el plan de trabajo, los tiempos y el alcance que necesitas.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a
-                href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-brand group px-10 py-4"
-              >
+              <WhatsAppLink placement="home_cta" className="btn btn-brand group px-10 py-4">
                 Hablar con un experto
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </a>
+              </WhatsAppLink>
               <a href="#services" className="btn btn-ghost px-10 py-4">
                 Ver servicios
               </a>

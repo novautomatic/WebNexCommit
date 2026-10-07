@@ -1,6 +1,7 @@
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { ArrowRight, Check } from 'lucide-react';
 import SEO from '../components/SEO';
+import { WhatsAppLink } from '../components/ContactButtons';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { getServicePage } from '../data/SERVICE_PAGES';
 
@@ -74,15 +75,10 @@ export default function Services() {
               <p className="text-brand-muted mb-8 max-w-xl mx-auto leading-relaxed">
                 Cuéntanos qué necesitas y te ayudamos a definir el alcance, el plazo y la mejor forma de resolverlo.
               </p>
-              <a
-                href="https://wa.me/56929237511?text=Hola!%20Vengo%20desde%20la%20web%20de%20NexCommit%20y%20me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-brand group px-10 py-4"
-              >
+              <WhatsAppLink topic={record.title.toLowerCase()} placement={`servicio_${record.slug}`} className="btn btn-brand group px-10 py-4">
                 Hablar con un experto
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </a>
+              </WhatsAppLink>
             </div>
           </article>
         </div>
