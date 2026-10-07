@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ExternalLink, Link2, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useAccesosDirectos, useEliminarAcceso, useGuardarAcceso } from '../../hooks/tareas';
+import { hostDe } from './utils';
 import { ErrorBox, Modal, btnGhost, btnPrimary, card, inputClass, labelClass } from '../tareas/ui';
 
 const SIN_CATEGORIA = 'General';
@@ -14,14 +15,6 @@ function normalizarUrl(valor) {
     return u.protocol === 'https:' || u.protocol === 'http:' ? u.href : null;
   } catch {
     return null;
-  }
-}
-
-function hostDe(url) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, '');
-  } catch {
-    return '';
   }
 }
 

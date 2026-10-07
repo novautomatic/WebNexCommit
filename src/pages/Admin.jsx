@@ -6,6 +6,7 @@ import { BlogAdmin } from './blog/BlogAdmin';
 import Cotizador from './Cotizador';
 import TareasAdmin from './tareas/TareasAdmin';
 import ConfiguracionAdmin from './configuracion/ConfiguracionAdmin';
+import AccesosMenu from './configuracion/AccesosMenu';
 
 const TABS = [
   { id: 'tareas', label: 'Tareas', icon: ListChecks },
@@ -31,6 +32,7 @@ export default function Admin() {
             <span className="text-white font-semibold text-lg">Panel</span>
           </div>
           <div className="flex items-center gap-4">
+            <AccesosMenu />
             <span className="text-sm text-[#9aafc3] hidden sm:inline">{user?.email}</span>
             <button
               onClick={logout}
