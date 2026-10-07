@@ -36,8 +36,7 @@ export default function ConfiguracionAdmin() {
 
   return (
     <div className="max-w-5xl">
-      <h1 className="text-xl font-semibold text-white mb-1">Configuración</h1>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 mt-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
           <h2 className="text-white font-medium flex items-center gap-2"><Link2 className="w-4 h-4 text-[#67c8f3]" /> Accesos directos</h2>
           <p className="text-sm text-[#9aafc3] max-w-2xl">

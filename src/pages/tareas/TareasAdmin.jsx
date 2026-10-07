@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AlertTriangle, CalendarClock, FolderKanban, LayoutGrid, List, Plus, RefreshCw, Search, Users } from 'lucide-react';
+import { AlertTriangle, CalendarClock, FolderKanban, LayoutGrid, Link2, List, Plus, RefreshCw, Search, Users } from 'lucide-react';
 import {
   ESTADOS,
   PRIORIDAD,
@@ -23,6 +23,7 @@ import {
 import TareaModal from './TareaModal';
 import ProyectosVista from './ProyectosVista';
 import EquipoVista from './EquipoVista';
+import ConfiguracionAdmin from '../configuracion/ConfiguracionAdmin';
 import { Avatar, EstadoPill, ErrorBox, Pill, PrioridadPill, btnPrimary, card, inputClass } from './ui';
 
 const VISTAS = [
@@ -30,6 +31,7 @@ const VISTAS = [
   { id: 'lista', label: 'Lista', icon: List },
   { id: 'proyectos', label: 'Proyectos', icon: FolderKanban },
   { id: 'equipo', label: 'Equipo', icon: Users },
+  { id: 'accesos', label: 'Accesos', icon: Link2 },
 ];
 const COLUMNAS = ESTADOS.filter((e) => e.id !== 'cancelada');
 const CATORCE_DIAS = 14 * 24 * 60 * 60 * 1000;
@@ -43,7 +45,6 @@ export default function TareasAdmin() {
   useTareasRealtime();
   const sync = useSyncGithub();
 
-  const [vista, setVista] = useState('tablero');
   const [filtros, setFiltros] = useState({ q: '', proyecto: '', responsable: '', prioridad: '', estado: '', soloVencidas: false });
   const [nueva, setNueva] = useState(null); // defaults for a new task, or null
 
@@ -54,6 +55,9 @@ export default function TareasAdmin() {
   const proyecto = useMemo(() => Object.fromEntries(proyectos.map((p) => [p.id, p])), [proyectos]);
 
   // Deep link from the WhatsApp notice: /admin?tab=tareas&tarea=<numero>
+  const pedida = params.get('vista');
+  const vista = VISTAS.some((v) => v.id === pedida) ? pedida : 'tablero';
+  const setVista = (id) => setParams((p) => { p.set('tab', 'tareas'); p.set('vista', id); return p; }, { replace: true });
   const numeroAbierto = params.get('tarea');
   const tareaAbierta = numeroAbierto ? tareas.find((t) => String(t.numero) === numeroAbierto) : null;
   const abrir = (t) => setParams((p) => { p.set('tab', 'tareas'); p.set('tarea', String(t.numero)); return p; }, { replace: true });
@@ -197,6 +201,7 @@ export default function TareasAdmin() {
         />
       )}
       {vista === 'equipo' && <EquipoVista equipo={equipo} tareas={tareas} />}
+      {vista === 'accesos' && <ConfiguracionAdmin />}
 
       {nueva && (
         <TareaModal defaults={nueva} equipo={equipo} proyectos={proyectos} onClose={() => setNueva(null)} />
