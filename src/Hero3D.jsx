@@ -71,24 +71,26 @@ function CoreOctahedron() {
 }
 
 /* ─── Partículas flotantes alrededor del cristal ─── */
+function buildParticles(count) {
+  const pos = new Float32Array(count * 3);
+  const sz = new Float32Array(count);
+  for (let i = 0; i < count; i++) {
+    // Distribuir en esfera hueca (radio 2.5–4.5)
+    const r = 2.5 + Math.random() * 2.0;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    pos[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
+    pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+    pos[i * 3 + 2] = r * Math.cos(phi);
+    sz[i] = Math.random() * 0.04 + 0.01;
+  }
+  return [pos, sz];
+}
+
 function Particles({ count = 80 }) {
   const mesh = useRef();
 
-  const [positions, sizes] = useMemo(() => {
-    const pos = new Float32Array(count * 3);
-    const sz = new Float32Array(count);
-    for (let i = 0; i < count; i++) {
-      // Distribuir en esfera hueca (radio 2.5–4.5)
-      const r = 2.5 + Math.random() * 2.0;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      pos[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
-      pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      pos[i * 3 + 2] = r * Math.cos(phi);
-      sz[i] = Math.random() * 0.04 + 0.01;
-    }
-    return [pos, sz];
-  }, [count]);
+  const [positions, sizes] = useMemo(() => buildParticles(count), [count]);
 
   useFrame((state) => {
     mesh.current.rotation.y = state.clock.elapsedTime * 0.03;

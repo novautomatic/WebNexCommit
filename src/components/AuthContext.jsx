@@ -49,21 +49,17 @@ export function AuthProvider({ children }) {
   }
 
   const login = async (email, password) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) {
-        throw error;
-      }
-      if (data.user) {
-        setUser(data.user);
-        // Redirect to blog admin panel after successful login using React Router
-        navigate('/admin');
-      }
-    } catch (e) {
-      throw e;
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) {
+      throw error;
+    }
+    if (data.user) {
+      setUser(data.user);
+      // Redirect to blog admin panel after successful login using React Router
+      navigate('/admin');
     }
   };
 
@@ -84,6 +80,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext);
 }
