@@ -23,7 +23,7 @@ npm run preview   # Preview production build locally
 - `/blog`, `/blog/:slug` - `pages/blog/BlogList.tsx` / `BlogPost.tsx`
 - `/lp/:slug` - `AdLanding.jsx`: Google Ads landing pages (noindex), content in `src/data/ADS_LANDINGS.js`
 - `/login` - Supabase email/password login
-- `/admin` - protected (`ProtectedRoute`), lazy-loaded `Admin.jsx` with tabs Blog (`BlogAdmin.tsx`) and Cotizador (`Cotizador.jsx`, data in `PROJECT_MODULES` / `SERVICE_CATEGORIES` / `PROJECT_PRICING`)
+- `/admin` - protected (`ProtectedRoute`), lazy-loaded `Admin.jsx` with tabs Blog (`BlogAdmin.tsx`) and Cotizador (`Cotizador.jsx`, data in `PROJECT_MODULES` / `SERVICE_CATEGORIES` / `PROJECT_PRICING`) and Configuración (`pages/configuracion/ConfiguracionAdmin.jsx`: team shortcuts/links stored in table `accesos_directos`, migration `20261007160000_accesos_directos.sql`, hooks in `src/hooks/tareas.js`)
 - `/privacy`, `/terms`
 
 **Contact + tracking:**
@@ -36,7 +36,7 @@ npm run preview   # Preview production build locally
 - UI in `src/pages/tareas/` (board, list, projects, team, task modal with comments/history/notices); data hooks in `src/hooks/tareas.js` with realtime refresh.
 - WhatsApp notice to the assignee on create/reassign (not self-assign): trigger → `encolar_aviso_tarea()` → `pg_net` POST to Agente-Next back `/avisos/tarea` (secret in Vault `avisos_tareas_url` / `avisos_tareas_secret`) → cron `procesar-avisos-tareas` reconciles status every minute. Bulk imports use `SET LOCAL app.sin_avisos = 'on'`.
 - **GitHub Issues is the source of truth** (`supabase/migrations/20261007150000_tareas_desde_github.sql`): tasks are born and move in GitHub; Supabase is a mirror. `github_sync_tick()` (pg_cron every minute + panel every 30 s) polls `GET /issues?filter=all&since=` with the `github_token` Vault secret and upserts `tareas`. The panel never writes `tareas` directly: RPCs `tarea_crear` / `tarea_actualizar` / `tarea_comentar` send REST (create, labels, comments) or GraphQL (title/body, close/reopen — pg_net has no PATCH) and keep an optimistic copy with `sync_estado = 'pendiente'`. Mapping: open/closed(+state_reason) and labels «en progreso» / «en revisión» / «bloqueada» → estado; «prioridad: X» → prioridad; person labels in `equipo.github_labels` (or `github_login` assignee) → responsable; body line «Fecha límite: AAAA-MM-DD» → fecha_limite. Internal NexCommit tasks live in the private repo `novautomatic/dashboard-tareas`.
-- This repo is PUBLIC: never commit task/issue data exports or secrets (use the gitignored `Claude outputs/`).
+- Never commit task/issue data exports or secrets (use the gitignored `Claude outputs/`).
 
 **Backend (Supabase):**
 - Client in `src/lib/supabaseClient.ts` (anon key, public by design). Blog hooks in `src/hooks/blog/` query the `posts` table.

@@ -238,3 +238,34 @@ export function useGuardarMiembro() {
     onSettled: () => invalidar('equipo'),
   });
 }
+
+// ── Accesos directos (Configuración) ─────────────────────────────────────────
+export function useAccesosDirectos() {
+  return useQuery({
+    queryKey: ['accesos'],
+    queryFn: () =>
+      unwrap(supabase.from('accesos_directos').select('*').order('categoria', { nullsFirst: false }).order('orden').order('titulo')),
+  });
+}
+
+export function useGuardarAcceso() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...campos }) => {
+      const filas = id
+        ? await unwrap(supabase.from('accesos_directos').update(campos).eq('id', id).select())
+        : await unwrap(supabase.from('accesos_directos').insert(campos).select());
+      if (!filas?.length) throw new Error('No se pudo guardar el acceso directo.');
+      return filas;
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['accesos'] }),
+  });
+}
+
+export function useEliminarAcceso() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => unwrap(supabase.from('accesos_directos').delete().eq('id', id)),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['accesos'] }),
+  });
+}
