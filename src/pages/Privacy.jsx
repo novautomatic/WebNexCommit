@@ -125,7 +125,17 @@ export default function Privacy() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-white mb-4">9. Modificaciones</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">9. Cookies y medición</h2>
+                <p className="text-brand-muted leading-relaxed mb-3">
+                  Con tu consentimiento usamos Google Analytics 4 para medir visitas y Google Ads para saber qué anuncios generan contactos. Estas herramientas guardan cookies en tu navegador y envían datos de navegación a Google, que puede tratarlos fuera de Chile.
+                </p>
+                <p className="text-brand-muted leading-relaxed">
+                  No se activan hasta que aceptas el aviso de cookies. Puedes cambiar tu decisión en cualquier momento desde el enlace «Cookies» al pie de cada página.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold text-white mb-4">10. Modificaciones</h2>
                 <p className="text-brand-muted leading-relaxed">
                   NexCommit podrá actualizar esta política para reflejar cambios regulatorios o mejoras operativas.
                 </p>

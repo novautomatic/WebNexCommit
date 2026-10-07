@@ -6,53 +6,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm run dev       # Start Vite dev server with HMR
-npm run build     # Build for production (outputs to dist/)
+npm run build     # Build for production (outputs to dist/, regenerates public/sitemap.xml)
 npm run lint      # Run ESLint
 npm run preview   # Preview production build locally
 ```
 
 ## Architecture
 
-**Stack:** React 19 + Vite + Tailwind CSS + Three.js (react-three/fiber) + InsForge (Backend/DB)
+**Stack:** React 19 + Vite + Tailwind CSS + Three.js (react-three/fiber) + Supabase (Auth + Postgres) + TanStack Query + react-helmet-async
 
-**Frontend Structure:**
-- `src/main.jsx` - Entry point, wraps App in `BrowserRouter` and `AuthProvider`
-- `src/App.jsx` - Main router configuration and layout (nav/footer)
-- `src/pages/` - Page components:
-  - `Home.jsx` - Landing page with 3D hero and services
-  - `BlogIndex.jsx` - List of published articles
-  - `PostDetail.jsx` - Individual article view
-  - `Login.jsx` - Auth entry point for admins
-  - `NCAdmin.jsx` - Protected dashboard for content management
-- `src/components/` - Reusable UI:
-  - `Brand.jsx` - Logo and brand assets with fallback logic
-  - `AuthContext.jsx` - Global auth state and InsForge session management
-  - `ProtectedRoute.jsx` - Guard component for admin routes
-- `src/Hero3D.jsx` - Three.js canvas with layered wireframe geometry
-- `src/index.css` - Global styles and Tailwind configuration
+**Repo:** `github.com/novautomatic/WebNexCommit` (owner: novautomatic). Deployed on Vercel at `https://www.nexcommit.com`.
 
-**Backend Structure (InsForge):**
-- `backend/functions/` - Serverless edge functions deployed to `https://ut8vwhk6.functions.insforge.app`:
-  - `get-posts.js`, `get-post.js`, `get-categories.js` (Public Read)
-  - `create-post.js`, `update-post.js`, `delete-post.js` (Admin Write - requires `is_admin` flag)
-  - `get-comments.js`, `delete-comment.js`, `add-comment.js` (Moderation)
-  - `check-admin.js` (Auth validation - returns `{ isAdmin, user }`)
-- **OAuth Flow:** Login redirects to `https://ut8vwhk6.functions.insforge.app/login`, logout to `https://insforge.dev/logout`
-- **Admin Panel:** `/ncadmin` - Tab-based UI (Posts/Comments) with inline editor, category selector, and CRUD operations.
+**Routes (`src/App.jsx`):**
+- `/` - `Home.jsx`: 3D hero, services, client portfolio (`src/data/CLIENTS.js`), FAQ, CTA
+- `/servicios`, `/servicios/:slug` - `ServicesIndex.jsx` / `Services.jsx`, content in `src/data/SERVICE_PAGES.js`
+- `/blog`, `/blog/:slug` - `pages/blog/BlogList.tsx` / `BlogPost.tsx`
+- `/lp/:slug` - `AdLanding.jsx`: Google Ads landing pages (noindex), content in `src/data/ADS_LANDINGS.js`
+- `/login` - Supabase email/password login
+- `/admin` - protected (`ProtectedRoute`), lazy-loaded `Admin.jsx` with tabs Blog (`BlogAdmin.tsx`) and Cotizador (`Cotizador.jsx`, data in `PROJECT_MODULES` / `SERVICE_CATEGORIES` / `PROJECT_PRICING`)
+- `/privacy`, `/terms`
+
+**Contact + tracking:**
+- `src/config/contact.js` - single source for the WhatsApp/phone number, pre-filled messages, `[Google]` tag for Ads visitors (gclid), GA4 events and Google Ads conversion IDs (empty until filled from Google Ads).
+- `src/components/ContactButtons.jsx` - `WhatsAppLink` and `ContactDock` (mobile bar + desktop bubble).
+- GA4 (`G-FBHZGW2YB7`) loads in `index.html` with Consent Mode v2 defaulting to denied; `src/components/CookieConsent.jsx` grants it after the visitor accepts.
+
+**Backend (Supabase):**
+- Client in `src/lib/supabaseClient.ts` (anon key, public by design). Blog hooks in `src/hooks/blog/` query the `posts` table.
+- `supabase/functions/auto-generate-post` - Edge Function that writes blog posts with AI.
+- `insforge/` and `backend/` are leftovers from the previous InsForge backend and are not used by the frontend.
 
 **Key patterns:**
 - **Routing:** SPA routing using `react-router-dom` with `vercel.json` rewrites for production.
-- **Security:** Access control based on `is_admin` flag in the `profiles` table.
-- **3D Hero:** Layered composition in `Hero3D.jsx`:
-  - `OuterIcosahedron` (r=2.2, wireframe, opacity 0.55) - slow rotation
-  - `MidDodecahedron` (r=1.5, wireframe, opacity 0.35) - counter-rotation
-  - `CoreOctahedron` (r=0.8, wireframe, opacity 0.9) - fast rotation
-  - `Particles` (100 points, radial distribution r=2.5-4.5)
-  - `GlowEdges` (pulsing opacity 0.6-0.9)
-  - All wrapped in `Float` for subtle movement
+- **SEO:** per-page metadata via `src/components/SEO.jsx` (react-helmet-async); `scripts/generate-sitemap.mjs` builds the sitemap.
+- **3D Hero:** Layered wireframe composition in `Hero3D.jsx` (icosahedron, dodecahedron, octahedron, particles, glow edges) wrapped in `Float`. Lazy-loaded.
 - **Styling:** Brand colors via CSS variables in `:root` (ink: #071b31, brand: #248bde, sky: #67c8f3) and `.glass-dark` morphisms.
-- **Data Flow:** Frontend → InsForge Edge Functions (`https://ut8vwhk6.functions.insforge.app`) → PostgreSQL.
-- **Blog URLs:** Posts use slug-based routing (`/blog/:slug`), fetched via `get-post?slug={slug}`.
 
 **Custom CSS utilities:**
 - `.eyebrow` - Pill badge above hero heading

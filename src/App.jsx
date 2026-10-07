@@ -18,6 +18,7 @@ import { BrandLogo } from './components/Brand';
 import SiteMeta from './components/SiteMeta';
 import AdLanding from './pages/AdLanding';
 import { ContactDock, WhatsAppLink } from './components/ContactButtons';
+import CookieConsent, { resetCookieConsent } from './components/CookieConsent';
 import { captureAdClick, GOOGLE_ADS } from './config/contact';
 import { getAdLanding } from './data/ADS_LANDINGS';
 
@@ -179,6 +180,13 @@ function App() {
                 <Link to="/terms" className="hover:text-white transition-colors">
                   Términos y Condiciones
                 </Link>
+                <button
+                  type="button"
+                  onClick={resetCookieConsent}
+                  className="hover:text-white transition-colors"
+                >
+                  Cookies
+                </button>
               </div>
             </div>
             <div className="text-center text-sm border-t border-white/5 pt-8 text-brand-footer">
@@ -189,6 +197,7 @@ function App() {
         </footer>
         </>)}
         {!hideDock && <ContactDock topic={dockTopic} />}
+        {!isAdmin && <CookieConsent />}
       </div>
     </AuthProvider>
     </QueryClientProvider>
