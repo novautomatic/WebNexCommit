@@ -15,7 +15,11 @@ export function AuthProvider({ children }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'TOKEN_REFRESHED') {
+      if (event === 'PASSWORD_RECOVERY') {
+        // Opened from a "reset password" email: send them to choose a new one.
+        setUser(session?.user ?? null);
+        navigate('/reset-password', { replace: true });
+      } else if (event === 'TOKEN_REFRESHED') {
         // Token refreshed successfully
         setUser(session?.user ?? null);
       } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
@@ -29,6 +33,8 @@ export function AuthProvider({ children }) {
     });
 
     return () => subscription.unsubscribe();
+    // Subscribe once; `navigate` changes identity on every route change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function checkSession() {
