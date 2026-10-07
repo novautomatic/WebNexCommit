@@ -300,3 +300,17 @@ img {
     padding: 0.7rem 0.95rem;
   }
 }
+
+/* Native dropdowns and date pickers: every form on the site is dark, so the
+   browser must draw their popups dark too (otherwise options render white
+   text on a white list). */
+select,
+input[type='date'] {
+  color-scheme: dark;
+}
+
+select option,
+select optgroup {
+  background-color: #0d1e30;
+  color: #ffffff;
+}
