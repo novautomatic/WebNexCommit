@@ -23,7 +23,7 @@ npm run preview   # Preview production build locally
 - `/blog`, `/blog/:slug` - `pages/blog/BlogList.tsx` / `BlogPost.tsx`
 - `/lp/:slug` - `AdLanding.jsx`: Google Ads landing pages (noindex), content in `src/data/ADS_LANDINGS.js`
 - `/login` - Supabase email/password login
-- `/admin` - protected (`ProtectedRoute`), lazy-loaded `Admin.jsx` with tabs Blog (`BlogAdmin.tsx`) and Cotizador (`Cotizador.jsx`, data in `PROJECT_MODULES` / `SERVICE_CATEGORIES` / `PROJECT_PRICING`) and Configuración (`pages/configuracion/ConfiguracionAdmin.jsx`: team shortcuts/links stored in table `accesos_directos`, migration `20261007160000_accesos_directos.sql`, hooks in `src/hooks/tareas.js`)
+- `/admin` - protected (`ProtectedRoute`), lazy-loaded `Admin.jsx` with tabs Blog (`BlogAdmin.tsx`) and Cotizador (`Cotizador.jsx`, data in `PROJECT_MODULES` / `SERVICE_CATEGORIES` / `PROJECT_PRICING`) and Configuración (`pages/configuracion/ConfiguracionAdmin.jsx`: team shortcuts/links stored in table `accesos_directos`, migration `20261007160000_accesos_directos.sql`, hooks in `src/hooks/tareas.js`; also shown as the "Accesos" dropdown in the panel header via `AccesosMenu.jsx`)
 - `/privacy`, `/terms`
 
 **Contact + tracking:**
