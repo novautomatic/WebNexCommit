@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AlertTriangle, Briefcase, CalendarClock, Contact, FolderKanban, LayoutGrid, Link2, List, Plus, RefreshCw, Search, Users } from 'lucide-react';
+import { AlertTriangle, Briefcase, CalendarClock, LayoutGrid, List, Plus, RefreshCw, Search } from 'lucide-react';
 import {
   ESTADOS,
   PRIORIDAD,
@@ -12,67 +12,61 @@ import {
   formatearFecha,
   hoyISO,
   refGithub,
-  useClientes,
   useEquipo,
   useGuardarTarea,
   useMiEquipoId,
-  useProyectoClientes,
   useProyectos,
   useTareasLista,
   useSyncGithub,
   useTareasRealtime,
 } from '../../hooks/tareas';
 import TareaModal from './TareaModal';
-import ProyectosVista from './ProyectosVista';
-import EquipoVista from './EquipoVista';
-import ConfiguracionAdmin from '../configuracion/ConfiguracionAdmin';
-import ClientesVista from './ClientesVista';
 import { Avatar, EstadoPill, ErrorBox, Pill, PrioridadPill, btnPrimary, card, inputClass } from './ui';
 
+// Task views only; projects, clients, team and shortcuts live in the panel sidebar.
 const VISTAS = [
   { id: 'tablero', label: 'Tablero', icon: LayoutGrid },
   { id: 'lista', label: 'Lista', icon: List },
-  { id: 'areas', label: 'Áreas', icon: Briefcase },
-  { id: 'proyectos', label: 'Proyectos', icon: FolderKanban },
-  { id: 'clientes', label: 'Clientes', icon: Contact },
-  { id: 'equipo', label: 'Equipo', icon: Users },
-  { id: 'accesos', label: 'Accesos', icon: Link2 },
+  { id: 'areas', label: 'Por área', icon: Briefcase },
 ];
 const COLUMNAS = ESTADOS.filter((e) => e.id !== 'cancelada');
 const CATORCE_DIAS = 14 * 24 * 60 * 60 * 1000;
 
-export default function TareasAdmin() {
+export default function TareasAdmin({ vista = 'tablero', irA }) {
   const [params, setParams] = useSearchParams();
   const yo = useMiEquipoId();
   const equipoQ = useEquipo();
   const proyectosQ = useProyectos();
   const tareasQ = useTareasLista();
-  const clientesQ = useClientes();
-  const vinculosQ = useProyectoClientes();
   useTareasRealtime();
   const sync = useSyncGithub();
 
-  const [filtros, setFiltros] = useState({ q: '', proyecto: '', responsable: '', prioridad: '', estado: '', soloVencidas: false });
-  const [nueva, setNueva] = useState(null); // defaults for a new task, or null
+  // ?proyecto=<id> pre-filters (coming from Proyectos/Clientes); ?nueva=<id> opens the create form.
+  const [filtros, setFiltros] = useState(() => ({
+    q: '', proyecto: params.get('proyecto') || '', responsable: '', prioridad: '', estado: '', soloVencidas: false,
+  }));
+  const [nuevaLocal, setNuevaLocal] = useState(null); // defaults for a new task, or null
+  const nuevaParam = params.get('nueva');
+  const nueva = nuevaLocal || (nuevaParam ? { proyecto_id: nuevaParam } : null);
+  const cerrarNueva = () => {
+    setNuevaLocal(null);
+    if (nuevaParam) setParams((p) => { p.delete('nueva'); return p; }, { replace: true });
+  };
   const [areaSel, setAreaSel] = useState(null);
 
   const equipo = useMemo(() => equipoQ.data ?? [], [equipoQ.data]);
   const proyectos = useMemo(() => proyectosQ.data ?? [], [proyectosQ.data]);
   const tareas = useMemo(() => tareasQ.data ?? [], [tareasQ.data]);
-  const clientes = useMemo(() => clientesQ.data ?? [], [clientesQ.data]);
-  const vinculos = useMemo(() => vinculosQ.data ?? [], [vinculosQ.data]);
   const areas = useMemo(() => proyectos.filter((p) => p.tipo === 'area' && !p.archivado), [proyectos]);
   const repos = useMemo(() => proyectos.filter((p) => p.tipo !== 'area' && !p.archivado), [proyectos]);
   const miembro = useMemo(() => Object.fromEntries(equipo.map((m) => [m.id, m])), [equipo]);
   const proyecto = useMemo(() => Object.fromEntries(proyectos.map((p) => [p.id, p])), [proyectos]);
 
   // Deep link from the WhatsApp notice: /admin?tab=tareas&tarea=<numero>
-  const pedida = params.get('vista');
-  const vista = VISTAS.some((v) => v.id === pedida) ? pedida : 'tablero';
-  const setVista = (id) => setParams((p) => { p.set('tab', 'tareas'); p.set('vista', id); return p; }, { replace: true });
+  const setVista = (id) => irA?.(id);
   const numeroAbierto = params.get('tarea');
   const tareaAbierta = numeroAbierto ? tareas.find((t) => String(t.numero) === numeroAbierto) : null;
-  const abrir = (t) => setParams((p) => { p.set('tab', 'tareas'); p.set('tarea', String(t.numero)); return p; }, { replace: true });
+  const abrir = (t) => setParams((p) => { p.set('tarea', String(t.numero)); return p; }, { replace: true });
   const cerrar = () => setParams((p) => { p.delete('tarea'); return p; }, { replace: true });
 
   const filtradas = useMemo(() => {
@@ -106,7 +100,7 @@ export default function TareasAdmin() {
   }, [tareas, yo.data]);
 
   const cargando = equipoQ.isLoading || proyectosQ.isLoading || tareasQ.isLoading || yo.isLoading;
-  const error = equipoQ.error || proyectosQ.error || tareasQ.error || yo.error || clientesQ.error || vinculosQ.error;
+  const error = equipoQ.error || proyectosQ.error || tareasQ.error || yo.error;
 
   if (cargando) return <p className="text-[#9aafc3]">Cargando tareas…</p>;
   if (error) return <ErrorBox error={error} />;
@@ -126,7 +120,7 @@ export default function TareasAdmin() {
   const proyectoInterno = proyectos.find((p) => p.es_interno && p.github_repo)?.id || '';
   const areaActiva = areas.find((a) => a.id === areaSel) || areas[0];
   const nuevaTarea = (defaults = {}) =>
-    setNueva({
+    setNuevaLocal({
       proyecto_id: vista === 'areas' && areaActiva ? areaActiva.id : filtros.proyecto || proyectoInterno,
       ...defaults,
     });
@@ -155,7 +149,7 @@ export default function TareasAdmin() {
         <Kpi label="Completadas (7 días)" valor={kpis.completadas} color="#34d399" />
       </div>
 
-      <div className="flex flex-wrap gap-2 border-b border-white/10">
+      <div className="inline-flex rounded-lg border border-white/10 bg-[#0c1a2c] p-1" role="tablist" aria-label="Vista de tareas">
         {VISTAS.map((v) => {
           const Icon = v.icon;
           const activa = vista === v.id;
@@ -163,12 +157,14 @@ export default function TareasAdmin() {
             <button
               key={v.id}
               type="button"
+              role="tab"
+              aria-selected={activa}
               onClick={() => setVista(v.id)}
-              className={`flex items-center gap-2 px-3 py-2 text-sm -mb-px border-b-2 transition-colors ${
-                activa ? 'text-white border-[#67c8f3]' : 'text-[#9aafc3] border-transparent hover:text-white'
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                activa ? 'bg-[#1a3050] text-white' : 'text-[#9aafc3] hover:text-white'
               }`}
             >
-              <Icon className="w-4 h-4" /> {v.label}
+              <Icon className="w-4 h-4" /> <span className="hidden sm:inline">{v.label}</span>
             </button>
           );
         })}
@@ -258,30 +254,9 @@ export default function TareasAdmin() {
           />
         </div>
       )}
-      {vista === 'clientes' && (
-        <ClientesVista
-          clientes={clientes}
-          vinculos={vinculos}
-          proyectos={proyectos}
-          tareas={tareas}
-          onVerProyecto={(id) => { setFiltros((f) => ({ ...f, proyecto: id })); setVista('tablero'); }}
-        />
-      )}
-      {vista === 'proyectos' && (
-        <ProyectosVista
-          proyectos={proyectos}
-          tareas={tareas}
-          clientes={clientes}
-          vinculos={vinculos}
-          onNuevaTarea={(id) => nuevaTarea({ proyecto_id: id })}
-          onVerProyecto={(id) => { setFiltros((f) => ({ ...f, proyecto: id })); setVista('tablero'); }}
-        />
-      )}
-      {vista === 'equipo' && <EquipoVista equipo={equipo} tareas={tareas} />}
-      {vista === 'accesos' && <ConfiguracionAdmin />}
 
       {nueva && (
-        <TareaModal defaults={nueva} equipo={equipo} proyectos={proyectos} onClose={() => setNueva(null)} />
+        <TareaModal defaults={nueva} equipo={equipo} proyectos={proyectos} onClose={cerrarNueva} />
       )}
       {tareaAbierta && (
         <TareaModal key={tareaAbierta.id} tarea={tareaAbierta} equipo={equipo} proyectos={proyectos} onClose={cerrar} />

@@ -66,7 +66,7 @@ export default function AccesosMenu() {
           ))}
           <div className="border-t border-white/10 mt-1 pt-1">
             <Link
-              to="/admin?tab=tareas&vista=accesos"
+              to="/admin?tab=accesos"
               onClick={() => setAbierto(false)}
               className="block px-4 py-2 text-xs text-[#67c8f3] hover:bg-white/5"
             >
