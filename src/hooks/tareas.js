@@ -43,6 +43,7 @@ export function estaVencida(t) {
 
 // "repo#12" label for a task, from its GitHub issue.
 export function refGithub(t, proyecto) {
+  if (proyecto?.tipo === 'area') return `${proyecto.nombre} #${t.numero}`;
   if (!t.github_numero) return 'creando en GitHub…';
   const repo = proyecto?.github_repo?.split('/')[1] || proyecto?.nombre || '';
   return `${repo}#${t.github_numero}`;
@@ -218,9 +219,64 @@ export function useGuardarProyecto() {
   return useMutation({
     mutationFn: ({ id, ...campos }) =>
       id
-        ? unwrap(supabase.from('proyectos').update(campos).eq('id', id))
-        : unwrap(supabase.from('proyectos').insert(campos)),
+        ? unwrap(supabase.from('proyectos').update(campos).eq('id', id).select().single())
+        : unwrap(supabase.from('proyectos').insert(campos).select().single()),
     onSettled: () => invalidar('proyectos'),
+  });
+}
+
+export function useBorrarTareaArea() {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: (id) => unwrap(supabase.rpc('tarea_borrar_area', { p_tarea: id })),
+    onSettled: () => invalidar('lista'),
+  });
+}
+
+export function useClientes() {
+  return useQuery({
+    queryKey: ['tareas', 'clientes'],
+    queryFn: () => unwrap(supabase.from('clientes').select('*').order('nombre')),
+  });
+}
+
+export function useProyectoClientes() {
+  return useQuery({
+    queryKey: ['tareas', 'proyecto_clientes'],
+    queryFn: () => unwrap(supabase.from('proyecto_clientes').select('proyecto_id, cliente_id')),
+  });
+}
+
+export function useGuardarCliente() {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: ({ id, ...campos }) =>
+      id
+        ? unwrap(supabase.from('clientes').update(campos).eq('id', id).select().single())
+        : unwrap(supabase.from('clientes').insert(campos).select().single()),
+    onSettled: () => invalidar('clientes'),
+  });
+}
+
+export function useBorrarCliente() {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: (id) => unwrap(supabase.from('clientes').delete().eq('id', id)),
+    onSettled: () => invalidar('clientes', 'proyecto_clientes', 'proyectos'),
+  });
+}
+
+// Applies a diff of project↔client links. Pass either a project or a client as the fixed side.
+export function useVincularClientes() {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: async ({ agregar = [], quitar = [] }) => {
+      if (agregar.length) await unwrap(supabase.from('proyecto_clientes').upsert(agregar, { ignoreDuplicates: true }));
+      for (const { proyecto_id, cliente_id } of quitar) {
+        await unwrap(supabase.from('proyecto_clientes').delete().eq('proyecto_id', proyecto_id).eq('cliente_id', cliente_id));
+      }
+    },
+    onSettled: () => invalidar('proyecto_clientes', 'proyectos'),
   });
 }
 
@@ -268,4 +324,14 @@ export function useEliminarAcceso() {
     mutationFn: (id) => unwrap(supabase.from('accesos_directos').delete().eq('id', id)),
     onSettled: () => qc.invalidateQueries({ queryKey: ['accesos'] }),
   });
+}
+
+// Creates the not-yet-saved clients picked in ClienteSelector and returns all with ids.
+export async function resolverClientes(seleccion, crear) {
+  const resultado = [];
+  for (const c of seleccion) {
+    if (c.id) resultado.push(c);
+    else resultado.push(await crear.mutateAsync({ nombre: c.nombre }));
+  }
+  return resultado;
 }

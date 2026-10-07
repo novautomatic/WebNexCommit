@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AlertTriangle, CalendarClock, FolderKanban, LayoutGrid, Link2, List, Plus, RefreshCw, Search, Users } from 'lucide-react';
+import { AlertTriangle, Briefcase, CalendarClock, Contact, FolderKanban, LayoutGrid, Link2, List, Plus, RefreshCw, Search, Users } from 'lucide-react';
 import {
   ESTADOS,
   PRIORIDAD,
@@ -12,9 +12,11 @@ import {
   formatearFecha,
   hoyISO,
   refGithub,
+  useClientes,
   useEquipo,
   useGuardarTarea,
   useMiEquipoId,
+  useProyectoClientes,
   useProyectos,
   useTareasLista,
   useSyncGithub,
@@ -24,12 +26,15 @@ import TareaModal from './TareaModal';
 import ProyectosVista from './ProyectosVista';
 import EquipoVista from './EquipoVista';
 import ConfiguracionAdmin from '../configuracion/ConfiguracionAdmin';
+import ClientesVista from './ClientesVista';
 import { Avatar, EstadoPill, ErrorBox, Pill, PrioridadPill, btnPrimary, card, inputClass } from './ui';
 
 const VISTAS = [
   { id: 'tablero', label: 'Tablero', icon: LayoutGrid },
   { id: 'lista', label: 'Lista', icon: List },
+  { id: 'areas', label: 'Áreas', icon: Briefcase },
   { id: 'proyectos', label: 'Proyectos', icon: FolderKanban },
+  { id: 'clientes', label: 'Clientes', icon: Contact },
   { id: 'equipo', label: 'Equipo', icon: Users },
   { id: 'accesos', label: 'Accesos', icon: Link2 },
 ];
@@ -42,15 +47,22 @@ export default function TareasAdmin() {
   const equipoQ = useEquipo();
   const proyectosQ = useProyectos();
   const tareasQ = useTareasLista();
+  const clientesQ = useClientes();
+  const vinculosQ = useProyectoClientes();
   useTareasRealtime();
   const sync = useSyncGithub();
 
   const [filtros, setFiltros] = useState({ q: '', proyecto: '', responsable: '', prioridad: '', estado: '', soloVencidas: false });
   const [nueva, setNueva] = useState(null); // defaults for a new task, or null
+  const [areaSel, setAreaSel] = useState(null);
 
   const equipo = useMemo(() => equipoQ.data ?? [], [equipoQ.data]);
   const proyectos = useMemo(() => proyectosQ.data ?? [], [proyectosQ.data]);
   const tareas = useMemo(() => tareasQ.data ?? [], [tareasQ.data]);
+  const clientes = useMemo(() => clientesQ.data ?? [], [clientesQ.data]);
+  const vinculos = useMemo(() => vinculosQ.data ?? [], [vinculosQ.data]);
+  const areas = useMemo(() => proyectos.filter((p) => p.tipo === 'area' && !p.archivado), [proyectos]);
+  const repos = useMemo(() => proyectos.filter((p) => p.tipo !== 'area' && !p.archivado), [proyectos]);
   const miembro = useMemo(() => Object.fromEntries(equipo.map((m) => [m.id, m])), [equipo]);
   const proyecto = useMemo(() => Object.fromEntries(proyectos.map((p) => [p.id, p])), [proyectos]);
 
@@ -94,7 +106,7 @@ export default function TareasAdmin() {
   }, [tareas, yo.data]);
 
   const cargando = equipoQ.isLoading || proyectosQ.isLoading || tareasQ.isLoading || yo.isLoading;
-  const error = equipoQ.error || proyectosQ.error || tareasQ.error || yo.error;
+  const error = equipoQ.error || proyectosQ.error || tareasQ.error || yo.error || clientesQ.error || vinculosQ.error;
 
   if (cargando) return <p className="text-[#9aafc3]">Cargando tareas…</p>;
   if (error) return <ErrorBox error={error} />;
@@ -112,15 +124,21 @@ export default function TareasAdmin() {
 
   const setFiltro = (k) => (e) => setFiltros((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
   const proyectoInterno = proyectos.find((p) => p.es_interno && p.github_repo)?.id || '';
+  const areaActiva = areas.find((a) => a.id === areaSel) || areas[0];
   const nuevaTarea = (defaults = {}) =>
-    setNueva({ proyecto_id: filtros.proyecto || proyectoInterno, ...defaults });
+    setNueva({
+      proyecto_id: vista === 'areas' && areaActiva ? areaActiva.id : filtros.proyecto || proyectoInterno,
+      ...defaults,
+    });
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-white">Tareas</h1>
-          <p className="text-sm text-[#9aafc3]">Issues de GitHub de novautomatic. Todo nace y se mueve en GitHub; aquí se ve y se respalda.</p>
+          <p className="text-sm text-[#9aafc3]">
+            Proyectos: issues de GitHub de novautomatic (nacen y se mueven en GitHub). Áreas: tareas internas que viven solo aquí.
+          </p>
           <SyncEstado sync={sync} />
         </div>
         <button type="button" className={btnPrimary} onClick={() => nuevaTarea()}>
@@ -163,8 +181,13 @@ export default function TareasAdmin() {
             <input className={`${inputClass} pl-9`} placeholder="Buscar por título, #número o etiqueta" value={filtros.q} onChange={setFiltro('q')} />
           </div>
           <select className={`${inputClass} w-auto`} value={filtros.proyecto} onChange={setFiltro('proyecto')} aria-label="Proyecto">
-            <option value="">Todos los proyectos</option>
-            {proyectos.filter((p) => !p.archivado).map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+            <option value="">Todos los proyectos y áreas</option>
+            <optgroup label="Áreas">
+              {areas.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+            </optgroup>
+            <optgroup label="Proyectos (GitHub)">
+              {repos.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+            </optgroup>
           </select>
           <select className={`${inputClass} w-auto`} value={filtros.responsable} onChange={setFiltro('responsable')} aria-label="Responsable">
             <option value="">Todo el equipo</option>
@@ -192,10 +215,64 @@ export default function TareasAdmin() {
         <Tablero tareas={filtradas} miembro={miembro} proyecto={proyecto} onAbrir={abrir} onNueva={nuevaTarea} />
       )}
       {vista === 'lista' && <Lista tareas={filtradas} miembro={miembro} proyecto={proyecto} onAbrir={abrir} />}
+      {vista === 'areas' && areaActiva && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {areas.map((a) => {
+              const abiertas = tareas.filter((t) => t.proyecto_id === a.id && estaAbierta(t)).length;
+              const activa = a.id === areaActiva.id;
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => setAreaSel(a.id)}
+                  className={`${card} p-4 text-left transition-colors ${activa ? 'border-white/40' : 'hover:border-white/25'}`}
+                  style={activa ? { boxShadow: `inset 3px 0 0 ${a.color}` } : undefined}
+                  aria-pressed={activa}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: a.color }} />
+                    <span className="text-white font-semibold text-sm">{a.nombre}</span>
+                  </div>
+                  <div className="mt-2 flex items-center gap-2 text-xs text-[#9aafc3]">
+                    <Avatar nombre={miembro[a.area_responsable_id]?.nombre} size={20} />
+                    {miembro[a.area_responsable_id]?.nombre || 'Sin responsable'}
+                    <span className="ml-auto text-white">{abiertas} abiertas</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs text-[#9aafc3]">Estas tareas no van a GitHub. Si no eliges responsable, quedan a cargo de quien lidera el área.</p>
+            <button type="button" className={btnPrimary} onClick={() => nuevaTarea({ proyecto_id: areaActiva.id })}>
+              <Plus className="w-4 h-4" /> Tarea en {areaActiva.nombre}
+            </button>
+          </div>
+          <Tablero
+            tareas={tareas.filter((t) => t.proyecto_id === areaActiva.id)}
+            miembro={miembro}
+            proyecto={proyecto}
+            onAbrir={abrir}
+            onNueva={() => nuevaTarea({ proyecto_id: areaActiva.id })}
+          />
+        </div>
+      )}
+      {vista === 'clientes' && (
+        <ClientesVista
+          clientes={clientes}
+          vinculos={vinculos}
+          proyectos={proyectos}
+          tareas={tareas}
+          onVerProyecto={(id) => { setFiltros((f) => ({ ...f, proyecto: id })); setVista('tablero'); }}
+        />
+      )}
       {vista === 'proyectos' && (
         <ProyectosVista
           proyectos={proyectos}
           tareas={tareas}
+          clientes={clientes}
+          vinculos={vinculos}
           onNuevaTarea={(id) => nuevaTarea({ proyecto_id: id })}
           onVerProyecto={(id) => { setFiltros((f) => ({ ...f, proyecto: id })); setVista('tablero'); }}
         />
@@ -322,7 +399,7 @@ function Tarjeta({ t, miembro, proyecto, onAbrir, onEstado }) {
           <span className="ml-auto flex items-center gap-1">
             {t.sync_estado === 'pendiente' && <RefreshCw className="w-3 h-3 animate-spin" aria-label="Sincronizando" />}
             {t.sync_estado === 'error' && <AlertTriangle className="w-3 h-3 text-red-300" aria-label="Error de sincronización" />}
-            #{t.github_numero ?? '…'}
+            #{p?.tipo === 'area' ? t.numero : t.github_numero ?? '…'}
           </span>
         </div>
         <h3 className="text-sm text-white leading-snug break-words">{t.titulo}</h3>

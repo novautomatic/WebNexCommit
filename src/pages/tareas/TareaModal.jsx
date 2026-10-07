@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { AlertTriangle, ExternalLink, MessageCircle, RefreshCw, RotateCw } from 'lucide-react';
+import { AlertTriangle, ExternalLink, MessageCircle, RefreshCw, RotateCw, Trash2 } from 'lucide-react';
 import {
   ESTADOS,
   ESTADO,
@@ -10,6 +10,7 @@ import {
   useDetalleTarea,
   useGuardarTarea,
   useReenviarAviso,
+  useBorrarTareaArea,
   useResincronizar,
 } from '../../hooks/tareas';
 import { Avatar, ErrorBox, Modal, Pill, btnGhost, btnPrimary, inputClass, labelClass } from './ui';
@@ -60,13 +61,19 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
   const [form, setForm] = useState(() => aFormulario(tarea, defaults));
   const guardar = useGuardarTarea();
   const resincronizar = useResincronizar();
+  const borrar = useBorrarTareaArea();
   const esNueva = !tarea;
   const proyectoActual = proyectos.find((p) => p.id === (tarea?.proyecto_id || form.proyecto_id));
+  const proyectoElegido = proyectos.find((p) => p.id === form.proyecto_id);
+  const esArea = (esNueva ? proyectoElegido : proyectoActual)?.tipo === 'area';
 
   const set = (campo) => (e) => setForm((f) => ({ ...f, [campo]: e.target.value }));
   const activos = equipo.filter((m) => m.activo);
   // Only projects backed by a GitHub repo can hold tasks.
-  const abiertos = proyectos.filter((p) => p.github_repo && (!p.archivado || p.id === form.proyecto_id));
+  const abiertos = proyectos.filter((p) => (p.github_repo || p.tipo === 'area') && (!p.archivado || p.id === form.proyecto_id));
+  // An area task can move to another area; a GitHub task stays in its repo.
+  const opcionesAreas = abiertos.filter((p) => p.tipo === 'area');
+  const opcionesRepos = esNueva ? abiertos.filter((p) => p.tipo !== 'area') : [];
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -88,7 +95,7 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
     const cambios = {};
     const igual = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
     for (const [k, v] of Object.entries(campos)) {
-      if (k === 'proyecto_id') continue;
+      if (k === 'proyecto_id' && !esArea) continue;
       if (!igual(v, k === 'etiquetas' ? tarea.etiquetas || [] : tarea[k])) cambios[k] = v;
     }
     if (!Object.keys(cambios).length) {
@@ -101,7 +108,10 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
   const responsableTieneWsp = activos.find((m) => m.id === form.responsable_id)?.whatsapp;
 
   return (
-    <Modal titulo={esNueva ? 'Nueva tarea (se crea como issue en GitHub)' : `Tarea ${refGithub(tarea, proyectoActual)}`} onClose={onClose} ancho="max-w-3xl">
+    <Modal
+      titulo={esNueva
+        ? (esArea ? 'Nueva tarea de área (no va a GitHub)' : 'Nueva tarea (se crea como issue en GitHub)')
+        : `Tarea ${refGithub(tarea, proyectoActual)}`} onClose={onClose} ancho="max-w-3xl">
       {!esNueva && tarea.sync_estado !== 'ok' && (
         <div className={`mb-4 rounded-lg border px-3 py-2 text-sm flex flex-wrap items-center gap-3 ${
           tarea.sync_estado === 'error' ? 'border-red-500/30 bg-red-500/10 text-red-300' : 'border-white/10 bg-white/5 text-[#9aafc3]'}`}>
@@ -126,19 +136,30 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className={labelClass} htmlFor="t-proyecto">Proyecto</label>
-            <select id="t-proyecto" className={inputClass} value={form.proyecto_id} onChange={set('proyecto_id')} required disabled={!esNueva}
-              title={esNueva ? undefined : 'Para cambiar de proyecto, transfiere el issue en GitHub'}>
-              <option value="" disabled>Elige un proyecto…</option>
-              {abiertos.map((p) => (
-                <option key={p.id} value={p.id}>{p.nombre}{p.es_interno ? ' (interno)' : ''} — {p.github_repo}</option>
-              ))}
+            <label className={labelClass} htmlFor="t-proyecto">Proyecto o área</label>
+            <select id="t-proyecto" className={inputClass} value={form.proyecto_id} onChange={set('proyecto_id')} required
+              disabled={!esNueva && !esArea}
+              title={esNueva || esArea ? undefined : 'Para cambiar de proyecto, transfiere el issue en GitHub'}>
+              <option value="" disabled>Elige un proyecto o área…</option>
+              {opcionesAreas.length > 0 && (
+                <optgroup label="Áreas (solo aquí)">
+                  {opcionesAreas.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                </optgroup>
+              )}
+              {opcionesRepos.length > 0 && (
+                <optgroup label="Proyectos (GitHub)">
+                  {opcionesRepos.map((p) => (
+                    <option key={p.id} value={p.id}>{p.nombre}{p.es_interno ? ' (interno)' : ''} — {p.github_repo}</option>
+                  ))}
+                </optgroup>
+              )}
+              {!esNueva && !esArea && proyectoActual && <option value={proyectoActual.id}>{proyectoActual.nombre}</option>}
             </select>
           </div>
           <div>
             <label className={labelClass} htmlFor="t-resp">Responsable</label>
             <select id="t-resp" className={inputClass} value={form.responsable_id} onChange={set('responsable_id')}>
-              <option value="">Sin asignar</option>
+              <option value="">{esArea && esNueva ? 'Quien lidera el área' : 'Sin asignar'}</option>
               {activos.map((m) => (
                 <option key={m.id} value={m.id}>{m.nombre}{m.whatsapp ? '' : ' (sin WhatsApp)'}</option>
               ))}
@@ -184,7 +205,7 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
           </p>
         )}
 
-        <ErrorBox error={guardar.error || resincronizar.error} />
+        <ErrorBox error={guardar.error || resincronizar.error || borrar.error} />
 
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
           <div className="flex gap-2 items-center">
@@ -193,7 +214,17 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
                 <ExternalLink className="w-4 h-4" /> Abrir en GitHub
               </a>
             )}
-            {!esNueva && (
+            {!esNueva && esArea && (
+              <button
+                type="button"
+                className={`${btnGhost} text-red-300 hover:text-red-200`}
+                disabled={borrar.isPending}
+                onClick={() => window.confirm('¿Borrar esta tarea de área? No se puede deshacer.') && borrar.mutate(tarea.id, { onSuccess: onClose })}
+              >
+                <Trash2 className="w-4 h-4" /> Borrar
+              </button>
+            )}
+            {!esNueva && !esArea && (
               <span className="text-xs text-[#9aafc3]">Para descartarla, pásala a «Cancelada» (se cierra en GitHub).</span>
             )}
           </div>
@@ -253,7 +284,9 @@ function Seguimiento({ tarea, equipo, proyectos }) {
             </div>
           ))}
           {data && !data.comentarios.length && <p className="text-sm text-[#9aafc3]">Sin comentarios todavía.</p>}
-          <p className="text-[11px] text-[#9aafc3]">Los comentarios se publican en el issue de GitHub.</p>
+          {tarea.github_issue_url && (
+            <p className="text-[11px] text-[#9aafc3]">Los comentarios se publican en el issue de GitHub.</p>
+          )}
         </div>
         <form onSubmit={enviar} className="mt-3 flex gap-2">
           <input className={inputClass} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Escribe un avance o comentario…" maxLength={5000} />

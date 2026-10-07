@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { Archive, Pencil, Plus } from 'lucide-react';
-import { estaAbierta, estaVencida, useGuardarProyecto } from '../../hooks/tareas';
+import { estaAbierta, estaVencida, resolverClientes, useGuardarCliente, useGuardarProyecto, useVincularClientes } from '../../hooks/tareas';
 import { ErrorBox, Modal, Pill, btnGhost, btnPrimary, card, inputClass, labelClass } from './ui';
+import ClienteSelector from './ClienteSelector';
 
-export default function ProyectosVista({ proyectos, tareas, onNuevaTarea, onVerProyecto }) {
+export default function ProyectosVista({ proyectos, tareas, clientes, vinculos, onNuevaTarea, onVerProyecto }) {
   const [editando, setEditando] = useState(null); // null | {} | proyecto
   const [verArchivados, setVerArchivados] = useState(false);
-  const visibles = proyectos.filter((p) => verArchivados || !p.archivado);
+  // Areas have their own tab; this one is for GitHub repos.
+  const visibles = proyectos.filter((p) => p.tipo !== 'area' && (verArchivados || !p.archivado));
+  const cliente = Object.fromEntries(clientes.map((c) => [c.id, c]));
+  const clientesDe = (proyectoId) =>
+    vinculos.filter((v) => v.proyecto_id === proyectoId).map((v) => cliente[v.cliente_id]).filter(Boolean);
 
   const stats = (id) => {
     const delProyecto = tareas.filter((t) => t.proyecto_id === id);
@@ -51,7 +56,8 @@ export default function ProyectosVista({ proyectos, tareas, onNuevaTarea, onVerP
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {p.es_interno && <Pill color="#67c8f3">Interno</Pill>}
-                {p.es_cliente && <Pill color="#e0a64b">Cliente</Pill>}
+                {clientesDe(p.id).map((c) => <Pill key={c.id} color={c.color}>Cliente: {c.nombre}</Pill>)}
+                {p.es_cliente && !clientesDe(p.id).length && <Pill color="#e0a64b">Cliente</Pill>}
                 {p.archivado && <Pill color="#64748b">Archivado</Pill>}
                 {(p.etiquetas || []).map((t) => <Pill key={t} color="#9aafc3">{t}</Pill>)}
               </div>
@@ -71,13 +77,23 @@ export default function ProyectosVista({ proyectos, tareas, onNuevaTarea, onVerP
         })}
       </div>
 
-      {editando && <ProyectoForm proyecto={editando} onClose={() => setEditando(null)} />}
+      {editando && (
+        <ProyectoForm
+          proyecto={editando}
+          clientes={clientes}
+          vinculados={editando.id ? clientesDe(editando.id) : []}
+          onClose={() => setEditando(null)}
+        />
+      )}
     </div>
   );
 }
 
-function ProyectoForm({ proyecto, onClose }) {
+function ProyectoForm({ proyecto, clientes, vinculados, onClose }) {
   const guardar = useGuardarProyecto();
+  const crearCliente = useGuardarCliente();
+  const vincular = useVincularClientes();
+  const [seleccion, setSeleccion] = useState(() => vinculados.map((c) => ({ id: c.id, nombre: c.nombre })));
   const [f, setF] = useState({
     nombre: proyecto.nombre || '',
     descripcion: proyecto.descripcion || '',
@@ -89,9 +105,9 @@ function ProyectoForm({ proyecto, onClose }) {
   });
   const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    guardar.mutate(
+    const guardado = await guardar.mutateAsync(
       {
         id: proyecto.id,
         nombre: f.nombre.trim(),
@@ -99,12 +115,20 @@ function ProyectoForm({ proyecto, onClose }) {
         color: f.color,
         etiquetas: f.etiquetas.split(',').map((s) => s.trim()).filter(Boolean),
         github_repo: f.github_repo.trim() || null,
-        es_cliente: f.es_cliente,
+        es_cliente: f.es_cliente || seleccion.length > 0,
         archivado: f.archivado,
       },
-      { onSuccess: onClose },
     );
+    const elegidos = await resolverClientes(seleccion, crearCliente);
+    const antes = new Set(vinculados.map((c) => c.id));
+    const ahora = new Set(elegidos.map((c) => c.id));
+    await vincular.mutateAsync({
+      agregar: [...ahora].filter((id) => !antes.has(id)).map((cliente_id) => ({ proyecto_id: guardado.id, cliente_id })),
+      quitar: [...antes].filter((id) => !ahora.has(id)).map((cliente_id) => ({ proyecto_id: guardado.id, cliente_id })),
+    });
+    onClose();
   };
+  const ocupado = guardar.isPending || crearCliente.isPending || vincular.isPending;
 
   return (
     <Modal titulo={proyecto.id ? `Editar ${proyecto.nombre}` : 'Nuevo proyecto'} onClose={onClose} ancho="max-w-lg">
@@ -124,7 +148,11 @@ function ProyectoForm({ proyecto, onClose }) {
           <input id="p-desc" className={inputClass} value={f.descripcion} onChange={set('descripcion')} />
         </div>
         <div>
-          <label className={labelClass} htmlFor="p-tags">Etiquetas (separadas por coma)</label>
+          <span className={labelClass}>Clientes</span>
+          <ClienteSelector clientes={clientes} seleccion={seleccion} onChange={setSeleccion} />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="p-tags">Otras etiquetas (separadas por coma)</label>
           <input id="p-tags" className={inputClass} value={f.etiquetas} onChange={set('etiquetas')} />
         </div>
         <div>
@@ -138,10 +166,10 @@ function ProyectoForm({ proyecto, onClose }) {
             <label className="flex items-center gap-2"><input type="checkbox" checked={f.archivado} onChange={set('archivado')} /> <Archive className="w-3.5 h-3.5" /> Archivado</label>
           )}
         </div>
-        <ErrorBox error={guardar.error} />
+        <ErrorBox error={guardar.error || crearCliente.error || vincular.error} />
         <div className="flex justify-end gap-2">
           <button type="button" className={btnGhost} onClick={onClose}>Cancelar</button>
-          <button className={btnPrimary} disabled={guardar.isPending}>{guardar.isPending ? 'Guardando…' : 'Guardar'}</button>
+          <button className={btnPrimary} disabled={ocupado}>{ocupado ? 'Guardando…' : 'Guardar'}</button>
         </div>
       </form>
     </Modal>
