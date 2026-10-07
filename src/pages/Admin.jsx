@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import SEO from '../components/SEO';
@@ -17,6 +17,7 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
+  Sparkles,
   Users,
   X,
 } from 'lucide-react';
@@ -26,6 +27,8 @@ import TareasAdmin from './tareas/TareasAdmin';
 import { ClientesPagina, EquipoPagina, ProyectosPagina } from './tareas/GestionPaginas';
 import ConfiguracionAdmin from './configuracion/ConfiguracionAdmin';
 import AccesosMenu from './configuracion/AccesosMenu';
+import { TemaContext, guardarTema, temaInicial } from '../hooks/tema';
+import { Carita } from './tareas/Kawaii';
 
 const GRUPOS = [
   {
@@ -81,6 +84,25 @@ export default function Admin() {
   const [params, setParams] = useSearchParams();
   const [contraida, setContraida] = useState(leerContraida);
   const [menuMovil, setMenuMovil] = useState(false);
+  const [tema, setTema] = useState(() => temaInicial(user?.email));
+  const kawaii = tema === 'kawaii';
+  const nombre = (user?.email || '').toLowerCase() === 'stephaniabilbao@gmail.com' ? 'Steph' : '';
+
+  const cambiarTema = () => {
+    const siguiente = kawaii ? 'nexcommit' : 'kawaii';
+    guardarTema(user?.email, siguiente);
+    setTema(siguiente);
+  };
+
+  // Rounded font for the kawaii theme, loaded only when it's in use.
+  useEffect(() => {
+    if (!kawaii || document.getElementById('fuente-kawaii')) return;
+    const link = document.createElement('link');
+    link.id = 'fuente-kawaii';
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap';
+    document.head.appendChild(link);
+  }, [kawaii]);
   const seccion = seccionDe(params);
   const actual = SECCIONES.find((s) => s.id === seccion);
 
@@ -138,7 +160,8 @@ export default function Admin() {
   return (
     <>
       <SEO title="Panel — NexCommit" noIndex />
-      <div className="h-screen bg-[#0a1628] flex flex-col">
+      <TemaContext.Provider value={tema}>
+      <div className="h-screen bg-[#0a1628] flex flex-col" data-tema={tema}>
         <header className="h-14 md:h-16 px-3 md:px-6 flex items-center justify-between gap-3 border-b border-white/10 bg-[#0d1e30] shrink-0">
           <div className="flex items-center gap-2 md:gap-3 min-w-0">
             <button
@@ -149,11 +172,27 @@ export default function Admin() {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#248bde] to-[#67c8f3] flex items-center justify-center text-white font-bold text-sm shrink-0">NC</div>
-            <span className="text-white font-semibold text-lg hidden sm:inline">Panel</span>
+            {kawaii ? (
+              <Carita animo="feliz" size={34} className="kawaii-flota" />
+            ) : (
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#248bde] to-[#67c8f3] flex items-center justify-center text-white font-bold text-sm shrink-0">NC</div>
+            )}
+            <span className="text-white font-semibold text-lg hidden sm:inline">
+              {kawaii ? `¡Hola${nombre ? ` ${nombre}` : ''}! Borahae 💜` : 'Panel'}
+            </span>
             <span className="text-[#9aafc3] text-sm truncate md:hidden">· {actual?.label}</span>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
+            <button
+              type="button"
+              onClick={cambiarTema}
+              className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs text-[#9aafc3] hover:text-white hover:bg-white/5 border border-white/10"
+              title={kawaii ? 'Volver al tema NexCommit' : 'Probar el tema Borahae 💜'}
+              aria-label="Cambiar tema del panel"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span className="hidden lg:inline">{kawaii ? 'Tema NexCommit' : 'Tema Borahae 💜'}</span>
+            </button>
             <AccesosMenu />
             <span className="text-sm text-[#9aafc3] hidden lg:inline truncate max-w-[220px]">{user?.email}</span>
             <button
@@ -221,6 +260,7 @@ export default function Admin() {
           </main>
         </div>
       </div>
+      </TemaContext.Provider>
     </>
   );
 }

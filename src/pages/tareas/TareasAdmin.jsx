@@ -21,6 +21,8 @@ import {
   useTareasRealtime,
 } from '../../hooks/tareas';
 import TareaModal from './TareaModal';
+import { EMOJI_ESTADO, useKawaii } from '../../hooks/tema';
+import { Carita, VacioKawaii } from './Kawaii';
 import ResumenVista from './ResumenVista';
 import CalendarioVista from './CalendarioVista';
 import { Avatar, EstadoPill, ErrorBox, Pill, PrioridadPill, btnPrimary, card, inputClass } from './ui';
@@ -37,6 +39,7 @@ const COLUMNAS = ESTADOS.filter((e) => e.id !== 'cancelada');
 const CATORCE_DIAS = 14 * 24 * 60 * 60 * 1000;
 
 export default function TareasAdmin({ vista = 'resumen', irA }) {
+  const kawaii = useKawaii();
   const [params, setParams] = useSearchParams();
   const yo = useMiEquipoId();
   const equipoQ = useEquipo();
@@ -133,7 +136,10 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Tareas</h1>
+          <h1 className="text-2xl font-semibold text-white flex items-center gap-2">
+            {kawaii && <Carita animo={kpis.vencidas ? 'preocupada' : 'feliz'} size={40} className="kawaii-flota" />}
+            {kawaii ? 'Tus tareas ✨' : 'Tareas'}
+          </h1>
           <p className="text-sm text-[#9aafc3]">
             Proyectos: issues de GitHub de novautomatic (nacen y se mueven en GitHub). Áreas: tareas internas que viven solo aquí.
           </p>
@@ -145,12 +151,12 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-        <Kpi label="Abiertas" valor={kpis.abiertas} onClick={() => { setFiltros((f) => ({ ...f, responsable: '', soloVencidas: false })); setVista('lista'); }} />
-        <Kpi label="Mías" valor={kpis.mias} color="#67c8f3" onClick={() => { setFiltros((f) => ({ ...f, responsable: 'yo' })); setVista('tablero'); }} />
-        <Kpi label="Vencidas" valor={kpis.vencidas} color={kpis.vencidas ? '#f87171' : undefined} onClick={() => { setFiltros((f) => ({ ...f, soloVencidas: true })); setVista('lista'); }} />
-        <Kpi label="Vencen en 7 días" valor={kpis.semana} color={kpis.semana ? '#f59e0b' : undefined} />
-        <Kpi label="Sin asignar" valor={kpis.sinAsignar} onClick={() => { setFiltros((f) => ({ ...f, responsable: 'nadie' })); setVista('lista'); }} />
-        <Kpi label="Completadas (7 días)" valor={kpis.completadas} color="#34d399" />
+        <Kpi label={kawaii ? '📋 Abiertas' : 'Abiertas'} valor={kpis.abiertas} onClick={() => { setFiltros((f) => ({ ...f, responsable: '', soloVencidas: false })); setVista('lista'); }} />
+        <Kpi label={kawaii ? '💜 Mías' : 'Mías'} valor={kpis.mias} color="#67c8f3" onClick={() => { setFiltros((f) => ({ ...f, responsable: 'yo' })); setVista('tablero'); }} />
+        <Kpi label={kawaii ? '🥺 Vencidas' : 'Vencidas'} valor={kpis.vencidas} color={kpis.vencidas ? '#f87171' : undefined} onClick={() => { setFiltros((f) => ({ ...f, soloVencidas: true })); setVista('lista'); }} />
+        <Kpi label={kawaii ? '⏰ Vencen en 7 días' : 'Vencen en 7 días'} valor={kpis.semana} color={kpis.semana ? '#f59e0b' : undefined} />
+        <Kpi label={kawaii ? '🫧 Sin asignar' : 'Sin asignar'} valor={kpis.sinAsignar} onClick={() => { setFiltros((f) => ({ ...f, responsable: 'nadie' })); setVista('lista'); }} />
+        <Kpi label={kawaii ? '🎉 Completadas (7 días)' : 'Completadas (7 días)'} valor={kpis.completadas} color="#34d399" />
       </div>
 
       <div className="inline-flex rounded-lg border border-white/10 bg-[#0c1a2c] p-1" role="tablist" aria-label="Vista de tareas">
@@ -314,6 +320,7 @@ function Kpi({ label, valor, color, onClick }) {
 }
 
 function Tablero({ tareas, miembro, proyecto, onAbrir, onNueva }) {
+  const kawaii = useKawaii();
   const guardar = useGuardarTarea();
   const [sobre, setSobre] = useState(null);
   const ahora = ahoraMs();
@@ -351,6 +358,7 @@ function Tablero({ tareas, miembro, proyecto, onAbrir, onNueva }) {
               <header className="flex items-center justify-between px-2 py-1.5 mb-1">
                 <div className="flex items-center gap-2 text-sm font-medium text-white">
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: col.color }} />
+                  {kawaii && <span aria-hidden="true">{EMOJI_ESTADO[col.id]}</span>}
                   {col.label}
                   <span className="text-[#9aafc3] font-normal">{lista.length}</span>
                 </div>
@@ -417,6 +425,7 @@ function Tarjeta({ t, miembro, proyecto, onAbrir, onEstado }) {
 }
 
 function Lista({ tareas, miembro, proyecto, onAbrir }) {
+  const kawaii = useKawaii();
   const [orden, setOrden] = useState('fecha');
   const ordenadas = [...tareas].sort((a, b) => {
     if (orden === 'prioridad') return PRIORIDAD[a.prioridad].peso - PRIORIDAD[b.prioridad].peso;
@@ -428,7 +437,11 @@ function Lista({ tareas, miembro, proyecto, onAbrir }) {
     <button type="button" onClick={() => setOrden(id)} className={orden === id ? 'text-white' : 'hover:text-white'}>{label}</button>
   );
 
-  if (!ordenadas.length) return <p className="text-sm text-[#9aafc3]">No hay tareas con estos filtros.</p>;
+  if (!ordenadas.length) {
+    return kawaii
+      ? <VacioKawaii texto="No hay tareas con estos filtros… ¡a descansar un ratito! 💤" />
+      : <p className="text-sm text-[#9aafc3]">No hay tareas con estos filtros.</p>;
+  }
 
   return (
     <div className={`${card} overflow-x-auto`}>

@@ -314,3 +314,71 @@ select optgroup {
   background-color: #0d1e30;
   color: #ffffff;
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Panel theme "Borahae 💜" (kawaii). Active when the admin root carries
+   data-tema="kawaii" (default for Stephania; anyone can switch in the header).
+   Re-skins the panel's fixed colors; the public site is untouched.
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-tema='kawaii'] {
+  --k-fondo: #1d0f33;
+  --k-barra: #241339;
+  --k-tarjeta: #2a1745;
+  --k-campo: #321c52;
+  --k-activo: #45276e;
+  --k-texto-2: #d6c4f3;
+  --k-texto-3: #a98fd6;
+  --k-acento: #f9a8d4;
+  --k-lila: #c4a1ff;
+  font-family: 'Quicksand', 'Inter', system-ui, sans-serif;
+  background-color: var(--k-fondo);
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(249, 168, 212, 0.10) 0 2px, transparent 3px),
+    radial-gradient(circle at 78% 8%, rgba(196, 161, 255, 0.14) 0 2px, transparent 3px),
+    radial-gradient(circle at 55% 72%, rgba(253, 230, 138, 0.10) 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 90% 60%, rgba(249, 168, 212, 0.10) 0 2px, transparent 3px);
+  background-size: 340px 340px, 420px 420px, 280px 280px, 380px 380px;
+}
+
+[data-tema='kawaii'] .bg-\[\#0a1628\] { background-color: var(--k-fondo) !important; }
+[data-tema='kawaii'] .bg-\[\#0d1e30\] { background-color: var(--k-tarjeta) !important; }
+[data-tema='kawaii'] .bg-\[\#0c1a2c\] { background-color: var(--k-barra) !important; }
+[data-tema='kawaii'] .bg-\[\#151f33\],
+[data-tema='kawaii'] .bg-\[\#0f172a\]\/60 { background-color: var(--k-campo) !important; }
+[data-tema='kawaii'] .bg-\[\#1a3050\] { background-color: var(--k-activo) !important; }
+[data-tema='kawaii'] .text-\[\#9aafc3\] { color: var(--k-texto-2) !important; }
+[data-tema='kawaii'] .text-\[\#5f7891\] { color: var(--k-texto-3) !important; }
+[data-tema='kawaii'] .text-\[\#67c8f3\],
+[data-tema='kawaii'] .hover\:text-\[\#67c8f3\]:hover { color: var(--k-acento) !important; }
+[data-tema='kawaii'] .border-\[\#67c8f3\] { border-color: var(--k-acento) !important; }
+
+/* Rounder, softer surfaces. */
+[data-tema='kawaii'] .rounded-xl { border-radius: 1.1rem; }
+[data-tema='kawaii'] .rounded-lg { border-radius: 0.85rem; }
+[data-tema='kawaii'] .border-white\/10,
+[data-tema='kawaii'] .border-white\/5 { border-color: rgba(216, 180, 254, 0.18) !important; }
+
+/* Primary buttons and brand gradients: lilac → pink. */
+[data-tema='kawaii'] .bg-\[\#248bde\] {
+  background-image: linear-gradient(135deg, #a78bfa, #f472b6) !important;
+  background-color: #c084fc !important;
+  box-shadow: 0 6px 18px -8px rgba(244, 114, 182, 0.7);
+}
+[data-tema='kawaii'] .hover\:bg-\[\#2f9bf0\]:hover { filter: brightness(1.08); }
+[data-tema='kawaii'] .bg-gradient-to-br.from-\[\#248bde\] {
+  background-image: linear-gradient(135deg, #c4a1ff, #f9a8d4) !important;
+  color: #3b1d5c !important;
+}
+
+[data-tema='kawaii'] select option,
+[data-tema='kawaii'] select optgroup { background-color: var(--k-tarjeta); }
+
+/* Tiny bounce for the mascot. */
+@keyframes kawaii-flota {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+[data-tema='kawaii'] .kawaii-flota { animation: kawaii-flota 3.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  [data-tema='kawaii'] .kawaii-flota { animation: none; }
+}

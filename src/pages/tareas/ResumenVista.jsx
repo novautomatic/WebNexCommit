@@ -3,6 +3,8 @@ import { AlertTriangle, CalendarClock } from 'lucide-react';
 import { ESTADO, ORDEN_GRAFICOS, ahoraMs, enDiasISO, estaAbierta, estaVencida, formatearFecha, hoyISO } from '../../hooks/tareas';
 import { BarraAvance, BarrasApiladas, BarrasSemanas, Leyenda } from './graficos';
 import { card } from './ui';
+import { useKawaii } from '../../hooks/tema';
+import { Carita } from './Kawaii';
 
 const SEMANAS = 8;
 // Open-work charts never contain completed tasks: keep them out of the legend.
@@ -81,17 +83,27 @@ export default function ResumenVista({ tareas, proyecto, miembro, onAbrir, onEle
   }, [tareas, proyecto, miembro]);
 
   const hoy = hoyISO();
+  const kawaii = useKawaii();
+  const animo = !datos.total ? 'dormida' : datos.vencidas ? 'preocupada' : datos.pct >= 60 ? 'feliz' : 'contenta';
+  const frase = {
+    dormida: 'Todavía no hay tareas por aquí 💤',
+    preocupada: `Hay ${datos.vencidas} atrasada${datos.vencidas === 1 ? '' : 's'}… ¡tú puedes! 💪💜`,
+    feliz: '¡Vamos increíble! Borahae 💜✨',
+    contenta: '¡Paso a pasito se llega lejos! 🌸',
+  }[animo];
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
       <section className={`${card} p-5 xl:col-span-2`} aria-labelledby="avance-titulo">
         <div className="flex flex-wrap items-end justify-between gap-4 mb-4">
-          <div>
+          {kawaii && <Carita animo={animo} size={72} className="kawaii-flota" titulo={frase} />}
+          <div className="flex-1 min-w-[200px]">
             <h2 id="avance-titulo" className="text-sm font-semibold text-white">Avance general</h2>
             <div className="mt-1 flex items-baseline gap-3">
               <span className="text-4xl font-semibold text-white tabular-nums">{datos.pct}%</span>
               <span className="text-sm text-[#9aafc3]">{datos.completadas} de {datos.total} tareas completadas</span>
             </div>
+            {kawaii && <p className="mt-1 text-sm text-[#9aafc3]">{frase}</p>}
           </div>
           <div className="flex gap-4 text-sm">
             {datos.vencidas > 0 && (
