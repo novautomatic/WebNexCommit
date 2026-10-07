@@ -1,15 +1,16 @@
 import React, { useMemo, useState } from 'react';
-import { ExternalLink, MessageCircle, RotateCw, Trash2 } from 'lucide-react';
+import { AlertTriangle, ExternalLink, MessageCircle, RefreshCw, RotateCw } from 'lucide-react';
 import {
   ESTADOS,
   ESTADO,
   PRIORIDADES,
   formatearFecha,
-  useBorrarTarea,
+  refGithub,
   useComentar,
   useDetalleTarea,
   useGuardarTarea,
   useReenviarAviso,
+  useResincronizar,
 } from '../../hooks/tareas';
 import { Avatar, ErrorBox, Modal, Pill, btnGhost, btnPrimary, inputClass, labelClass } from './ui';
 
@@ -58,12 +59,14 @@ const CAMPOS = {
 export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose }) {
   const [form, setForm] = useState(() => aFormulario(tarea, defaults));
   const guardar = useGuardarTarea();
-  const borrar = useBorrarTarea();
+  const resincronizar = useResincronizar();
   const esNueva = !tarea;
+  const proyectoActual = proyectos.find((p) => p.id === (tarea?.proyecto_id || form.proyecto_id));
 
   const set = (campo) => (e) => setForm((f) => ({ ...f, [campo]: e.target.value }));
   const activos = equipo.filter((m) => m.activo);
-  const abiertos = proyectos.filter((p) => !p.archivado || p.id === form.proyecto_id);
+  // Only projects backed by a GitHub repo can hold tasks.
+  const abiertos = proyectos.filter((p) => p.github_repo && (!p.archivado || p.id === form.proyecto_id));
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -77,18 +80,44 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
       fecha_limite: form.fecha_limite || null,
       etiquetas: form.etiquetas.split(',').map((s) => s.trim()).filter(Boolean),
     };
-    guardar.mutate(esNueva ? campos : { id: tarea.id, ...campos }, { onSuccess: onClose });
-  };
-
-  const onBorrar = () => {
-    if (!window.confirm(`¿Borrar la tarea #${tarea.numero}? No se puede deshacer.`)) return;
-    borrar.mutate(tarea.id, { onSuccess: onClose });
+    if (esNueva) {
+      guardar.mutate(campos, { onSuccess: onClose });
+      return;
+    }
+    // Send only what changed so GitHub doesn't get labels nobody touched.
+    const cambios = {};
+    const igual = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+    for (const [k, v] of Object.entries(campos)) {
+      if (k === 'proyecto_id') continue;
+      if (!igual(v, k === 'etiquetas' ? tarea.etiquetas || [] : tarea[k])) cambios[k] = v;
+    }
+    if (!Object.keys(cambios).length) {
+      onClose();
+      return;
+    }
+    guardar.mutate({ id: tarea.id, ...cambios }, { onSuccess: onClose });
   };
 
   const responsableTieneWsp = activos.find((m) => m.id === form.responsable_id)?.whatsapp;
 
   return (
-    <Modal titulo={esNueva ? 'Nueva tarea' : `Tarea #${tarea.numero}`} onClose={onClose} ancho="max-w-3xl">
+    <Modal titulo={esNueva ? 'Nueva tarea (se crea como issue en GitHub)' : `Tarea ${refGithub(tarea, proyectoActual)}`} onClose={onClose} ancho="max-w-3xl">
+      {!esNueva && tarea.sync_estado !== 'ok' && (
+        <div className={`mb-4 rounded-lg border px-3 py-2 text-sm flex flex-wrap items-center gap-3 ${
+          tarea.sync_estado === 'error' ? 'border-red-500/30 bg-red-500/10 text-red-300' : 'border-white/10 bg-white/5 text-[#9aafc3]'}`}>
+          {tarea.sync_estado === 'error' ? <AlertTriangle className="w-4 h-4" /> : <RefreshCw className="w-4 h-4 animate-spin" />}
+          <span className="flex-1">
+            {tarea.sync_estado === 'error'
+              ? tarea.sync_error || 'No se pudo sincronizar con GitHub.'
+              : 'Enviando el cambio a GitHub…'}
+          </span>
+          {tarea.sync_estado === 'error' && (
+            <button type="button" className={btnGhost} onClick={() => resincronizar.mutate(tarea.id, { onSuccess: tarea.github_numero ? undefined : onClose })}>
+              {tarea.github_numero ? 'Traer de nuevo desde GitHub' : 'Descartar'}
+            </button>
+          )}
+        </div>
+      )}
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <label className={labelClass} htmlFor="t-titulo">Título</label>
@@ -98,10 +127,11 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass} htmlFor="t-proyecto">Proyecto</label>
-            <select id="t-proyecto" className={inputClass} value={form.proyecto_id} onChange={set('proyecto_id')} required>
+            <select id="t-proyecto" className={inputClass} value={form.proyecto_id} onChange={set('proyecto_id')} required disabled={!esNueva}
+              title={esNueva ? undefined : 'Para cambiar de proyecto, transfiere el issue en GitHub'}>
               <option value="" disabled>Elige un proyecto…</option>
               {abiertos.map((p) => (
-                <option key={p.id} value={p.id}>{p.nombre}{p.es_interno ? ' (interno)' : ''}</option>
+                <option key={p.id} value={p.id}>{p.nombre}{p.es_interno ? ' (interno)' : ''} — {p.github_repo}</option>
               ))}
             </select>
           </div>
@@ -117,7 +147,9 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
           <div>
             <label className={labelClass} htmlFor="t-estado">Estado</label>
             <select id="t-estado" className={inputClass} value={form.estado} onChange={set('estado')}>
-              {ESTADOS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+              {ESTADOS.filter((s) => !esNueva || !['completada', 'cancelada'].includes(s.id)).map((s) => (
+                <option key={s.id} value={s.id}>{s.label}</option>
+              ))}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -152,19 +184,17 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
           </p>
         )}
 
-        <ErrorBox error={guardar.error || borrar.error} />
+        <ErrorBox error={guardar.error || resincronizar.error} />
 
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <div className="flex gap-2">
-            {!esNueva && (
-              <button type="button" onClick={onBorrar} className={`${btnGhost} text-red-300 hover:text-red-200`} disabled={borrar.isPending}>
-                <Trash2 className="w-4 h-4" /> Borrar
-              </button>
-            )}
+          <div className="flex gap-2 items-center">
             {tarea?.github_issue_url && (
               <a href={tarea.github_issue_url} target="_blank" rel="noreferrer" className={btnGhost}>
-                <ExternalLink className="w-4 h-4" /> Issue en GitHub
+                <ExternalLink className="w-4 h-4" /> Abrir en GitHub
               </a>
+            )}
+            {!esNueva && (
+              <span className="text-xs text-[#9aafc3]">Para descartarla, pásala a «Cancelada» (se cierra en GitHub).</span>
             )}
           </div>
           <div className="flex gap-2">
@@ -213,16 +243,17 @@ function Seguimiento({ tarea, equipo, proyectos }) {
         <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
           {data?.comentarios.map((c) => (
             <div key={c.id} className="flex gap-2">
-              <Avatar nombre={nombre[c.autor_id]} size={22} />
+              <Avatar nombre={nombre[c.autor_id] || c.autor_github} size={22} />
               <div className="flex-1 min-w-0">
                 <div className="text-xs text-[#9aafc3]">
-                  <span className="text-white">{nombre[c.autor_id] || 'Alguien'}</span> · {new Date(c.created_at).toLocaleString('es-CL')}
+                  <span className="text-white">{nombre[c.autor_id] || (c.autor_github ? `@${c.autor_github}` : 'Alguien')}</span> · {new Date(c.created_at).toLocaleString('es-CL')}
                 </div>
                 <p className="text-sm text-[#d6e3f0] whitespace-pre-wrap break-words">{c.texto}</p>
               </div>
             </div>
           ))}
           {data && !data.comentarios.length && <p className="text-sm text-[#9aafc3]">Sin comentarios todavía.</p>}
+          <p className="text-[11px] text-[#9aafc3]">Los comentarios se publican en el issue de GitHub.</p>
         </div>
         <form onSubmit={enviar} className="mt-3 flex gap-2">
           <input className={inputClass} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Escribe un avance o comentario…" maxLength={5000} />
@@ -263,7 +294,7 @@ function Seguimiento({ tarea, equipo, proyectos }) {
           <ul className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
             {data?.historial.map((h) => (
               <li key={h.id} className="text-xs text-[#9aafc3]">
-                <span className="text-white">{nombre[h.actor_id] || 'Sistema'}</span>{' '}
+                <span className="text-white">{nombre[h.actor_id] || 'GitHub'}</span>{' '}
                 {h.accion === 'creada'
                   ? 'creó la tarea'
                   : h.campo === 'descripcion'

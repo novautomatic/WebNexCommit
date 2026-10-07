@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { CalendarClock, FolderKanban, LayoutGrid, List, Plus, Search, Users } from 'lucide-react';
+import { AlertTriangle, CalendarClock, FolderKanban, LayoutGrid, List, Plus, RefreshCw, Search, Users } from 'lucide-react';
 import {
   ESTADOS,
   PRIORIDAD,
@@ -11,11 +11,13 @@ import {
   estaVencida,
   formatearFecha,
   hoyISO,
+  refGithub,
   useEquipo,
   useGuardarTarea,
   useMiEquipoId,
   useProyectos,
   useTareasLista,
+  useSyncGithub,
   useTareasRealtime,
 } from '../../hooks/tareas';
 import TareaModal from './TareaModal';
@@ -39,6 +41,7 @@ export default function TareasAdmin() {
   const proyectosQ = useProyectos();
   const tareasQ = useTareasLista();
   useTareasRealtime();
+  const sync = useSyncGithub();
 
   const [vista, setVista] = useState('tablero');
   const [filtros, setFiltros] = useState({ q: '', proyecto: '', responsable: '', prioridad: '', estado: '', soloVencidas: false });
@@ -66,7 +69,7 @@ export default function TareasAdmin() {
       if (filtros.prioridad && t.prioridad !== filtros.prioridad) return false;
       if (filtros.estado && t.estado !== filtros.estado) return false;
       if (filtros.soloVencidas && !estaVencida(t)) return false;
-      if (q && !`#${t.numero} ${t.titulo} ${t.descripcion ?? ''} ${(t.etiquetas || []).join(' ')}`.toLowerCase().includes(q)) return false;
+      if (q && !`#${t.github_numero ?? ''} ${t.titulo} ${t.descripcion ?? ''} ${(t.etiquetas || []).join(' ')}`.toLowerCase().includes(q)) return false;
       return true;
     });
   }, [tareas, filtros, yo.data]);
@@ -104,7 +107,7 @@ export default function TareasAdmin() {
   }
 
   const setFiltro = (k) => (e) => setFiltros((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
-  const proyectoInterno = proyectos.find((p) => p.es_interno)?.id || '';
+  const proyectoInterno = proyectos.find((p) => p.es_interno && p.github_repo)?.id || '';
   const nuevaTarea = (defaults = {}) =>
     setNueva({ proyecto_id: filtros.proyecto || proyectoInterno, ...defaults });
 
@@ -113,7 +116,8 @@ export default function TareasAdmin() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-white">Tareas</h1>
-          <p className="text-sm text-[#9aafc3]">Proyectos de clientes y tareas internas de NexCommit.</p>
+          <p className="text-sm text-[#9aafc3]">Issues de GitHub de novautomatic. Todo nace y se mueve en GitHub; aquí se ve y se respalda.</p>
+          <SyncEstado sync={sync} />
         </div>
         <button type="button" className={btnPrimary} onClick={() => nuevaTarea()}>
           <Plus className="w-4 h-4" /> Nueva tarea
@@ -207,6 +211,26 @@ export default function TareasAdmin() {
   );
 }
 
+function SyncEstado({ sync }) {
+  const e = sync.data;
+  if (sync.error) return <p className="text-xs text-red-300 mt-1">No se pudo consultar la sincronización: {sync.error.message}</p>;
+  if (!e) return null;
+  if (e.ultimo_error) {
+    return (
+      <p className="text-xs text-red-300 mt-1 flex items-center gap-1">
+        <AlertTriangle className="w-3.5 h-3.5" /> GitHub respondió con error: {e.ultimo_error}
+      </p>
+    );
+  }
+  return (
+    <p className="text-xs text-[#9aafc3] mt-1">
+      {e.ultimo_ok
+        ? `Sincronizado con GitHub: ${new Date(e.ultimo_ok).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`
+        : 'Primera sincronización con GitHub en curso…'}
+    </p>
+  );
+}
+
 function Kpi({ label, valor, color, onClick }) {
   const Comp = onClick ? 'button' : 'div';
   return (
@@ -290,7 +314,11 @@ function Tarjeta({ t, miembro, proyecto, onAbrir, onEstado }) {
         <div className="flex items-center gap-1.5 text-[11px] text-[#9aafc3] mb-1">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p?.color }} />
           <span className="truncate">{p?.nombre}</span>
-          <span className="ml-auto">#{t.numero}</span>
+          <span className="ml-auto flex items-center gap-1">
+            {t.sync_estado === 'pendiente' && <RefreshCw className="w-3 h-3 animate-spin" aria-label="Sincronizando" />}
+            {t.sync_estado === 'error' && <AlertTriangle className="w-3 h-3 text-red-300" aria-label="Error de sincronización" />}
+            #{t.github_numero ?? '…'}
+          </span>
         </div>
         <h3 className="text-sm text-white leading-snug break-words">{t.titulo}</h3>
       </button>
@@ -348,7 +376,7 @@ function Lista({ tareas, miembro, proyecto, onAbrir }) {
         <tbody className="divide-y divide-white/5">
           {ordenadas.map((t) => (
             <tr key={t.id} onClick={() => onAbrir(t)} className="cursor-pointer hover:bg-white/5">
-              <td className="px-3 py-2 text-[#9aafc3]">{t.numero}</td>
+              <td className="px-3 py-2 text-[#9aafc3] whitespace-nowrap">{refGithub(t, proyecto[t.proyecto_id])}</td>
               <td className="px-3 py-2 text-white max-w-[360px]">
                 <div className="truncate">{t.titulo}</div>
                 {(t.etiquetas || []).length > 0 && (

@@ -24,8 +24,11 @@ export default function ProyectosVista({ proyectos, tareas, onNuevaTarea, onVerP
           <input type="checkbox" checked={verArchivados} onChange={(e) => setVerArchivados(e.target.checked)} />
           Mostrar archivados
         </label>
+        <p className="text-xs text-[#9aafc3] flex-1 min-w-[220px]">
+          Cada proyecto es un repositorio de GitHub. Los repos con issues aparecen solos; agrega aquí uno que aún no tenga.
+        </p>
         <button type="button" className={btnPrimary} onClick={() => setEditando({})}>
-          <Plus className="w-4 h-4" /> Nuevo proyecto
+          <Plus className="w-4 h-4" /> Agregar repositorio
         </button>
       </div>
 
@@ -57,7 +60,8 @@ export default function ProyectosVista({ proyectos, tareas, onNuevaTarea, onVerP
                 {s.vencidas > 0 && <span className="text-red-300">{s.vencidas} vencidas</span>}
                 <span className="text-[#9aafc3]">{s.total} en total</span>
               </div>
-              {!p.archivado && (
+              {p.github_repo && <span className="text-xs text-[#9aafc3]">{p.github_repo}</span>}
+              {!p.archivado && p.github_repo && (
                 <button type="button" className={`${btnGhost} self-start`} onClick={() => onNuevaTarea(p.id)}>
                   <Plus className="w-4 h-4" /> Tarea en este proyecto
                 </button>
@@ -124,8 +128,9 @@ function ProyectoForm({ proyecto, onClose }) {
           <input id="p-tags" className={inputClass} value={f.etiquetas} onChange={set('etiquetas')} />
         </div>
         <div>
-          <label className={labelClass} htmlFor="p-repo">Repositorio GitHub (opcional)</label>
-          <input id="p-repo" className={inputClass} value={f.github_repo} onChange={set('github_repo')} placeholder="novautomatic/mi-repo" />
+          <label className={labelClass} htmlFor="p-repo">Repositorio GitHub</label>
+          <input id="p-repo" className={inputClass} value={f.github_repo} onChange={set('github_repo')} placeholder="novautomatic/mi-repo"
+            required pattern="[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+" disabled={Boolean(proyecto.github_repo)} />
         </div>
         <div className="flex gap-6 text-sm text-[#9aafc3]">
           <label className="flex items-center gap-2"><input type="checkbox" checked={f.es_cliente} onChange={set('es_cliente')} /> Es de un cliente</label>

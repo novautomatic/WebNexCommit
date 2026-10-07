@@ -41,6 +41,13 @@ export function estaVencida(t) {
   return estaAbierta(t) && t.fecha_limite && t.fecha_limite < hoyISO();
 }
 
+// "repo#12" label for a task, from its GitHub issue.
+export function refGithub(t, proyecto) {
+  if (!t.github_numero) return 'creando en GitHub…';
+  const repo = proyecto?.github_repo?.split('/')[1] || proyecto?.nombre || '';
+  return `${repo}#${t.github_numero}`;
+}
+
 export function formatearFecha(iso) {
   if (!iso) return '';
   const [y, m, d] = iso.slice(0, 10).split('-');
@@ -123,20 +130,31 @@ function useInvalidar() {
   return (...keys) => keys.forEach((k) => qc.invalidateQueries({ queryKey: ['tareas', k] }));
 }
 
+// Every write goes to GitHub through the tarea_* RPCs; Supabase only keeps the copy.
 export function useGuardarTarea() {
   const invalidar = useInvalidar();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...campos }) => {
-      if (id) return unwrap(supabase.from('tareas').update(campos).eq('id', id).select().single());
-      return unwrap(supabase.from('tareas').insert(campos).select().single());
+      if (id) return unwrap(supabase.rpc('tarea_actualizar', { p_tarea: id, p_cambios: campos }));
+      return unwrap(supabase.rpc('tarea_crear', {
+        p_proyecto: campos.proyecto_id,
+        p_titulo: campos.titulo,
+        p_descripcion: campos.descripcion,
+        p_responsable: campos.responsable_id,
+        p_prioridad: campos.prioridad,
+        p_estado: campos.estado,
+        p_fecha: campos.fecha_limite,
+        p_etiquetas: campos.etiquetas,
+      }));
     },
     // Optimistic update so drag & drop feels instant.
     onMutate: async ({ id, ...campos }) => {
       if (!id) return undefined;
       await qc.cancelQueries({ queryKey: ['tareas', 'lista'] });
       const previa = qc.getQueryData(['tareas', 'lista']);
-      qc.setQueryData(['tareas', 'lista'], (lista = []) => lista.map((t) => (t.id === id ? { ...t, ...campos } : t)));
+      qc.setQueryData(['tareas', 'lista'], (lista = []) =>
+        lista.map((t) => (t.id === id ? { ...t, ...campos, sync_estado: 'pendiente' } : t)));
       return { previa };
     },
     onError: (_e, _v, ctx) => {
@@ -146,20 +164,45 @@ export function useGuardarTarea() {
   });
 }
 
-export function useBorrarTarea() {
-  const invalidar = useInvalidar();
-  return useMutation({
-    mutationFn: (id) => unwrap(supabase.from('tareas').delete().eq('id', id)),
-    onSettled: () => invalidar('lista'),
-  });
-}
-
 export function useComentar() {
   const invalidar = useInvalidar();
   return useMutation({
-    mutationFn: ({ tarea_id, texto }) => unwrap(supabase.from('tarea_comentarios').insert({ tarea_id, texto })),
+    mutationFn: ({ tarea_id, texto }) => unwrap(supabase.rpc('tarea_comentar', { p_tarea: tarea_id, p_texto: texto })),
     onSettled: () => invalidar('detalle'),
   });
+}
+
+export function useResincronizar() {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: (tareaId) => unwrap(supabase.rpc('tarea_resincronizar', { p_tarea: tareaId })),
+    onSettled: () => invalidar('lista', 'detalle'),
+  });
+}
+
+// Pulls GitHub changes while the panel is open (the DB cron also does it every minute).
+export function useSyncGithub() {
+  const qc = useQueryClient();
+  const estado = useQuery({
+    queryKey: ['tareas', 'sync'],
+    queryFn: async () => {
+      await supabase.rpc('github_sync_tick');
+      return unwrap(supabase.from('github_sync_estado').select('*').maybeSingle());
+    },
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+  });
+  // Responses land a few seconds after the tick: refresh the lists afterwards.
+  const actualizado = estado.dataUpdatedAt;
+  useEffect(() => {
+    if (!actualizado) return undefined;
+    const t = setTimeout(() => {
+      qc.invalidateQueries({ queryKey: ['tareas', 'lista'] });
+      qc.invalidateQueries({ queryKey: ['tareas', 'detalle'] });
+    }, 4000);
+    return () => clearTimeout(t);
+  }, [actualizado, qc]);
+  return estado;
 }
 
 export function useReenviarAviso() {

@@ -30,7 +30,10 @@ export default function EquipoVista({ equipo, tareas }) {
                   {m.rol === 'dueno' && <Pill color="#e0a64b">Dueño</Pill>}
                   {!m.activo && <Pill color="#64748b">Inactivo</Pill>}
                 </div>
-                <div className="text-xs text-[#9aafc3]">{m.email}</div>
+                <div className="text-xs text-[#9aafc3]">
+                  {m.email}
+                  {(m.github_labels || []).length > 0 && <> · GitHub: {m.github_labels.join(', ')}</>}
+                </div>
               </div>
               <div className="text-xs text-[#9aafc3] w-40">
                 {m.whatsapp ? `+${m.whatsapp}` : <span className="text-amber-300">Sin WhatsApp (no recibe avisos)</span>}
@@ -57,6 +60,8 @@ function MiembroForm({ miembro, onClose }) {
     whatsapp: miembro.whatsapp || '',
     rol: miembro.rol || 'miembro',
     activo: miembro.activo ?? true,
+    github_labels: (miembro.github_labels || []).join(', '),
+    github_login: miembro.github_login || '',
   });
   const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
@@ -71,6 +76,8 @@ function MiembroForm({ miembro, onClose }) {
         whatsapp: whatsapp || null,
         rol: f.rol,
         activo: f.activo,
+        github_labels: f.github_labels.split(',').map((x) => x.trim()).filter(Boolean),
+        github_login: f.github_login.trim().replace(/^@/, '') || null,
       },
       { onSuccess: onClose },
     );
@@ -91,6 +98,19 @@ function MiembroForm({ miembro, onClose }) {
           <label className={labelClass} htmlFor="m-wsp">WhatsApp con código de país</label>
           <input id="m-wsp" className={inputClass} value={f.whatsapp} onChange={set('whatsapp')} placeholder="56912345678" inputMode="tel" pattern="[+\d\s]{8,20}" />
         </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass} htmlFor="m-labels">Etiqueta(s) en GitHub</label>
+            <input id="m-labels" className={inputClass} value={f.github_labels} onChange={set('github_labels')} placeholder="Fabian, Fabi" />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="m-login">Usuario de GitHub (opcional)</label>
+            <input id="m-login" className={inputClass} value={f.github_login} onChange={set('github_login')} placeholder="@usuario" />
+          </div>
+        </div>
+        <p className="text-[11px] text-[#9aafc3] -mt-2">
+          Una tarea en GitHub es de esta persona si tiene alguna de esas etiquetas o si está asignada a ese usuario.
+        </p>
         <div className="flex flex-wrap gap-6 text-sm text-[#9aafc3]">
           <label className="flex items-center gap-2">
             Rol
