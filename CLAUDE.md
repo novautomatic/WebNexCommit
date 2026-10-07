@@ -31,6 +31,12 @@ npm run preview   # Preview production build locally
 - `src/components/ContactButtons.jsx` - `WhatsAppLink` and `ContactDock` (mobile bar + desktop bubble).
 - GA4 (`G-FBHZGW2YB7`) loads in `index.html` with Consent Mode v2 defaulting to denied; `src/components/CookieConsent.jsx` grants it after the visitor accepts.
 
+**Tasks system (`/admin?tab=tareas`):**
+- Schema, RLS, triggers and crons in `supabase/migrations/20261007120000_sistema_tareas.sql` (tables `equipo`, `proyectos`, `tareas`, `tarea_comentarios`, `tarea_historial`, `avisos_whatsapp`). Access = active row in `equipo` matching the session email (`es_equipo()`); only `rol = 'dueno'` edits `equipo`.
+- UI in `src/pages/tareas/` (board, list, projects, team, task modal with comments/history/notices); data hooks in `src/hooks/tareas.js` with realtime refresh.
+- WhatsApp notice to the assignee on create/reassign (not self-assign): trigger → `encolar_aviso_tarea()` → `pg_net` POST to Agente-Next back `/avisos/tarea` (secret in Vault `avisos_tareas_url` / `avisos_tareas_secret`) → cron `procesar-avisos-tareas` reconciles status every minute. Bulk imports use `SET LOCAL app.sin_avisos = 'on'`.
+- This repo is PUBLIC: never commit task/issue data exports or secrets (use the gitignored `Claude outputs/`).
+
 **Backend (Supabase):**
 - Client in `src/lib/supabaseClient.ts` (anon key, public by design). Blog hooks in `src/hooks/blog/` query the `posts` table.
 - `supabase/functions/auto-generate-post` - Edge Function that writes blog posts with AI.

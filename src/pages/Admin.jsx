@@ -1,18 +1,23 @@
-import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import SEO from '../components/SEO';
-import { FileText, Calculator, LogOut } from 'lucide-react';
+import { FileText, Calculator, LogOut, ListChecks } from 'lucide-react';
 import { BlogAdmin } from './blog/BlogAdmin';
 import Cotizador from './Cotizador';
+import TareasAdmin from './tareas/TareasAdmin';
 
 const TABS = [
+  { id: 'tareas', label: 'Tareas', icon: ListChecks },
   { id: 'blog', label: 'Blog', icon: FileText },
   { id: 'cotizador', label: 'Cotizador', icon: Calculator },
 ];
 
 export default function Admin() {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('blog');
+  const [params, setParams] = useSearchParams();
+  const pedido = params.get('tab');
+  const activeTab = TABS.some((t) => t.id === pedido) ? pedido : 'tareas';
+  const setActiveTab = (id) => setParams({ tab: id }, { replace: true });
 
   return (
     <>
@@ -79,6 +84,7 @@ export default function Admin() {
           </div>
 
           <main className="flex-1 overflow-y-auto p-6">
+            {activeTab === 'tareas' && <TareasAdmin />}
             {activeTab === 'blog' && <BlogAdmin />}
             {activeTab === 'cotizador' && <Cotizador />}
           </main>
