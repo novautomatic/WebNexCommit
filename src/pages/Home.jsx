@@ -231,6 +231,25 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Proyectos reales */}
+      <section id="proyectos" className="nh-block">
+        <div className="nh-wrap nh-head-row">
+          <div>
+            <div className="nh-kicker">Proyectos reales</div>
+            <h2>Sitios que ya están vendiendo, agendando y respondiendo.</h2>
+          </div>
+          <p className="nh-sub" style={{ maxWidth: '26em' }}>
+            Pasa el cursor para detener el carrusel. Cada tarjeta abre el sitio publicado.
+          </p>
+        </div>
+        <div className="nh-marquee" tabIndex={0} aria-label="Carrusel de proyectos">
+          <div className="nh-track">
+            {SHOWCASE.map((p) => <ShowcaseCard key={p.name} project={p} />)}
+            {SHOWCASE.map((p) => <ShowcaseCard key={`dup-${p.name}`} project={p} hidden />)}
+          </div>
+        </div>
+      </section>
+
       {/* Servicios y plazos */}
       <section id="plazos" className="nh-block">
         <div className="nh-wrap">
@@ -269,25 +288,6 @@ export default function Home() {
                 </WhatsAppLink>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Proyectos reales */}
-      <section id="proyectos" className="nh-block">
-        <div className="nh-wrap nh-head-row">
-          <div>
-            <div className="nh-kicker">Proyectos reales</div>
-            <h2>Sitios que ya están vendiendo, agendando y respondiendo.</h2>
-          </div>
-          <p className="nh-sub" style={{ maxWidth: '26em' }}>
-            Pasa el cursor para detener el carrusel. Cada tarjeta abre el sitio publicado.
-          </p>
-        </div>
-        <div className="nh-marquee" tabIndex={0} aria-label="Carrusel de proyectos">
-          <div className="nh-track">
-            {SHOWCASE.map((p) => <ShowcaseCard key={p.name} project={p} />)}
-            {SHOWCASE.map((p) => <ShowcaseCard key={`dup-${p.name}`} project={p} hidden />)}
           </div>
         </div>
       </section>
