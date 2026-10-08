@@ -160,13 +160,19 @@ function App() {
         </Routes>
 
         {!isAdmin && (<>
-        <footer className="py-16 border-t border-white/5">
+        <footer className="py-12 md:py-16 border-t border-white/5">
           <div className="container">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-12">
-              <Link to="/" aria-label="Ir al inicio">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-10 md:mb-12">
+              <Link to="/" aria-label="Ir al inicio" className="shrink-0">
                 <BrandLogo />
               </Link>
-              <div className="flex items-center gap-8 text-sm font-medium text-brand-muted">
+              <nav
+                aria-label="Pie de página"
+                className="flex flex-wrap items-center justify-center md:justify-end gap-x-6 gap-y-3 text-sm font-medium text-brand-muted max-w-full"
+              >
+                <Link to="/servicios" className="hover:text-white transition-colors">
+                  Servicios
+                </Link>
                 <Link to="/blog" className="hover:text-white transition-colors">
                   Blog
                 </Link>
@@ -189,7 +195,7 @@ function App() {
                 >
                   Cookies
                 </button>
-              </div>
+              </nav>
             </div>
             <div className="text-center text-sm border-t border-white/5 pt-8 text-brand-footer">
               <p>&copy; {new Date().getFullYear()} NexCommit. Todos los derechos reservados.</p>

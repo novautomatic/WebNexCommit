@@ -29,8 +29,20 @@
   box-sizing: border-box;
 }
 
+/* Mobile auto-fit: nothing may widen the page past the screen (iOS Safari
+   ignores overflow on body alone), and the browser must not inflate text. */
 html {
   scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* iOS zooms in on fields under 16px and stays zoomed; keep them at 16px on phones. */
+@media (max-width: 767px) {
+  input, select, textarea { font-size: max(16px, 1em); }
 }
 
 body {
@@ -40,7 +52,9 @@ body {
     radial-gradient(circle at 88% 14%, rgba(36, 139, 222, 0.18), transparent 28%),
     linear-gradient(180deg, #051422 0%, #071728 48%, #04111d 100%);
   color: var(--color-text);
+  max-width: 100%;
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 a {
