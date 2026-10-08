@@ -1,40 +1,16 @@
-import React, { Suspense, lazy } from 'react';
-import { ArrowRight, Globe, RefreshCw, Database, Phone } from 'lucide-react';
-const Hero3D = lazy(() => import('../Hero3D'));
-import { BrandLogo } from '../components/Brand';
+import React, { useEffect, useRef, useState } from 'react';
+import { Lock, MessageCircle, Search } from 'lucide-react';
 import SEO from '../components/SEO';
-import ClientCard from '../components/ClientCard';
-import { CLIENTS } from '../data/CLIENTS';
 import { WhatsAppLink, CallLink } from '../components/ContactButtons';
-
-const services = [
-  {
-    icon: Globe,
-    tone: 'tone-deep',
-    title: 'Sitios web que convierten',
-    description: 'Diseñamos y lanzamos tu web a medida: rapida, responsive y pensada para que tus visitas se vuelvan clientes.',
-    benefit: 'Beneficio: +15% leads',
-    cta: 'Presencia profesional',
-  },
-  {
-    icon: RefreshCw,
-    tone: 'tone-brand',
-    title: 'Procesos autónomos',
-    description: 'Conectamos tus herramientas y automatizamos flujos para que tu operacion gane velocidad y reduzca friccion.',
-    benefit: 'Beneficio: -30% tiempo adm.',
-    cta: 'Optimiza tus flujos',
-  },
-  {
-    icon: Database,
-    tone: 'tone-sky',
-    title: 'Apps y datos',
-    description: 'Desarrollamos apps web y bases de datos seguras para agenda, inventarios, reportes y operaciones criticas.',
-    benefit: 'Beneficio: 100% control',
-    cta: 'Operacion ordenada',
-  },
-];
-
-
+import { PHONE_DISPLAY } from '../config/contact';
+import {
+  SHOWCASE,
+  PLAZOS,
+  PLAZOS_MAX_WEEKS,
+  STEPS,
+  SEARCH_QUERIES,
+} from '../data/HOME';
+import './home.css';
 
 const faqs = [
   {
@@ -82,180 +58,288 @@ const faqJsonLd = {
   })),
 };
 
-export default function Home() {
-  const scrollToServices = () => {
-    document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
-  };
+function prefersReducedMotion() {
+  return typeof window !== 'undefined'
+    && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}
+
+/** Search pill that types what buyers search for. Starts with a full query so the prerendered HTML is complete. */
+function SearchTyper() {
+  const [text, setText] = useState(SEARCH_QUERIES[0]);
+
+  useEffect(() => {
+    if (prefersReducedMotion()) return undefined;
+    let qi = 0;
+    let ci = SEARCH_QUERIES[0].length;
+    let deleting = true;
+    let timer;
+    const tick = () => {
+      const word = SEARCH_QUERIES[qi];
+      if (deleting) {
+        ci -= 1;
+        setText(word.slice(0, ci));
+        if (ci <= 0) {
+          deleting = false;
+          qi = (qi + 1) % SEARCH_QUERIES.length;
+        }
+        timer = setTimeout(tick, 28);
+      } else {
+        ci += 1;
+        setText(SEARCH_QUERIES[qi].slice(0, ci));
+        if (ci >= SEARCH_QUERIES[qi].length) {
+          deleting = true;
+          timer = setTimeout(tick, 2200);
+        } else {
+          timer = setTimeout(tick, 55);
+        }
+      }
+    };
+    timer = setTimeout(tick, 2200);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <>
-      <SEO 
+    <div className="nh-search">
+      <Search aria-hidden="true" />
+      <span className="q">{text}</span>
+      <span className="nh-caret" aria-hidden="true" />
+    </div>
+  );
+}
+
+// Second of the hero video where "NEXCOMMIT.COM" appears on screen.
+const PUBLISHED_AT = 6.8;
+
+/**
+ * Browser mock playing the NexCommit video (muted, looped): sites being built
+ * on screen. The status chip follows the video: "Programando…" while pages are
+ * built, "Publicado" once NEXCOMMIT.COM shows, plus an example WhatsApp toast.
+ */
+function BuildingBrowser() {
+  const videoRef = useRef(null);
+  const [published, setPublished] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    if (prefersReducedMotion()) {
+      video.pause();
+      return;
+    }
+    video.play().catch(() => {
+      /* autoplay blocked: the poster stays visible */
+    });
+  }, []);
+
+  const onTime = (e) => setPublished(e.currentTarget.currentTime >= PUBLISHED_AT);
+
+  return (
+    <div className="nh-stage">
+      <div className="nh-browser">
+        <div className="nh-chrome">
+          <div className="nh-dots"><i /><i /><i /></div>
+          <div className="nh-url"><Lock aria-hidden="true" /><span>nexcommit.com</span></div>
+        </div>
+        <div className="nh-viewport">
+          <video
+            ref={videoRef}
+            className="nh-video"
+            src="/home/nexcommit-hero.mp4"
+            poster="/home/nexcommit-hero-poster.jpg"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-label="Video: NexCommit diseña y programa sitios web"
+            onTimeUpdate={onTime}
+          />
+          <div className={`nh-status ${published ? 'is-done' : ''}`}>
+            <i />
+            <span>{published ? 'Publicado' : 'Programando…'}</span>
+          </div>
+        </div>
+      </div>
+      <div className={`nh-toast ${published ? 'is-on' : ''}`} role="status">
+        <div className="av"><MessageCircle aria-hidden="true" /></div>
+        <div>
+          <small><span>Nuevo mensaje desde la web</span><span>ejemplo</span></small>
+          <p>Hola! Vengo desde la web y quiero cotizar mi página</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShowcaseCard({ project, hidden = false }) {
+  return (
+    <a
+      className="nh-card"
+      href={project.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-hidden={hidden || undefined}
+      tabIndex={hidden ? -1 : undefined}
+    >
+      <div className="mini"><i /><i /><i /></div>
+      <div className="img">
+        <img src={project.img} alt={hidden ? '' : `Sitio de ${project.name}`} loading="lazy" width="960" height="600" />
+      </div>
+      <div className="meta"><b>{project.name}</b><span>{project.kind}</span></div>
+    </a>
+  );
+}
+
+export default function Home() {
+  const ticks = [];
+  for (let t = 0; t <= PLAZOS_MAX_WEEKS; t += 2) ticks.push(t);
+
+  return (
+    <div className="nh">
+      <SEO
         title="NexCommit | Páginas web, tiendas online y chatbots con IA en Chile"
         description="Creamos páginas web, landing pages, tiendas online, sistemas a medida y chatbots con IA para empresas en todo Chile. Diseño propio, SEO incluido y cotización por WhatsApp."
         keywords="crear página web, diseño de páginas web Chile, empresa de desarrollo web, landing page, tienda online, chatbot con IA, chatbot WhatsApp, automatización, NexCommit"
         canonicalUrl="https://www.nexcommit.com/"
         jsonLd={[faqJsonLd]}
       />
-      <section id="top" className="relative w-full min-h-[640px] overflow-hidden flex pb-20 md:pb-24">
-        <div className="hero-grid absolute inset-0 z-0 pointer-events-none" />
-        <div
-          className="absolute inset-y-0 right-0 z-0 pointer-events-none"
-          style={{
-            width: '62%',
-            background: 'radial-gradient(ellipse at center, rgba(35, 136, 218, 0.18) 0%, rgba(98, 198, 244, 0.08) 35%, transparent 72%)',
-            filter: 'blur(60px)',
-          }}
-        />
-        <div
-          className="absolute z-0 pointer-events-none hero-canvas"
-          style={{
-            top: '-6%',
-            right: '-2%',
-            width: '56%',
-            height: '100%',
-          }}
-        >
-          <Suspense fallback={null}>
-            <Hero3D />
-          </Suspense>
+
+      {/* Hero */}
+      <section id="top" className="nh-hero">
+        <div className="nh-wrap nh-hero-grid">
+          <div>
+            <SearchTyper />
+            <h1>Tu página web, lista para <em>recibir clientes</em>.</h1>
+            <p className="nh-lead">
+              Diseñamos y construimos páginas web, tiendas online y chatbots con IA para empresas de todo Chile.
+              Sin plantillas, con WhatsApp integrado y preparadas para aparecer en Google.
+            </p>
+            <div className="nh-ctas">
+              <WhatsAppLink topic="una página web" placement="home_hero" className="nh-btn nh-btn-wa">
+                <MessageCircle aria-hidden="true" /> Cotizar por WhatsApp
+              </WhatsAppLink>
+              <a className="nh-btn nh-btn-ghost" href="#proyectos">Ver proyectos reales</a>
+            </div>
+            <div className="nh-trust">
+              <span><i />Respondemos el mismo día hábil</span>
+              <span><i />Precio cerrado antes de partir</span>
+              <span><i />Clientes en todo Chile</span>
+            </div>
+          </div>
+          <BuildingBrowser />
         </div>
-        <div className="relative z-10 w-full h-full flex flex-col pointer-events-none">
-          <div className="container pt-10 md:pt-12">
-            <div className="max-w-2xl animate-fade-in pointer-events-auto">
-              <div className="eyebrow mb-6">
-                <BrandLogo compact />
-                <span>Tecnologia a medida para crecer con foco comercial</span>
+      </section>
+
+      {/* Servicios y plazos */}
+      <section id="plazos" className="nh-block">
+        <div className="nh-wrap">
+          <div className="nh-kicker">Servicios y plazos</div>
+          <h2>Elige lo que necesitas. Sabrás cuándo está listo.</h2>
+          <p className="nh-sub">
+            Plazos habituales desde que apruebas la propuesta. El precio y la fecha exacta van por escrito antes de empezar.
+          </p>
+          <div className="nh-plazos">
+            <div className="nh-plazos-inner">
+              <div className="nh-scale" aria-hidden="true">
+                <span />
+                <div className="nh-ticks">
+                  {ticks.map((t) => (
+                    <span key={t} style={{ left: `${(t / PLAZOS_MAX_WEEKS) * 100}%` }}>{t}</span>
+                  ))}
+                </div>
+                <span style={{ textAlign: 'right' }}>semanas</span>
               </div>
-              <h1 className="text-5xl md:text-7xl font-semibold mb-5 leading-tight text-white">
-                Convertimos ideas en{' '}
-                <span className="text-gradient">plataformas con identidad</span>
-              </h1>
-              <p className="text-lg md:text-xl mb-10 max-w-xl font-normal animate-fade-in delay-100 text-brand-muted">
-                Integramos diseno, automatizacion y desarrollo a medida para que tu negocio avance con una marca coherente y una operacion mas solida.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 animate-fade-in delay-200">
-                <button className="btn btn-brand group" onClick={scrollToServices}>
-                  Nuestros servicios
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </button>
-                <WhatsAppLink placement="home_hero" className="btn btn-ghost">
-                  Cotizar por WhatsApp
+              {PLAZOS.map((s) => (
+                <WhatsAppLink key={s.slug} topic={s.topic} placement={`home_plazos_${s.slug}`} className="nh-row">
+                  <div>
+                    <h3>{s.name}</h3>
+                    <p>{s.desc}</p>
+                  </div>
+                  {s.from == null ? (
+                    <span className="nh-pill-free">plazo según canales e integraciones</span>
+                  ) : (
+                    <div className="nh-lane">
+                      <div className="nh-fill" style={{ width: `${(s.to / PLAZOS_MAX_WEEKS) * 100}%` }}>
+                        {s.to > s.from && <div className="soft" style={{ left: `${(s.from / s.to) * 100}%` }} />}
+                      </div>
+                    </div>
+                  )}
+                  <div className="nh-when">{s.label}<small>Cotizar →</small></div>
                 </WhatsAppLink>
-                <CallLink placement="home_hero" className="btn btn-ghost">
-                  <Phone className="w-5 h-5" /> Llamar
-                </CallLink>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section id="services" className="py-28 md:py-32 relative">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        <div className="container relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
-            <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-white tracking-tight">
-              Servicios diseñados para <span className="text-gradient">escalar</span>
-            </h2>
-            <p className="text-lg text-brand-muted">
-              La paleta, el logo y el sistema visual ya pueden vivir de forma consistente dentro de una experiencia moderna y comercial.
-            </p>
+      {/* Proyectos reales */}
+      <section id="proyectos" className="nh-block">
+        <div className="nh-wrap nh-head-row">
+          <div>
+            <div className="nh-kicker">Proyectos reales</div>
+            <h2>Sitios que ya están vendiendo, agendando y respondiendo.</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {services.map((service) => {
-              const Icon = service.icon;
-              return (
-                <div key={service.title} className={`service-card glass-dark ${service.tone} p-10 rounded-3xl group`}>
-                  <div className="service-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-transform group-hover:scale-110 duration-500">
-                    <Icon className="w-7 h-7" />
-                  </div>
-                  <h3 className="text-2xl font-semibold mb-4 text-white">{service.title}</h3>
-                  <p className="mb-8 min-h-[88px] leading-relaxed text-brand-muted">{service.description}</p>
-                  <div className="service-pill inline-block px-4 py-1.5 rounded-full text-xs font-semibold mb-6">
-                    {service.benefit}
-                  </div>
-                  <div className="service-link flex items-center gap-2 text-sm font-semibold transition-colors">
-                    {service.cta} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              );
-            })}
+          <p className="nh-sub" style={{ maxWidth: '26em' }}>
+            Pasa el cursor para detener el carrusel. Cada tarjeta abre el sitio publicado.
+          </p>
+        </div>
+        <div className="nh-marquee" tabIndex={0} aria-label="Carrusel de proyectos">
+          <div className="nh-track">
+            {SHOWCASE.map((p) => <ShowcaseCard key={p.name} project={p} />)}
+            {SHOWCASE.map((p) => <ShowcaseCard key={`dup-${p.name}`} project={p} hidden />)}
           </div>
         </div>
       </section>
 
-      <section id="clients" className="py-28 md:py-32 relative">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        <div className="container relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
-            <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-white tracking-tight">
-              Proyectos que <span className="text-gradient">hablan por nosotros</span>
-            </h2>
-            <p className="text-lg text-brand-muted">
-              Cada sitio refleja nuestro compromiso con el diseño, la performance y la identidad de marca.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {CLIENTS.map((client) => (
-              <ClientCard key={client.name} {...client} />
+      {/* Cómo trabajamos */}
+      <section id="como" className="nh-block">
+        <div className="nh-wrap">
+          <div className="nh-kicker">Cómo trabajamos</div>
+          <h2>Tres pasos, sin letra chica.</h2>
+          <div className="nh-steps">
+            {STEPS.map((step, i) => (
+              <div key={step.title} className="nh-step">
+                <span className="num" aria-hidden="true">{`0${i + 1}`}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="faq" className="py-28 md:py-32 relative">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        <div className="container relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
-            <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-white tracking-tight">
-              Preguntas <span className="text-gradient">frecuentes</span>
-            </h2>
-            <p className="text-lg text-brand-muted">
-              Resolvemos las dudas más comunes antes de partir un proyecto con nosotros.
-            </p>
-          </div>
-          <div className="max-w-3xl mx-auto flex flex-col gap-4">
+      {/* Preguntas frecuentes (also feeds the FAQPage structured data) */}
+      <section id="faq" className="nh-block">
+        <div className="nh-wrap">
+          <div className="nh-kicker">Preguntas frecuentes</div>
+          <h2>Lo que nos preguntan antes de partir.</h2>
+          <div className="nh-faq">
             {faqs.map((faq) => (
-              <details
-                key={faq.question}
-                className="glass-dark rounded-2xl p-6 group"
-              >
-                <summary className="text-lg font-semibold text-white cursor-pointer list-none flex items-center justify-between gap-4">
-                  {faq.question}
-                  <span className="text-brand-muted transition-transform group-open:rotate-45 text-2xl leading-none">+</span>
-                </summary>
-                <p className="mt-4 leading-relaxed text-brand-muted">{faq.answer}</p>
+              <details key={faq.question}>
+                <summary>{faq.question}<span aria-hidden="true">+</span></summary>
+                <p>{faq.answer}</p>
               </details>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-28 md:py-32 relative overflow-hidden">
-        <div className="absolute inset-x-0 top-0 h-full w-full pointer-events-none cta-glow" />
-        <div className="container relative z-10 text-center">
-          <div className="max-w-4xl mx-auto p-10 md:p-12 rounded-[32px] glass-dark border-white/5 shadow-2xl">
-            <div className="flex justify-center mb-8">
-              <BrandLogo compact />
-            </div>
-            <h2 className="text-4xl md:text-5xl font-semibold text-white mb-6 tracking-tight">
-              Listo para alinear tu <span className="text-gradient">marca y producto</span>?
-            </h2>
-            <p className="text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed text-brand-muted">
-              Conversemos sobre tu proyecto y definamos juntos el plan de trabajo, los tiempos y el alcance que necesitas.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <WhatsAppLink placement="home_cta" className="btn btn-brand group px-10 py-4">
-                Hablar con un experto
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </WhatsAppLink>
-              <a href="#services" className="btn btn-ghost px-10 py-4">
-                Ver servicios
-              </a>
-            </div>
+      {/* Cierre */}
+      <section className="nh-final">
+        <div className="nh-wrap">
+          <h2>¿Cuánto cuesta tu página web? Te respondemos hoy.</h2>
+          <p>Cuéntanos qué necesitas en un mensaje. En una conversación corta definimos alcance, plazo y precio.</p>
+          <div className="nh-ctas">
+            <WhatsAppLink topic="una página web" placement="home_final" className="nh-btn nh-btn-wa">
+              <MessageCircle aria-hidden="true" /> Escribir por WhatsApp
+            </WhatsAppLink>
+          </div>
+          <div className="nh-phone">
+            o llama al <CallLink placement="home_final">{PHONE_DISPLAY}</CallLink>
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
