@@ -18,7 +18,7 @@ export const PLAZOS = [
   { slug: 'landing', name: 'Landing page', desc: 'Una página para campañas y anuncios', from: 1, to: 1, label: '~1 semana', topic: 'una landing page' },
   { slug: 'corporativo', name: 'Sitio web corporativo', desc: 'Tu empresa completa, lista para Google', from: 3, to: 3, label: '~3 semanas', topic: 'una página web' },
   { slug: 'tienda', name: 'Tienda online', desc: 'Webpay, Flow o Mercado Pago y despacho', from: 4, to: 4, label: '~4 semanas', topic: 'una tienda online' },
-  { slug: 'chatbot', name: 'Chatbot con IA', desc: 'WhatsApp y web, entrenado con tu negocio', from: null, to: null, label: 'según integración', topic: 'un chatbot con IA' },
+  { slug: 'chatbot', name: 'Chatbot con IA', desc: 'WhatsApp, Instagram, Facebook y web', from: null, to: null, label: 'según integración', topic: 'un chatbot con IA' },
   { slug: 'sistema', name: 'Sistema o plataforma a medida', desc: 'Agenda, inventario, reportes, portales', from: 10, to: 12, label: '10 a 12 semanas', topic: 'un sistema a medida' },
 ];
 
@@ -28,7 +28,7 @@ export const SERVICE_GRID = [
   { slug: 'desarrollo-web', icon: 'Globe', title: 'Páginas web y landing pages', text: 'Sitios rápidos, con tu marca y listos para Google y para tus anuncios.' },
   { slug: 'tiendas-online', icon: 'ShoppingBag', title: 'Tiendas online', text: 'Vende con Webpay, Mercado Pago o Flow y despacho integrado.' },
   { slug: 'restaurantes', icon: 'UtensilsCrossed', title: 'Restaurantes y Uber Eats', text: 'Alta en Uber Eats, pantallas de cocina, delivery con la flota de Uber.' },
-  { slug: 'inteligencia-artificial', icon: 'Bot', title: 'Chatbots con IA', text: 'Atención y ventas, agendamiento, toma de pedidos y asistentes internos.' },
+  { slug: 'inteligencia-artificial', icon: 'Bot', title: 'Chatbots con IA', text: 'En WhatsApp, Instagram, Facebook y tu web: atienden, venden, agendan y toman pedidos.' },
   { slug: 'pagos', icon: 'CreditCard', title: 'Pagos online y presenciales', text: 'Webpay, Mercado Pago, Flow y terminales TUU conectados a tu sistema.' },
   { slug: 'integraciones', icon: 'Plug', title: 'APIs e integraciones', text: 'Si un sistema tiene API, lo conectamos: pagos, despacho, CRM, ERP.' },
   { slug: 'aulas-virtuales', icon: 'GraduationCap', title: 'Aulas virtuales', text: 'Cursos por módulos, evaluaciones, certificados y pagos en línea.' },
@@ -47,7 +47,7 @@ export const HOME_FAQS = [
   {
     question: '¿Qué servicios ofrece NexCommit?',
     answer:
-      'Creamos páginas web, landing pages y tiendas online; chatbots con inteligencia artificial para WhatsApp y web; sistemas para restaurantes con pantallas de cocina (KDS), alta en Uber Eats y delivery con la flota de Uber; integración de pagos online y presenciales (Webpay, Mercado Pago, Flow y TUU); conexiones por API con cualquier sistema; aulas virtuales y plataformas de cursos; automatizaciones y sistemas a medida con dashboards. Partimos por lo que tu negocio necesita hoy y crecemos contigo.',
+      'Creamos páginas web, landing pages y tiendas online; chatbots con inteligencia artificial para WhatsApp, Instagram, Facebook Messenger y web; sistemas para restaurantes con pantallas de cocina (KDS), alta en Uber Eats y delivery con la flota de Uber; integración de pagos online y presenciales (Webpay, Mercado Pago, Flow y TUU); conexiones por API con cualquier sistema; aulas virtuales y plataformas de cursos; automatizaciones y sistemas a medida con dashboards. Partimos por lo que tu negocio necesita hoy y crecemos contigo.',
   },
   {
     question: '¿Cuánto cuesta una página web?',
@@ -62,7 +62,7 @@ export const HOME_FAQS = [
   {
     question: '¿Qué tipos de chatbot pueden hacer?',
     answer:
-      'Hacemos chatbots con inteligencia artificial para atención y ventas por WhatsApp (responden dudas, cotizan y envían links de pago), para agendar horas con recordatorios automáticos, para tomar pedidos de restaurantes y enviarlos directo a cocina, y asistentes internos que responden a tu equipo con los documentos de la empresa. Todos se entrenan con la información de tu negocio y derivan a una persona cuando hace falta.',
+      'Hacemos chatbots con inteligencia artificial que funcionan en WhatsApp, Instagram, Facebook Messenger y el chat de tu web: de atención y ventas (responden dudas, cotizan y envían links de pago), para agendar horas con recordatorios automáticos, para tomar pedidos de restaurantes y enviarlos directo a cocina, y asistentes internos que responden a tu equipo con los documentos de la empresa. Todos se entrenan con la información de tu negocio y derivan a una persona cuando hace falta.',
   },
   {
     question: '¿Pueden llevar mi restaurante a Uber Eats?',

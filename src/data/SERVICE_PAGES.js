@@ -122,21 +122,26 @@ export const SERVICE_PAGES = [
     slug: 'inteligencia-artificial',
     navLabel: 'Chatbots con IA',
     title: 'Chatbots e Inteligencia Artificial para Empresas',
-    metaTitle: 'Chatbots con IA para WhatsApp y Web en Chile | NexCommit',
+    metaTitle: 'Chatbots con IA para WhatsApp, Instagram y Web | NexCommit',
     metaDescription:
-      'Chatbots con inteligencia artificial para WhatsApp y tu web: atención y ventas, agendamiento de horas, toma de pedidos para restaurantes y asistentes internos.',
+      'Chatbots con inteligencia artificial para WhatsApp, Instagram, Facebook Messenger y tu web: atención y ventas, agendamiento, toma de pedidos y asistentes internos.',
     intro:
-      'Creamos chatbots con inteligencia artificial entrenados con la información de tu negocio, que atienden 24/7 en WhatsApp y en tu web, y derivan a una persona cuando hace falta.',
+      'Creamos chatbots con inteligencia artificial entrenados con la información de tu negocio, que atienden 24/7 en WhatsApp, Instagram, Facebook Messenger y tu web, y derivan a una persona cuando hace falta.',
     topic: 'un chatbot con IA',
     benefits: [
       'Conectado a tu número oficial de WhatsApp Business',
       'Entrenado con tus productos, precios, horarios y políticas',
       'Deriva a tu equipo con todo el contexto cuando es necesario',
       'Registra cada contacto en tu CRM o planilla',
-      'Funciona también como chat en tu sitio web',
+      'También en Instagram, Facebook Messenger y como chat en tu web',
       'Revisión de conversaciones y mejora continua',
     ],
     sections: [
+      {
+        title: 'Un solo asistente en todos tus canales',
+        text: 'El mismo chatbot responde en WhatsApp, en los mensajes directos de Instagram, en Facebook Messenger y en el chat de tu sitio web, con la misma información y el mismo tono. Todas las conversaciones quedan registradas en un solo lugar, sin importar por dónde te escribieron.',
+        bullets: ['WhatsApp Business', 'Instagram y Facebook Messenger', 'Chat en tu sitio web'],
+      },
       {
         title: 'Atención y ventas por WhatsApp',
         text: 'Responde preguntas frecuentes, recomienda productos, arma cotizaciones y envía links de pago. Cuando el cliente quiere hablar con una persona, la conversación pasa a tu equipo sin perder nada.',
@@ -159,6 +164,11 @@ export const SERVICE_PAGES = [
         question: '¿El chatbot responde como una persona?',
         answer:
           'Usa inteligencia artificial para entender lo que te escriben y responder con tu información y en tu tono. Si no sabe algo o el cliente lo pide, deriva a una persona de tu equipo.',
+      },
+      {
+        question: '¿Funciona en Instagram y Facebook?',
+        answer:
+          'Sí. Conectamos el chatbot a los mensajes directos de Instagram y a Facebook Messenger de tu página. Responde a quienes te escriben, siguiendo las reglas de Meta para esos canales, y deriva a tu equipo cuando hace falta.',
       },
       {
         question: '¿Necesito WhatsApp Business API?',

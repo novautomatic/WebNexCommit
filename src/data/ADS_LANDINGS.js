@@ -89,11 +89,11 @@ export const ADS_LANDINGS = [
     title: 'Chatbot con IA para tu empresa',
     highlight: 'que atiende y vende 24/7',
     subtitle:
-      'Creamos tu chatbot para WhatsApp y tu sitio web, entrenado con la información de tu negocio: responde consultas, cotiza, agenda y te deriva los clientes listos para comprar.',
+      'Creamos tu chatbot para WhatsApp, Instagram, Facebook y tu sitio web, entrenado con la información de tu negocio: responde consultas, cotiza, agenda y te deriva los clientes listos para comprar.',
     priceFrom: 600000,
     priceNote: 'chatbot con IA',
     bullets: [
-      'Funciona en WhatsApp y en tu página web',
+      'Funciona en WhatsApp, Instagram, Facebook y tu web',
       'Entrenado con tus productos, precios y preguntas frecuentes',
       'Agenda, cotiza y captura datos de contacto',
       'Te pasa la conversación cuando el cliente quiere hablar con una persona',
@@ -108,9 +108,9 @@ export const ADS_LANDINGS = [
     ],
     faqs: [
       {
-        question: '¿El chatbot funciona en WhatsApp?',
+        question: '¿En qué canales funciona el chatbot?',
         answer:
-          'Sí. Lo conectamos a WhatsApp Business API con tu propio número, y también podemos instalarlo como chat en tu página web.',
+          'En WhatsApp (lo conectamos a WhatsApp Business API con tu propio número), en los mensajes directos de Instagram, en Facebook Messenger y como chat en tu página web. Es el mismo asistente en todos los canales.',
       },
       {
         question: '¿Cuánto se demora?',

@@ -176,3 +176,11 @@
   .sv-visual *, .sv-visual *::before, .sv-visual *::after { animation: none !important; transition: none !important; }
   .sv-line polyline { stroke-dashoffset: 0; }
 }
+
+/* Chatbot channels */
+.sv-channels { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 12px; background: #111b21; border-top: 1px solid rgba(255,255,255,0.06); }
+.sv-channels span { font: 600 11.5px/1 var(--sv-mono); color: #cfe3ef; border: 1px solid var(--sv-line); border-radius: 999px; padding: 6px 10px; animation: sv-glow 4s ease-in-out infinite; }
+.sv-channels span:nth-child(2) { animation-delay: 1s; }
+.sv-channels span:nth-child(3) { animation-delay: 2s; }
+.sv-channels span:nth-child(4) { animation-delay: 3s; }
+@keyframes sv-glow { 0%, 20%, 100% { border-color: var(--sv-line); color: #cfe3ef; } 8% { border-color: var(--sv-ok); color: #7ee2a8; } }

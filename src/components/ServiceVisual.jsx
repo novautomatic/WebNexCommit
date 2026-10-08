@@ -103,6 +103,9 @@ function ChatVisual() {
         ))}
         {typing && <div className="sv-bubble me sv-typing"><i /><i /><i /></div>}
       </div>
+      <div className="sv-channels" aria-label="Canales donde responde">
+        <span>WhatsApp</span><span>Instagram</span><span>Messenger</span><span>Web</span>
+      </div>
     </div>
   );
 }
