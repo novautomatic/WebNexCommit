@@ -1,9 +1,9 @@
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Check, MessageCircle } from 'lucide-react';
 import SEO from '../components/SEO';
 import { WhatsAppLink } from '../components/ContactButtons';
 import Breadcrumbs from '../components/Breadcrumbs';
-import KdsDemo from '../components/KdsDemo';
+import ServiceVisual from '../components/ServiceVisual';
 import { getServicePage } from '../data/SERVICE_PAGES';
 
 export default function Services() {
@@ -67,30 +67,44 @@ export default function Services() {
             ]}
           />
 
-          <article className="max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-semibold mb-6 leading-tight bg-gradient-to-r from-white via-white to-brand-light bg-clip-text text-transparent">
-              {record.title}
-            </h1>
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-14 items-center mb-16 max-w-6xl mx-auto">
+            <div className="min-w-0">
+              <h1 className="text-4xl md:text-6xl font-semibold mb-6 leading-tight bg-gradient-to-r from-white via-white to-[#9cdcff] bg-clip-text text-transparent">
+                {record.title}
+              </h1>
+              <p className="text-lg text-brand-muted mb-8 leading-relaxed">{record.intro}</p>
+              <div className="flex flex-wrap gap-3">
+                <WhatsAppLink
+                  topic={topic}
+                  placement={`servicio_hero_${record.slug}`}
+                  className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 font-bold text-[#04260f] bg-[#25d366] shadow-[0_14px_34px_rgba(37,211,102,0.25)] hover:-translate-y-0.5 transition-transform"
+                >
+                  <MessageCircle className="w-5 h-5" /> Cotizar por WhatsApp
+                </WhatsAppLink>
+                <a href="#detalle" className="inline-flex items-center rounded-full px-6 py-3.5 font-bold text-white border border-white/15 hover:border-[#67c8f3] transition-colors">
+                  Ver qué incluye
+                </a>
+              </div>
+            </div>
+            <div className="min-w-0">
+              <ServiceVisual slug={record.slug} />
+            </div>
+          </section>
 
-            <p className="text-lg text-brand-muted mb-10 leading-relaxed">{record.intro}</p>
-
+          <article id="detalle" className="max-w-5xl mx-auto scroll-mt-28">
             {record.benefits.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
-                {record.benefits.map((benefit) => (
-                  <div key={benefit} className="glass-dark rounded-2xl p-5 flex items-start gap-3">
-                    <Check className="w-5 h-5 text-brand-light flex-shrink-0 mt-0.5" />
-                    <span className="text-brand-muted leading-relaxed">{benefit}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-14">
+                {record.benefits.map((benefit, i) => (
+                  <div
+                    key={benefit}
+                    className="glass-dark rounded-2xl p-5 flex items-start gap-3 border border-white/5 hover:border-[rgba(103,200,243,0.4)] hover:-translate-y-1 transition-all duration-300"
+                  >
+                    <span className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-[rgba(36,139,222,0.2)] text-[#67c8f3] text-sm font-bold">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className="text-white/85 leading-relaxed">{benefit}</span>
                   </div>
                 ))}
-              </div>
-            )}
-
-            {record.visual === 'kds' && (
-              <div className="mb-12">
-                <KdsDemo />
-                <p className="text-sm text-brand-muted mt-3 text-center">
-                  Ejemplo de pantalla de cocina: cada pedido muestra su canal, su tiempo y cambia de color si se demora.
-                </p>
               </div>
             )}
 
@@ -101,7 +115,7 @@ export default function Services() {
                     <div className="flex flex-wrap items-center gap-3 mb-3">
                       <h2 className="text-2xl font-semibold text-white">{section.title}</h2>
                       {section.badge && (
-                        <span className="text-xs font-bold uppercase tracking-wider rounded-full px-3 py-1 border border-brand-light/40 text-brand-light">
+                        <span className="text-xs font-bold uppercase tracking-wider rounded-full px-3 py-1 border border-[rgba(103,200,243,0.45)] text-[#67c8f3]">
                           {section.badge}
                         </span>
                       )}

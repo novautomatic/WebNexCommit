@@ -21,7 +21,7 @@ export default function Terms() {
           </Link>
 
           <article className="max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold mb-8 bg-gradient-to-r from-white via-brand-light to-brand-accent bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-6xl font-bold mb-8 bg-gradient-to-r from-white via-white to-[#9cdcff] bg-clip-text text-transparent">
               Términos y Condiciones
             </h1>
 

@@ -25,6 +25,22 @@ import { getAdLanding } from './data/ADS_LANDINGS';
 
 const queryClient = new QueryClient();
 
+/** Every navigation starts at the top of the new page (or at its #anchor). */
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
+  useEffect(() => {
+    if (hash) {
+      const el = document.getElementById(hash.slice(1));
+      if (el) {
+        el.scrollIntoView();
+        return;
+      }
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname, hash]);
+  return null;
+}
+
 // Run before the first render so every WhatsApp link already carries the [Google] tag.
 captureAdClick();
 const GA_MEASUREMENT_ID = 'G-FBHZGW2YB7';
@@ -56,6 +72,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <SiteMeta />
+          <ScrollToTop />
           <div className={`${isAdmin ? '' : 'app-shell pb-24 md:pb-0'} w-full min-h-screen`}>
         {!isAdmin && (<>
           <nav
