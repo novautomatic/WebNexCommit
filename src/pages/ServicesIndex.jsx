@@ -9,7 +9,7 @@ export default function ServicesIndex() {
       <SEO
         title="Servicios | NexCommit"
         description="Desarrollo web, automatización de procesos, integraciones, dashboards e inteligencia artificial aplicada a tu negocio. Conoce todos los servicios de NexCommit."
-        canonicalUrl="https://nexcommit.com/servicios"
+        canonicalUrl="https://www.nexcommit.com/servicios"
       />
 
       <div className="pb-20">

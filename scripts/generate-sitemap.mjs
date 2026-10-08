@@ -8,7 +8,7 @@ import { SERVICE_PAGES } from '../src/data/SERVICE_PAGES.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SITEMAP_PATH = resolve(__dirname, '../public/sitemap.xml');
-const SITE_URL = 'https://nexcommit.com';
+const SITE_URL = 'https://www.nexcommit.com';
 
 // Same public/anon Supabase credentials already bundled client-side in
 // src/lib/supabaseClient.ts (safe to reuse — anon key, RLS-protected).

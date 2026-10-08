@@ -27,14 +27,18 @@
         ad_personalization: ncState,
         wait_for_update: 500
       });
+      // While consent is denied: strip ad identifiers from requests, and keep
+      // the gclid in the URL so the Ads click still counts once accepted.
+      gtag('set', 'ads_data_redaction', true);
+      gtag('set', 'url_passthrough', true);
       gtag('js', new Date());
     </script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-FBHZGW2YB7"></script>
 
     <!-- Fallback metadata for pre-hydration crawlers; per-route metadata is
          set at runtime via react-helmet-async (see src/components/SEO.jsx). -->
-    <title>NexCommit - Convertimos ideas en plataformas con identidad</title>
-    <meta name="description" content="Integramos diseño, automatización y desarrollo a medida para que tu negocio avance con una marca coherente y una operación más sólida." />
+    <title data-pr>NexCommit | Páginas web, tiendas online y chatbots con IA en Chile</title>
+    <meta data-pr name="description" content="Creamos páginas web, landing pages, tiendas online, sistemas a medida y chatbots con IA para empresas en todo Chile. Diseño propio, SEO incluido y cotización por WhatsApp." />
   </head>
   <body>
     <div id="root"></div>

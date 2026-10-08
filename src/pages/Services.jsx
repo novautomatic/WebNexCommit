@@ -18,10 +18,9 @@ export default function Services() {
     '@type': 'Service',
     name: record.title,
     description: record.metaDescription,
-    provider: {
-      '@type': 'Organization',
-      name: 'NexCommit',
-    },
+    url: `https://www.nexcommit.com/servicios/${record.slug}`,
+    areaServed: { '@type': 'Country', name: 'Chile' },
+    provider: { '@id': 'https://www.nexcommit.com/#organization' },
   };
 
   return (
@@ -29,7 +28,7 @@ export default function Services() {
       <SEO
         title={record.metaTitle}
         description={record.metaDescription}
-        canonicalUrl={`https://nexcommit.com/servicios/${record.slug}`}
+        canonicalUrl={`https://www.nexcommit.com/servicios/${record.slug}`}
         noIndex={record.noIndex}
         jsonLd={record.noIndex ? null : [serviceJsonLd]}
       />

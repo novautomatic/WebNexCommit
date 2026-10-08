@@ -42,7 +42,7 @@ export default function AdLanding() {
       <SEO
         title={`${landing.title} | NexCommit`}
         description={landing.subtitle}
-        canonicalUrl={`https://nexcommit.com/lp/${landing.slug}`}
+        canonicalUrl={`https://www.nexcommit.com/lp/${landing.slug}`}
         noIndex
       />
 
@@ -144,7 +144,7 @@ export default function AdLanding() {
             Preguntas <span className="text-gradient">frecuentes</span>
           </h2>
           <div className="flex flex-col gap-4">
-            {LANDING_FAQS.map((faq) => (
+            {(landing.faqs || LANDING_FAQS).map((faq) => (
               <details key={faq.question} className="glass-dark rounded-2xl p-6 group">
                 <summary className="text-lg font-semibold text-white cursor-pointer list-none flex items-center justify-between gap-4">
                   {faq.question}

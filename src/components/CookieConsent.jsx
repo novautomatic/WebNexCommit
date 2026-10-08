@@ -31,7 +31,8 @@ function applyChoice(choice) {
 }
 
 export default function CookieConsent() {
-  const [open, setOpen] = useState(() => !readChoice());
+  // Never in the prerendered HTML (no window there); the browser decides.
+  const [open, setOpen] = useState(() => typeof window !== 'undefined' && !readChoice());
 
   if (!open) return null;
 

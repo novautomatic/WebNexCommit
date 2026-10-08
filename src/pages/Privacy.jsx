@@ -7,7 +7,7 @@ export default function Privacy() {
       <SEO
         title="Política de Privacidad | NexCommit"
         description="Conoce cómo NexCommit recopila, utiliza y protege los datos personales de clientes y visitantes en sus formularios, plataformas y servicios."
-        canonicalUrl="https://nexcommit.com/privacy"
+        canonicalUrl="https://www.nexcommit.com/privacy"
       />
 
       <div className="pb-20">

@@ -6,7 +6,7 @@ NexCommit ofrece desarrollo web a medida, automatización de procesos comerciale
 
 ## Páginas
 
-- [Inicio](https://nexcommit.com/) — Presentación de servicios, proyectos realizados y preguntas frecuentes.
-- [Blog](https://nexcommit.com/blog) — Artículos sobre desarrollo web, automatización y tecnología.
+- [Inicio](https://www.nexcommit.com/) — Presentación de servicios, proyectos realizados y preguntas frecuentes.
+- [Blog](https://www.nexcommit.com/blog) — Artículos sobre desarrollo web, automatización y tecnología.
 
-Los artículos individuales del blog están disponibles bajo `/blog/:slug` (por ejemplo, `https://nexcommit.com/blog/mi-articulo`).
+Los artículos individuales del blog están disponibles bajo `/blog/:slug` (por ejemplo, `https://www.nexcommit.com/blog/mi-articulo`).

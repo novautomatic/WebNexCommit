@@ -55,7 +55,7 @@ export default function Login() {
         title="Acceso Administrativo - NexCommit"
         description="Panel de acceso exclusivo para administradores de NexCommit."
         noIndex={true}
-        canonicalUrl="https://nexcommit.com/login"
+        canonicalUrl="https://www.nexcommit.com/login"
       />
       <div className="container py-32 flex items-center justify-center min-h-screen">
       <div className="max-w-md w-full p-10 rounded-3xl glass-dark border-white/10">

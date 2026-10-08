@@ -5,9 +5,9 @@ const SEO = ({
   title = 'NexCommit - Convertimos ideas en plataformas con identidad',
   description = 'Integramos diseño, automatización y desarrollo a medida para que tu negocio avance con una marca coherente y una operación más sólida.',
   keywords = 'NexCommit, desarrollo web, automatización, diseño digital, plataformas a medida, desarrollo de apps, Chile, tecnología, innovación digital',
-  ogImage = 'https://nexcommit.com/nexcommit-og-image.png',
-  twitterImage = 'https://nexcommit.com/nexcommit-twitter-image.png',
-  canonicalUrl = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : 'https://nexcommit.com',
+  ogImage = 'https://www.nexcommit.com/nexcommit-og-image.png',
+  twitterImage = 'https://www.nexcommit.com/nexcommit-twitter-image.png',
+  canonicalUrl = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : 'https://www.nexcommit.com',
   type = 'website',
   noIndex = false,
   jsonLd = null,
@@ -29,7 +29,7 @@ const SEO = ({
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={ogImage} />
-      <meta property="og:locale" content="es_ES" />
+      <meta property="og:locale" content="es_CL" />
       <meta property="og:site_name" content="NexCommit" />
 
       {/* Twitter */}

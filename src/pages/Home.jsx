@@ -90,10 +90,10 @@ export default function Home() {
   return (
     <>
       <SEO 
-        title="NexCommit - Convertimos ideas en plataformas con identidad"
-        description="Integramos diseño, automatización y desarrollo a medida para que tu negocio avance con una marca coherente y una operación más sólida."
-        keywords="NexCommit, desarrollo web, automatización, diseño digital, plataformas a medida, desarrollo de apps, Chile, tecnología, innovación digital"
-        canonicalUrl="https://nexcommit.com"
+        title="NexCommit | Páginas web, tiendas online y chatbots con IA en Chile"
+        description="Creamos páginas web, landing pages, tiendas online, sistemas a medida y chatbots con IA para empresas en todo Chile. Diseño propio, SEO incluido y cotización por WhatsApp."
+        keywords="crear página web, diseño de páginas web Chile, empresa de desarrollo web, landing page, tienda online, chatbot con IA, chatbot WhatsApp, automatización, NexCommit"
+        canonicalUrl="https://www.nexcommit.com/"
         jsonLd={[faqJsonLd]}
       />
       <section id="top" className="relative w-full min-h-[640px] overflow-hidden flex pb-20 md:pb-24">

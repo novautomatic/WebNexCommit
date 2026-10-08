@@ -19,7 +19,7 @@ export default function Breadcrumbs({ items }) {
       '@type': 'ListItem',
       position: index + 1,
       name: item.label,
-      ...(item.path ? { item: `https://nexcommit.com${item.path}` } : {}),
+      ...(item.path ? { item: `https://www.nexcommit.com${item.path}` } : {}),
     })),
   };
 

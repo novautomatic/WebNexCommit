@@ -6,10 +6,10 @@ export const SERVICE_PAGES = [
   {
     slug: 'desarrollo-web',
     navLabel: 'Desarrollo Web',
-    title: 'Desarrollo Web a Medida',
-    metaTitle: 'Desarrollo Web a Medida | NexCommit',
+    title: 'Diseño y Desarrollo de Páginas Web',
+    metaTitle: 'Diseño de Páginas Web a Medida en Chile | NexCommit',
     metaDescription:
-      'Sitios y aplicaciones web a medida con React, Supabase y despliegue en Vercel. Landing pages, sitios corporativos, ecommerce y plataformas SaaS.',
+      'Creamos páginas web para empresas en Chile: landing pages, sitios corporativos, tiendas online y plataformas a medida. Rápidas, adaptadas a celular y con SEO.',
     intro:
       'Diseñamos y desarrollamos sitios web y aplicaciones a medida, desde landing pages hasta plataformas SaaS completas, con foco en performance, SEO y conversión.',
     benefits: [
@@ -78,10 +78,10 @@ export const SERVICE_PAGES = [
   {
     slug: 'inteligencia-artificial',
     navLabel: 'Inteligencia Artificial',
-    title: 'Inteligencia Artificial Aplicada',
-    metaTitle: 'Inteligencia Artificial Aplicada | NexCommit',
+    title: 'Chatbots e Inteligencia Artificial para Empresas',
+    metaTitle: 'Chatbots con IA para WhatsApp y Web en Chile | NexCommit',
     metaDescription:
-      'Chatbots, agentes de ventas y automatización con IA: atención al cliente, clasificación de leads, cotizaciones y agendamiento automático.',
+      'Creamos chatbots con inteligencia artificial para WhatsApp y tu sitio web: atención al cliente 24/7, agentes de ventas, cotizaciones y agendamiento automático.',
     intro:
       'Aplicamos IA donde realmente aporta: atención al cliente, clasificación de oportunidades y automatización de tareas comerciales repetitivas.',
     benefits: [

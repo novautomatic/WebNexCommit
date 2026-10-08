@@ -82,6 +82,78 @@ export const ADS_LANDINGS = [
       { title: 'Infraestructura cloud', text: 'Despliegue en Vercel, AWS, GCP o Azure según lo que necesites.' },
     ],
   },
+  {
+    slug: 'chatbot-ia',
+    topic: 'un chatbot con IA',
+    eyebrow: 'Chatbots con inteligencia artificial',
+    title: 'Chatbot con IA para tu empresa',
+    highlight: 'que atiende y vende 24/7',
+    subtitle:
+      'Creamos tu chatbot para WhatsApp y tu sitio web, entrenado con la información de tu negocio: responde consultas, cotiza, agenda y te deriva los clientes listos para comprar.',
+    priceFrom: 600000,
+    priceNote: 'chatbot con IA',
+    bullets: [
+      'Funciona en WhatsApp y en tu página web',
+      'Entrenado con tus productos, precios y preguntas frecuentes',
+      'Agenda, cotiza y captura datos de contacto',
+      'Te pasa la conversación cuando el cliente quiere hablar con una persona',
+    ],
+    includes: [
+      { title: 'WhatsApp Business API', text: 'Conectamos el chatbot a tu número oficial de WhatsApp, con plantillas aprobadas por Meta.' },
+      { title: 'Entrenado con tu negocio', text: 'Aprende de tus servicios, precios, horarios y políticas para responder como tu equipo.' },
+      { title: 'Agenda y cotizaciones', text: 'Reserva horas, envía cotizaciones y hace seguimiento sin intervención manual.' },
+      { title: 'Derivación a humano', text: 'Cuando una consulta lo requiere, la conversación pasa a tu equipo con todo el contexto.' },
+      { title: 'Conectado a tu CRM', text: 'Cada contacto queda registrado en tu CRM o planilla, clasificado según su potencial.' },
+      { title: 'Mejora continua', text: 'Revisamos las conversaciones y ajustamos las respuestas para que convierta cada vez más.' },
+    ],
+    faqs: [
+      {
+        question: '¿El chatbot funciona en WhatsApp?',
+        answer:
+          'Sí. Lo conectamos a WhatsApp Business API con tu propio número, y también podemos instalarlo como chat en tu página web.',
+      },
+      {
+        question: '¿Cuánto se demora?',
+        answer:
+          'Un chatbot básico queda funcionando en pocas semanas. Uno entrenado con todo tu catálogo e integrado a tu agenda o CRM toma algo más; el plazo exacto va en la propuesta.',
+      },
+      {
+        question: '¿Responde como una persona?',
+        answer:
+          'Usa inteligencia artificial para entender lo que te escriben y responder con tu información, en tu tono. Si no sabe algo o el cliente lo pide, deriva a una persona de tu equipo.',
+      },
+      {
+        question: '¿Qué pasa después de lanzarlo?',
+        answer:
+          'Ofrecemos un plan mensual de soporte y mejora continua: revisamos conversaciones, actualizamos la información y ajustamos respuestas.',
+      },
+    ],
+  },
+  {
+    slug: 'tienda-online',
+    topic: 'una tienda online',
+    eyebrow: 'Ecommerce para vender en Chile',
+    title: 'Tienda online para tu negocio',
+    highlight: 'lista para vender con Webpay',
+    subtitle:
+      'Creamos tu tienda online con pagos chilenos (Webpay, Flow, Mercado Pago), despacho integrado y un panel simple para administrar productos, stock y pedidos.',
+    priceFrom: 890000,
+    priceNote: 'tienda online',
+    bullets: [
+      'Tienda lista en ~4 semanas',
+      'Pagos con Webpay/Transbank, Flow o Mercado Pago',
+      'Despacho con Chilexpress, Starken, Shipit o Uber Direct',
+      'Panel para administrar productos, stock y pedidos',
+    ],
+    includes: [
+      { title: 'Diseño con tu marca', text: 'Una tienda con la identidad de tu negocio, pensada para que comprar sea fácil desde el celular.' },
+      { title: 'Pagos chilenos', text: 'Webpay/Transbank, Flow, Mercado Pago o transferencia, con confirmación automática.' },
+      { title: 'Despacho integrado', text: 'Cálculo de envío y etiquetas con los couriers que ya usas.' },
+      { title: 'Administración simple', text: 'Carga productos, controla stock y revisa pedidos sin depender de un programador.' },
+      { title: 'Lista para Google', text: 'SEO técnico, fichas de producto optimizadas y medición de ventas para tus anuncios.' },
+      { title: 'Recuperación de carritos', text: 'Recordatorios automáticos por correo o WhatsApp para no perder ventas.' },
+    ],
+  },
 ];
 
 export const PROCESS_STEPS = [

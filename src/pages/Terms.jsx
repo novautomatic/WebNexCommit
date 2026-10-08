@@ -7,7 +7,7 @@ export default function Terms() {
       <SEO
         title="Términos y Condiciones | NexCommit"
         description="Condiciones de uso de los servicios de NexCommit: cotizaciones, propiedad intelectual, confidencialidad y responsabilidades para clientes y visitantes del sitio."
-        canonicalUrl="https://nexcommit.com/terms"
+        canonicalUrl="https://www.nexcommit.com/terms"
       />
 
       <div className="pb-20">

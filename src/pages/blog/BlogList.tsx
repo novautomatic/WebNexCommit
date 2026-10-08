@@ -5,11 +5,24 @@ import SEO from '../../components/SEO';
 export function BlogList() {
   const { data: posts, isLoading, error } = useGetPosts();
 
+  // Always rendered (also while loading) so the prerendered /blog gets its title.
+  const seo = (
+    <SEO
+      title="Blog | NexCommit"
+      description="Artículos sobre desarrollo web, automatización de procesos y diseño de productos digitales. Ideas y aprendizajes del equipo de NexCommit para transformar tu operación."
+      keywords="desarrollo, automatización, diseño digital, NexCommit, blog"
+      canonicalUrl="https://www.nexcommit.com/blog"
+    />
+  );
+
   if (isLoading) {
     return (
-      <div className="container py-32 flex items-center justify-center min-h-screen">
-        <div className="text-white text-xl animate-pulse">Cargando artículos...</div>
-      </div>
+      <>
+        {seo}
+        <div className="container py-32 flex items-center justify-center min-h-screen">
+          <div className="text-white text-xl animate-pulse">Cargando artículos...</div>
+        </div>
+      </>
     );
   }
 
@@ -23,12 +36,7 @@ export function BlogList() {
 
   return (
     <>
-      <SEO
-        title="Blog | NexCommit"
-        description="Artículos sobre desarrollo web, automatización de procesos y diseño de productos digitales. Ideas y aprendizajes del equipo de NexCommit para transformar tu operación."
-        keywords="desarrollo, automatización, diseño digital, NexCommit, blog"
-        canonicalUrl="https://nexcommit.com/blog"
-      />
+      {seo}
       <div className="pb-20">
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-16">

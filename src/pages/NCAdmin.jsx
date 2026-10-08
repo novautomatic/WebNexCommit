@@ -137,7 +137,7 @@ export default function NCAdmin() {
         title="Panel de Administración - NexCommit"
         description="Panel de gestión de contenidos exclusivo para administradores de NexCommit."
         noIndex={true}
-        canonicalUrl="https://nexcommit.com/ncadmin"
+        canonicalUrl="https://www.nexcommit.com/ncadmin"
       />
       <div className="container pb-20">
       <div className="flex justify-between items-center mb-12">

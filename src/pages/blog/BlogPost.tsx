@@ -39,7 +39,7 @@ export function BlogPost() {
     post.seo_metadata?.meta_description ||
     post.excerpt ||
     post.content.slice(0, 160);
-  const canonicalUrl = `https://nexcommit.com/blog/${post.slug}`;
+  const canonicalUrl = `https://www.nexcommit.com/blog/${post.slug}`;
   const authorName = post.profiles?.username || 'NexCommit';
 
   const blogPostingJsonLd = {
@@ -59,7 +59,7 @@ export function BlogPost() {
       name: 'NexCommit',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://nexcommit.com/icon-512.png',
+        url: 'https://www.nexcommit.com/icon-512.png',
       },
     },
   };
