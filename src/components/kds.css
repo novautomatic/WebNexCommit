@@ -1,0 +1,52 @@
+/* Animated kitchen display demo (KdsDemo.jsx). */
+.kds {
+  --kds-ok: #2fbf71;
+  --kds-warn: #f2b632;
+  --kds-late: #ef5350;
+  border-radius: 18px;
+  border: 1px solid rgba(124, 170, 214, 0.18);
+  background: #07111c;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
+  padding: 14px;
+  font-family: 'Manrope', system-ui, sans-serif;
+  color: #eef4fa;
+  overflow: hidden;
+}
+.kds-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 2px 4px 12px; }
+.kds-station { font-weight: 700; font-size: 14px; letter-spacing: 0.02em; }
+.kds-legend { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: #92a9c0; flex-wrap: wrap; }
+.kds-legend i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; margin-left: 6px; }
+.kds-legend i.ok { background: var(--kds-ok); }
+.kds-legend i.warn { background: var(--kds-warn); }
+.kds-legend i.late { background: var(--kds-late); }
+.kds-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.kds-ticket {
+  --c: var(--kds-ok);
+  display: flex; flex-direction: column; gap: 8px;
+  background: #0f1d2c; border-radius: 12px; padding: 10px 11px 11px;
+  border-top: 4px solid var(--c);
+  min-height: 190px;
+  transition: border-color .6s ease, transform .6s ease, opacity .6s ease;
+  animation: kds-in .5s cubic-bezier(.2,.9,.3,1.2) both;
+}
+.kds-ticket.warn { --c: var(--kds-warn); }
+.kds-ticket.late { --c: var(--kds-late); }
+.kds-ticket.is-leaving { transform: translateY(-14px) scale(0.96); opacity: 0; }
+@keyframes kds-in { from { transform: translateY(16px); opacity: 0.3; } to { transform: none; opacity: 1; } }
+.kds-head { display: flex; justify-content: space-between; align-items: baseline; }
+.kds-head b { font-size: 15px; }
+.kds-time { font: 600 14px/1 'IBM Plex Mono', ui-monospace, monospace; color: var(--c); font-variant-numeric: tabular-nums; transition: color .6s ease; }
+.kds-channel { align-self: flex-start; font-size: 10.5px; font-weight: 700; letter-spacing: 0.02em; border-radius: 999px; padding: 3px 8px; }
+.kds-channel.salon { background: rgba(103, 200, 243, 0.14); color: #8fd6f7; }
+.kds-channel.web { background: rgba(167, 139, 250, 0.16); color: #c4b5fd; }
+.kds-channel.uber { background: rgba(47, 191, 113, 0.16); color: #7ee2a8; }
+.kds-ticket ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; line-height: 1.3; }
+.kds-note { margin: 0; font-size: 11.5px; color: var(--kds-warn); font-style: italic; }
+.kds-done { margin-top: auto; text-align: center; font-size: 11.5px; font-weight: 700; border-radius: 8px; padding: 6px; background: rgba(255,255,255,0.05); color: #b8c7d6; }
+.kds-ticket.is-leaving .kds-done { background: var(--kds-ok); color: #04260f; }
+@media (max-width: 760px) {
+  .kds-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kds-ticket { animation: none; transition: none; }
+}

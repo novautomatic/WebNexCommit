@@ -1,6 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Lock, MessageCircle, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  ArrowRight,
+  Bot,
+  Check,
+  CreditCard,
+  Globe,
+  GraduationCap,
+  LayoutDashboard,
+  Lock,
+  MessageCircle,
+  Plug,
+  Search,
+  ShoppingBag,
+  UtensilsCrossed,
+  Workflow,
+} from 'lucide-react';
 import SEO from '../components/SEO';
+import KdsDemo from '../components/KdsDemo';
 import { WhatsAppLink, CallLink } from '../components/ContactButtons';
 import { PHONE_DISPLAY } from '../config/contact';
 import {
@@ -9,41 +26,14 @@ import {
   PLAZOS_MAX_WEEKS,
   STEPS,
   SEARCH_QUERIES,
+  SERVICE_GRID,
+  HOME_FAQS,
 } from '../data/HOME';
 import './home.css';
 
-const faqs = [
-  {
-    question: '¿Qué servicios ofrece NexCommit?',
-    answer:
-      'Desarrollamos sitios web a medida, automatizamos procesos comerciales y operativos, y construimos apps y dashboards con bases de datos seguras para agenda, inventario y reportes. Todo se adapta al tamaño y objetivos del negocio, desde una landing hasta una plataforma SaaS completa.',
-  },
-  {
-    question: '¿Cuánto tiempo toma un proyecto?',
-    answer:
-      'Depende del alcance: una landing page toma alrededor de 1 semana, un sitio corporativo cerca de 3 semanas, un ecommerce cerca de 4 semanas, y proyectos SaaS o enterprise entre 10 y 12 semanas. Definimos el plazo exacto durante la cotización según los módulos y funcionalidades que necesites.',
-  },
-  {
-    question: '¿Cómo funciona el proceso de cotización/inicio de un proyecto?',
-    answer:
-      'Partimos con una conversación por WhatsApp o formulario para entender tu negocio y objetivos. Con eso armamos una propuesta con alcance, funcionalidades y precio claro antes de empezar, sin letra chica. Una vez aprobada, iniciamos el desarrollo con hitos y comunicación constante.',
-  },
-  {
-    question: '¿Trabajan con empresas fuera de Chile / remoto?',
-    answer:
-      'Sí, trabajamos 100% remoto con clientes en Chile y fuera del país. La comunicación es por WhatsApp, email y videollamadas, y usamos infraestructura cloud (Vercel, AWS, GCP, Azure) que no depende de ubicación geográfica.',
-  },
-  {
-    question: '¿Qué tecnologías usan?',
-    answer:
-      'Construimos con stacks modernos como React y bases de datos Supabase/PostgreSQL, con despliegue en Vercel. Integramos pasarelas de pago (Stripe, Flow, Mercado Pago, Transbank), CRMs (HubSpot, ActiveCampaign, GoHighLevel), WhatsApp API y automatizaciones con IA cuando el proyecto lo requiere.',
-  },
-  {
-    question: '¿Ofrecen soporte o mantenimiento después de lanzar el proyecto?',
-    answer:
-      'Sí, ofrecemos planes de hosting, mantención y soporte prioritario post-lanzamiento para que la plataforma siga funcionando sin fricción. También hacemos monitoreo y backups automáticos como servicios mensuales opcionales.',
-  },
-];
+const ICONS = { Globe, ShoppingBag, UtensilsCrossed, Bot, CreditCard, Plug, GraduationCap, Workflow, LayoutDashboard };
+
+const faqs = HOME_FAQS;
 
 const faqJsonLd = {
   '@context': 'https://schema.org',
@@ -288,6 +278,61 @@ export default function Home() {
                 </WhatsAppLink>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Todo lo que hacemos */}
+      <section id="servicios" className="nh-block">
+        <div className="nh-wrap">
+          <div className="nh-kicker">Todo lo que hacemos</div>
+          <h2>Una web, un chatbot o todo tu negocio conectado.</h2>
+          <p className="nh-sub">
+            Elige un servicio o combínalos: diseñamos, programamos e integramos todo para que funcione junto.
+          </p>
+          <div className="nh-services">
+            {SERVICE_GRID.map((item) => {
+              const Icon = ICONS[item.icon];
+              return (
+                <Link key={item.slug} to={`/servicios/${item.slug}`} className="nh-service">
+                  <span className="nh-service-icon"><Icon aria-hidden="true" /></span>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                  <span className="nh-service-more">Ver más <ArrowRight aria-hidden="true" /></span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Restaurantes */}
+      <section id="restaurantes" className="nh-block nh-resto">
+        <div className="nh-wrap nh-resto-grid">
+          <div>
+            <div className="nh-kicker">Para restaurantes</div>
+            <h2>Lleva tu restaurante a Uber Eats y ordena tu cocina.</h2>
+            <p className="nh-sub">
+              Con un KDS, los pedidos del salón, tu web y el delivery aparecen al instante en una pantalla de cocina:
+              cada estación ve lo suyo, el color avisa si algo se demora y con un toque se marca listo.
+            </p>
+            <ul className="nh-checks">
+              <li><Check aria-hidden="true" />Alta y configuración de tu local en Uber Eats</li>
+              <li><Check aria-hidden="true" />Pantallas de cocina (KDS) en vez de comandas de papel</li>
+              <li><Check aria-hidden="true" />Delivery desde tu web con la flota de Uber</li>
+              <li><Check aria-hidden="true" />Carta online, punto de venta, inventario y pagos</li>
+              <li><Check aria-hidden="true" />Pedidos de Uber Eats directo a cocina <span className="nh-soon">Próximamente</span></li>
+            </ul>
+            <div className="nh-ctas">
+              <Link to="/servicios/restaurantes" className="nh-btn nh-btn-ghost">Ver solución para restaurantes</Link>
+              <WhatsAppLink topic="un sistema para mi restaurante" placement="home_restaurantes" className="nh-btn nh-btn-wa">
+                <MessageCircle aria-hidden="true" /> Cotizar
+              </WhatsAppLink>
+            </div>
+          </div>
+          <div>
+            <KdsDemo />
+            <p className="nh-kds-caption">Ejemplo de pantalla de cocina (KDS) con pedidos del salón, la web y Uber Eats.</p>
           </div>
         </div>
       </section>
