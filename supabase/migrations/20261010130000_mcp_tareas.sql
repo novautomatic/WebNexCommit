@@ -61,7 +61,7 @@ DECLARE
   v_equipo uuid;
   v_token  text := 'nxc_' || replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '');
 BEGIN
-  SELECT id INTO v_equipo FROM public.equipo WHERE lower(email) = lower(p_email) AND activo;
+  v_equipo := (SELECT id FROM public.equipo WHERE lower(email) = lower(p_email) AND activo);
   IF v_equipo IS NULL THEN RAISE EXCEPTION 'No hay un integrante activo con el email %.', p_email; END IF;
   INSERT INTO public.mcp_tokens (equipo_id, nombre, token_hash)
   VALUES (v_equipo, p_nombre, encode(sha256(convert_to(v_token, 'UTF8')), 'hex'));
@@ -89,7 +89,7 @@ CREATE OR REPLACE FUNCTION public.mcp_como(p_equipo uuid)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_email text;
 BEGIN
-  SELECT email INTO v_email FROM public.equipo WHERE id = p_equipo AND activo;
+  v_email := (SELECT email FROM public.equipo WHERE id = p_equipo AND activo);
   IF v_email IS NULL THEN RAISE EXCEPTION 'no autorizado'; END IF;
   PERFORM set_config('request.jwt.claims',
     jsonb_build_object('email', v_email, 'role', 'authenticated')::text, true);
@@ -173,7 +173,7 @@ CREATE OR REPLACE FUNCTION public.mcp_ver_tarea(p_equipo uuid, p_numero bigint)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE t public.tareas;
 BEGIN
-  SELECT * INTO t FROM public.tareas WHERE numero = p_numero;
+  t := (SELECT x FROM public.tareas x WHERE x.numero = p_numero);
   IF t.id IS NULL THEN RAISE EXCEPTION 'No existe la tarea #%.', p_numero; END IF;
   RETURN public.mcp_tarea_json(t.id) || jsonb_build_object(
     'descripcion', t.descripcion,
@@ -238,9 +238,9 @@ BEGIN
   IF v_nuevo IS NULL THEN
     RAISE EXCEPTION 'Columna desconocida: %. Usa listar_columnas.', p_columna;
   END IF;
-  SELECT * INTO t FROM public.tareas WHERE numero = p_numero;
+  t := (SELECT x FROM public.tareas x WHERE x.numero = p_numero);
   IF t.id IS NULL THEN RAISE EXCEPTION 'No existe la tarea #%.', p_numero; END IF;
-  SELECT tipo INTO v_tipo FROM public.proyectos WHERE id = t.proyecto_id;
+  v_tipo := (SELECT tipo FROM public.proyectos WHERE id = t.proyecto_id);
   v_antes := public.mcp_tarea_json(t.id);
 
   IF t.estado = v_nuevo THEN
@@ -256,7 +256,7 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'error', SQLERRM);
   END;
 
-  SELECT * INTO t FROM public.tareas WHERE id = t.id;
+  t := (SELECT x FROM public.tareas x WHERE x.id = t.id);
   PERFORM public.mcp_log(p_equipo, 'mover_tarea', t.id, v_antes, public.mcp_tarea_json(t.id), true);
   RETURN jsonb_build_object('ok', true, 'cambio', true,
     'mensaje', CASE WHEN v_tipo = 'area' THEN 'Movida a ' || public.mcp_label_estado(v_nuevo) || '.'
@@ -283,20 +283,22 @@ BEGIN
   END IF;
   IF length(trim(coalesce(p_titulo, ''))) = 0 THEN RAISE EXCEPTION 'Falta el título.'; END IF;
 
-  SELECT string_agg(nombre, ', ' ORDER BY nombre) INTO v_lista FROM public.proyectos WHERE tipo = 'area' AND NOT archivado;
+  v_lista := (SELECT string_agg(nombre, ', ' ORDER BY nombre) FROM public.proyectos WHERE tipo = 'area' AND NOT archivado);
 
   IF coalesce(trim(p_area), '') = '' THEN
-    SELECT * INTO v_area FROM public.proyectos
-     WHERE tipo = 'area' AND NOT archivado AND area_responsable_id = p_equipo
-       AND (SELECT count(*) FROM public.proyectos WHERE tipo = 'area' AND NOT archivado AND area_responsable_id = p_equipo) = 1;
+    v_area := (SELECT x FROM public.proyectos x
+                WHERE x.tipo = 'area' AND NOT x.archivado AND x.area_responsable_id = p_equipo
+                  AND (SELECT count(*) FROM public.proyectos y
+                        WHERE y.tipo = 'area' AND NOT y.archivado AND y.area_responsable_id = p_equipo) = 1);
   ELSE
-    SELECT * INTO v_area FROM public.proyectos
-     WHERE tipo = 'area' AND NOT archivado AND lower(nombre) = lower(trim(p_area));
+    v_area := (SELECT x FROM public.proyectos x
+                WHERE x.tipo = 'area' AND NOT x.archivado AND lower(x.nombre) = lower(trim(p_area)));
     IF v_area.id IS NULL THEN
-      SELECT * INTO v_area FROM public.proyectos
-       WHERE tipo = 'area' AND NOT archivado AND position(lower(trim(p_area)) IN lower(nombre)) > 0
-         AND (SELECT count(*) FROM public.proyectos WHERE tipo = 'area' AND NOT archivado
-                AND position(lower(trim(p_area)) IN lower(nombre)) > 0) = 1;
+      v_area := (SELECT x FROM public.proyectos x
+                  WHERE x.tipo = 'area' AND NOT x.archivado AND position(lower(trim(p_area)) IN lower(x.nombre)) > 0
+                    AND (SELECT count(*) FROM public.proyectos y
+                          WHERE y.tipo = 'area' AND NOT y.archivado
+                            AND position(lower(trim(p_area)) IN lower(y.nombre)) > 0) = 1);
     END IF;
   END IF;
   IF v_area.id IS NULL THEN
@@ -311,7 +313,7 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'error', SQLERRM);
   END;
 
-  SELECT * INTO t FROM public.tareas WHERE id = v_id;
+  t := (SELECT x FROM public.tareas x WHERE x.id = v_id);
   PERFORM public.mcp_log(p_equipo, 'crear_tarea', v_id, NULL, public.mcp_tarea_json(t.id), true);
   RETURN jsonb_build_object('ok', true, 'mensaje', 'Tarea creada en ' || v_area.nombre || '.', 'tarea', public.mcp_tarea_json(t.id));
 END $$;
