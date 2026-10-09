@@ -56,7 +56,7 @@ CREATE POLICY mcp_registro_dueno ON public.mcp_registro FOR SELECT TO authentica
 
 -- ─── Tokens ────────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.mcp_crear_token(p_email text, p_nombre text)
-RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
 DECLARE
   v_equipo uuid;
   v_token  text := 'nxc_' || replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '');
@@ -66,12 +66,12 @@ BEGIN
   INSERT INTO public.mcp_tokens (equipo_id, nombre, token_hash)
   VALUES (v_equipo, p_nombre, encode(sha256(convert_to(v_token, 'UTF8')), 'hex'));
   RETURN v_token;
-END $$;
+END $fn$;
 
 -- Devuelve el socio dueño del token (o nada) y marca el uso.
 CREATE OR REPLACE FUNCTION public.mcp_resolver_token(p_hash text)
 RETURNS TABLE (equipo_id uuid, nombre text)
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
 BEGIN
   RETURN QUERY
   WITH t AS (
@@ -81,29 +81,29 @@ BEGIN
     RETURNING k.equipo_id
   )
   SELECT e.id, e.nombre FROM t JOIN public.equipo e ON e.id = t.equipo_id;
-END $$;
+END $fn$;
 
 -- ─── Identidad y utilidades ────────────────────────────────────────────────
 -- Hace que las RPC del panel vean al socio como usuario de la sesión actual.
 CREATE OR REPLACE FUNCTION public.mcp_como(p_equipo uuid)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
 DECLARE v_email text;
 BEGIN
   v_email := (SELECT email FROM public.equipo WHERE id = p_equipo AND activo);
   IF v_email IS NULL THEN RAISE EXCEPTION 'no autorizado'; END IF;
   PERFORM set_config('request.jwt.claims',
     jsonb_build_object('email', v_email, 'role', 'authenticated')::text, true);
-END $$;
+END $fn$;
 
 CREATE OR REPLACE FUNCTION public.mcp_label_estado(p_estado text)
-RETURNS text LANGUAGE sql IMMUTABLE AS $$
+RETURNS text LANGUAGE sql IMMUTABLE AS $fn$
   SELECT CASE p_estado WHEN 'pendiente' THEN 'Pendiente' WHEN 'en_progreso' THEN 'En progreso'
                        WHEN 'en_revision' THEN 'En revisión' WHEN 'bloqueada' THEN 'Bloqueada'
                        WHEN 'completada' THEN 'Completada' WHEN 'cancelada' THEN 'Cancelada' END
-$$;
+$fn$;
 
 CREATE OR REPLACE FUNCTION public.mcp_tarea_json(p_id uuid)
-RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $fn$
   SELECT jsonb_build_object(
     'numero', t.numero,
     'ref', CASE WHEN p.tipo = 'area' THEN p.nombre || ' #' || t.numero
@@ -123,29 +123,29 @@ RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $
   JOIN public.proyectos p ON p.id = t.proyecto_id
   LEFT JOIN public.equipo e ON e.id = t.responsable_id
   WHERE t.id = p_id
-$$;
+$fn$;
 
 CREATE OR REPLACE FUNCTION public.mcp_log(
   p_equipo uuid, p_herramienta text, p_tarea uuid, p_antes jsonb, p_despues jsonb, p_ok boolean, p_error text DEFAULT NULL
-) RETURNS void LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+) RETURNS void LANGUAGE sql SECURITY DEFINER SET search_path = public AS $fn$
   INSERT INTO public.mcp_registro (equipo_id, herramienta, tarea_id, antes, despues, ok, error)
   VALUES (p_equipo, p_herramienta, p_tarea, p_antes, p_despues, p_ok, p_error)
-$$;
+$fn$;
 
 -- Columna del tablero (texto libre o id) → estado. NULL si no es una columna.
 CREATE OR REPLACE FUNCTION public.mcp_estado_de(p_columna text)
-RETURNS text LANGUAGE sql IMMUTABLE AS $$
+RETURNS text LANGUAGE sql IMMUTABLE AS $fn$
   SELECT CASE translate(lower(trim(coalesce(p_columna, ''))), ' áéíóú', '_aeiou')
     WHEN 'pendiente' THEN 'pendiente' WHEN 'en_progreso' THEN 'en_progreso'
     WHEN 'en_revision' THEN 'en_revision' WHEN 'bloqueada' THEN 'bloqueada'
     WHEN 'completada' THEN 'completada' END
-$$;
+$fn$;
 
 -- ─── Consultas ─────────────────────────────────────────────────────────────
 -- Tareas del socio: asignadas a él, más las sin responsable de las áreas que lidera.
 CREATE OR REPLACE FUNCTION public.mcp_mis_tareas(
   p_equipo uuid, p_columna text DEFAULT NULL, p_prioridad text DEFAULT NULL, p_solo_vencidas boolean DEFAULT false
-) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
 DECLARE v_estado text := public.mcp_estado_de(p_columna);
 BEGIN
   IF p_columna IS NOT NULL AND v_estado IS NULL THEN
@@ -167,10 +167,10 @@ BEGIN
       ) t
       JOIN (VALUES ('urgente', 0), ('alta', 1), ('media', 2), ('baja', 3)) pr(id, peso) ON pr.id = t.prioridad
   ), '[]'::jsonb);
-END $$;
+END $fn$;
 
 CREATE OR REPLACE FUNCTION public.mcp_ver_tarea(p_equipo uuid, p_numero bigint)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
 DECLARE t public.tareas;
 BEGIN
   t := (SELECT x FROM public.tareas x WHERE x.numero = p_numero);
@@ -192,12 +192,12 @@ BEGIN
                        ORDER BY h.created_at DESC)
         FROM (SELECT * FROM public.tarea_historial WHERE tarea_id = t.id ORDER BY created_at DESC LIMIT 10) h
         LEFT JOIN public.equipo e ON e.id = h.actor_id), '[]'::jsonb));
-END $$;
+END $fn$;
 
 CREATE OR REPLACE FUNCTION public.mcp_buscar(
   p_equipo uuid, p_texto text DEFAULT NULL, p_proyecto text DEFAULT NULL, p_responsable text DEFAULT NULL,
   p_columna text DEFAULT NULL, p_incluir_cerradas boolean DEFAULT false
-) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
 DECLARE v_estado text := public.mcp_estado_de(p_columna);
 BEGIN
   IF p_columna IS NOT NULL AND v_estado IS NULL THEN
@@ -221,14 +221,14 @@ BEGIN
          LIMIT 25
       ) t
   ), '[]'::jsonb);
-END $$;
+END $fn$;
 
 -- ─── Escrituras (con auditoría) ────────────────────────────────────────────
 -- Mueve una tarjeta con la misma RPC del panel. Áreas: cambio local inmediato.
 -- Proyectos: se manda a GitHub (etiqueta / cierre / reapertura) y se confirma
 -- en el siguiente ciclo de sincronización (≤ 1 min).
 CREATE OR REPLACE FUNCTION public.mcp_mover(p_equipo uuid, p_numero bigint, p_columna text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
 DECLARE
   t       public.tareas;
   v_nuevo text := public.mcp_estado_de(p_columna);
@@ -262,13 +262,13 @@ BEGIN
     'mensaje', CASE WHEN v_tipo = 'area' THEN 'Movida a ' || public.mcp_label_estado(v_nuevo) || '.'
                     ELSE 'Movida a ' || public.mcp_label_estado(v_nuevo) || ' en el panel. El cambio se envió a GitHub y se confirma en ~1 minuto.' END,
     'tarea', public.mcp_tarea_json(t.id));
-END $$;
+END $fn$;
 
 -- Solo tareas de área (las de proyecto nacen en GitHub).
 CREATE OR REPLACE FUNCTION public.mcp_crear_tarea_area(
   p_equipo uuid, p_area text, p_titulo text, p_descripcion text DEFAULT NULL, p_prioridad text DEFAULT 'media',
   p_columna text DEFAULT 'pendiente', p_fecha date DEFAULT NULL
-) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
 DECLARE
   v_area    public.proyectos;
   v_estado  text := public.mcp_estado_de(coalesce(p_columna, 'pendiente'));
@@ -316,10 +316,10 @@ BEGIN
   t := (SELECT x FROM public.tareas x WHERE x.id = v_id);
   PERFORM public.mcp_log(p_equipo, 'crear_tarea', v_id, NULL, public.mcp_tarea_json(t.id), true);
   RETURN jsonb_build_object('ok', true, 'mensaje', 'Tarea creada en ' || v_area.nombre || '.', 'tarea', public.mcp_tarea_json(t.id));
-END $$;
+END $fn$;
 
 -- ─── Permisos: solo la service role (la Edge Function) ─────────────────────
-DO $$
+DO $do$
 DECLARE f text;
 BEGIN
   FOREACH f IN ARRAY ARRAY[
@@ -331,13 +331,13 @@ BEGIN
     EXECUTE format('REVOKE ALL ON FUNCTION public.%s FROM PUBLIC, anon, authenticated', f);
     EXECUTE format('GRANT EXECUTE ON FUNCTION public.%s TO service_role', f);
   END LOOP;
-END $$;
+END $do$;
 
-DO $$
+DO $do$
 BEGIN
   IF to_regclass('supabase_migrations.schema_migrations') IS NOT NULL THEN
     INSERT INTO supabase_migrations.schema_migrations (version, name)
     VALUES ('20261010130000', 'mcp_tareas')
     ON CONFLICT DO NOTHING;
   END IF;
-END $$;
+END $do$;
