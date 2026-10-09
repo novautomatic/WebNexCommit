@@ -317,7 +317,7 @@ function Seguimiento({ tarea, equipo, proyectos }) {
                   <Pill color={ESTADO_AVISO[a.estado].color}>{ESTADO_AVISO[a.estado].label}</Pill>
                   <span className="text-white">{nombre[a.equipo_id] || 'Responsable'}</span>
                   <span>· {a.canal === 'correo' ? 'correo' : 'WhatsApp'}</span>
-                  <span>· {a.tipo === 'reasignada' ? 'reasignación' : 'asignación'}</span>
+                  <span>· {{ reasignada: 'reasignación', creada: 'creación' }[a.tipo] || 'asignación'}</span>
                   <span>· {new Date(a.created_at).toLocaleString('es-CL')}</span>
                 </div>
                 {a.detalle && <p className="mt-1 pl-1 break-words">{a.detalle}</p>}
