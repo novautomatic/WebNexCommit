@@ -87,7 +87,8 @@ END $fn$;
 -- Hace que las RPC del panel vean al socio como usuario de la sesión actual.
 CREATE OR REPLACE FUNCTION public.mcp_como(p_equipo uuid)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
-DECLARE v_email text;
+DECLARE
+  v_email text;
 BEGIN
   v_email := (SELECT email FROM public.equipo WHERE id = p_equipo AND activo);
   IF v_email IS NULL THEN RAISE EXCEPTION 'no autorizado'; END IF;
@@ -146,8 +147,10 @@ $fn$;
 CREATE OR REPLACE FUNCTION public.mcp_mis_tareas(
   p_equipo uuid, p_columna text DEFAULT NULL, p_prioridad text DEFAULT NULL, p_solo_vencidas boolean DEFAULT false
 ) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
-DECLARE v_estado text := public.mcp_estado_de(p_columna);
+DECLARE
+  v_estado text;
 BEGIN
+  v_estado := public.mcp_estado_de(p_columna);
   IF p_columna IS NOT NULL AND v_estado IS NULL THEN
     RAISE EXCEPTION 'Columna desconocida: %. Usa listar_columnas.', p_columna;
   END IF;
@@ -171,7 +174,8 @@ END $fn$;
 
 CREATE OR REPLACE FUNCTION public.mcp_ver_tarea(p_equipo uuid, p_numero bigint)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
-DECLARE t public.tareas;
+DECLARE
+  t public.tareas;
 BEGIN
   t := (SELECT x FROM public.tareas x WHERE x.numero = p_numero);
   IF t.id IS NULL THEN RAISE EXCEPTION 'No existe la tarea #%.', p_numero; END IF;
@@ -198,8 +202,10 @@ CREATE OR REPLACE FUNCTION public.mcp_buscar(
   p_equipo uuid, p_texto text DEFAULT NULL, p_proyecto text DEFAULT NULL, p_responsable text DEFAULT NULL,
   p_columna text DEFAULT NULL, p_incluir_cerradas boolean DEFAULT false
 ) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
-DECLARE v_estado text := public.mcp_estado_de(p_columna);
+DECLARE
+  v_estado text;
 BEGIN
+  v_estado := public.mcp_estado_de(p_columna);
   IF p_columna IS NOT NULL AND v_estado IS NULL THEN
     RAISE EXCEPTION 'Columna desconocida: %. Usa listar_columnas.', p_columna;
   END IF;
@@ -320,7 +326,8 @@ END $fn$;
 
 -- ─── Permisos: solo la service role (la Edge Function) ─────────────────────
 DO $do$
-DECLARE f text;
+DECLARE
+  f text;
 BEGIN
   FOREACH f IN ARRAY ARRAY[
     'mcp_crear_token(text,text)', 'mcp_resolver_token(text)', 'mcp_como(uuid)', 'mcp_tarea_json(uuid)',
