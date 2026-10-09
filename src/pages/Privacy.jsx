@@ -144,7 +144,7 @@ export default function Privacy() {
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-brand-muted mb-3">
                   <li>Los textos de tu página se generan con OpenAI (Estados Unidos) a partir de la descripción de tu negocio; no le enviamos tu nombre, correo ni celular.</li>
-                  <li>Las fotos provienen de Pexels; el correo se envía por Google (Gmail) y los datos se guardan en Supabase.</li>
+                  <li>Las fotos provienen de bancos de imágenes con licencia libre (Unsplash o Pexels); el correo se envía por Google (Gmail) y los datos se guardan en Supabase.</li>
                   <li>La página queda publicada durante el plazo informado y se elimina 30 días después de vencer.</li>
                   <li>Tus datos de registro se anonimizan a los 12 meses, salvo que pases a ser cliente. Guardamos solo una huella cifrada (hash) del correo y del celular para no repetir la promoción.</li>
                   <li>Los mensajes que dejan las visitas en el formulario de tu página se reenvían a tu correo y se borran a los 30 días. En ese tratamiento NexCommit actúa por cuenta tuya.</li>
