@@ -10,8 +10,9 @@ export default function EquipoVista({ equipo, tareas }) {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <p className="text-sm text-[#9aafc3] max-w-2xl">
-          Quienes aparecen aquí pueden entrar al sistema de tareas con su correo. El WhatsApp se usa solo para avisarles
-          cuando se les asigna una tarea. Solo un dueño puede editar esta lista.
+          Quienes aparecen aquí pueden entrar al sistema de tareas con su correo. Cuando se les asigna una tarea se les
+          avisa por correo (y por WhatsApp si lo tienen), y cada mañana a las 8:00 reciben un resumen de sus tareas
+          abiertas. Solo un dueño puede editar esta lista.
         </p>
         <button type="button" className={btnPrimary} onClick={() => setEditando({})}>
           <Plus className="w-4 h-4" /> Agregar persona
@@ -29,6 +30,8 @@ export default function EquipoVista({ equipo, tareas }) {
                   {m.nombre}
                   {m.rol === 'dueno' && <Pill color="#e0a64b">Dueño</Pill>}
                   {!m.activo && <Pill color="#64748b">Inactivo</Pill>}
+                  {m.avisos_creador && <Pill color="#22d3ee">Leads Creador</Pill>}
+                  {m.avisos_correo === false && <Pill color="#64748b">Sin correos</Pill>}
                 </div>
                 <div className="text-xs text-[#9aafc3]">
                   {m.email}
@@ -36,7 +39,7 @@ export default function EquipoVista({ equipo, tareas }) {
                 </div>
               </div>
               <div className="text-xs text-[#9aafc3] w-40">
-                {m.whatsapp ? `+${m.whatsapp}` : <span className="text-amber-300">Sin WhatsApp (no recibe avisos)</span>}
+                {m.whatsapp ? `+${m.whatsapp}` : <span className="text-amber-300">Sin WhatsApp (solo correo)</span>}
               </div>
               <div className="text-xs text-[#9aafc3] w-24">{abiertas} abiertas</div>
               <button type="button" onClick={() => setEditando(m)} className="text-[#9aafc3] hover:text-white" aria-label={`Editar ${m.nombre}`}>
@@ -62,6 +65,8 @@ function MiembroForm({ miembro, onClose }) {
     activo: miembro.activo ?? true,
     github_labels: (miembro.github_labels || []).join(', '),
     github_login: miembro.github_login || '',
+    avisos_correo: miembro.avisos_correo ?? true,
+    avisos_creador: miembro.avisos_creador ?? false,
   });
   const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
@@ -78,6 +83,8 @@ function MiembroForm({ miembro, onClose }) {
         activo: f.activo,
         github_labels: f.github_labels.split(',').map((x) => x.trim()).filter(Boolean),
         github_login: f.github_login.trim().replace(/^@/, '') || null,
+        avisos_correo: f.avisos_correo,
+        avisos_creador: f.avisos_creador,
       },
       { onSuccess: onClose },
     );
@@ -120,6 +127,16 @@ function MiembroForm({ miembro, onClose }) {
             </select>
           </label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={f.activo} onChange={set('activo')} /> Activo</label>
+        </div>
+        <div className="space-y-2 text-sm text-[#9aafc3]">
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={f.avisos_correo} onChange={set('avisos_correo')} />
+            Correos de tareas (tarea nueva y resumen de las 8:00)
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={f.avisos_creador} onChange={set('avisos_creador')} />
+            Avisarle cada lead nuevo del Creador de páginas
+          </label>
         </div>
         <ErrorBox error={guardar.error} />
         <div className="flex justify-end gap-2">

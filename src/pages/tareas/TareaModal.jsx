@@ -105,7 +105,11 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
     guardar.mutate({ id: tarea.id, ...cambios }, { onSuccess: onClose });
   };
 
-  const responsableTieneWsp = activos.find((m) => m.id === form.responsable_id)?.whatsapp;
+  const responsable = activos.find((m) => m.id === form.responsable_id);
+  const canalesAviso = [
+    responsable?.avisos_correo !== false && 'correo',
+    responsable?.whatsapp && 'WhatsApp',
+  ].filter(Boolean);
 
   return (
     <Modal
@@ -199,9 +203,9 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
         {form.responsable_id && (esNueva || form.responsable_id !== tarea?.responsable_id) && (
           <p className="text-xs text-[#9aafc3] flex items-center gap-2">
             <MessageCircle className="w-3.5 h-3.5 text-[#34d399]" />
-            {responsableTieneWsp
-              ? 'Al guardar se le avisará por WhatsApp al responsable (salvo que seas tú).'
-              : 'Esta persona no tiene WhatsApp registrado en Equipo: no recibirá aviso.'}
+            {canalesAviso.length
+              ? `Al guardar se le avisará por ${canalesAviso.join(' y ')} al responsable (salvo que seas tú).`
+              : 'Esta persona tiene los avisos apagados y sin WhatsApp en Equipo: no recibirá aviso.'}
           </p>
         )}
 
@@ -298,7 +302,7 @@ function Seguimiento({ tarea, equipo, proyectos }) {
       <section className="space-y-6">
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-white">Avisos por WhatsApp</h3>
+            <h3 className="text-sm font-semibold text-white">Avisos</h3>
             {tarea.responsable_id && (
               <button type="button" className={btnGhost} onClick={() => reenviar.mutate(tarea.id)} disabled={reenviar.isPending}>
                 <RotateCw className="w-3.5 h-3.5" /> Reenviar aviso
@@ -312,6 +316,7 @@ function Seguimiento({ tarea, equipo, proyectos }) {
                 <div className="flex items-center gap-2">
                   <Pill color={ESTADO_AVISO[a.estado].color}>{ESTADO_AVISO[a.estado].label}</Pill>
                   <span className="text-white">{nombre[a.equipo_id] || 'Responsable'}</span>
+                  <span>· {a.canal === 'correo' ? 'correo' : 'WhatsApp'}</span>
                   <span>· {a.tipo === 'reasignada' ? 'reasignación' : 'asignación'}</span>
                   <span>· {new Date(a.created_at).toLocaleString('es-CL')}</span>
                 </div>
