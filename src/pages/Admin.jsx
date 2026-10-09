@@ -29,12 +29,21 @@ import TareasAdmin from './tareas/TareasAdmin';
 import { ClientesPagina, EquipoPagina, ProyectosPagina } from './tareas/GestionPaginas';
 import ConfiguracionAdmin from './configuracion/ConfiguracionAdmin';
 import AccesosMenu from './configuracion/AccesosMenu';
-import { TemaContext, guardarTema, temaInicial } from '../hooks/tema';
+import { TEMAS, TEXTOS, TemaContext, guardarTema, nombreCorto, temaInicial } from '../hooks/tema';
 import { Carita } from './tareas/Kawaii';
+import { CuatroNaciones, Emblema, Personaje } from './tareas/AvatarTema';
 
+// Extra fonts per theme, loaded only when that theme is in use.
+const FUENTES = {
+  kawaii: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap',
+  avatar: 'https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Nunito:wght@500;600;700&display=swap',
+};
+
+// `nacion` = emblem shown next to the group title in the Avatar theme.
 const GRUPOS = [
   {
     titulo: 'Tareas',
+    nacion: 'aire',
     items: [
       { id: 'resumen', label: 'Resumen', icon: BarChart3 },
       { id: 'tablero', label: 'Tablero', icon: LayoutGrid },
@@ -45,6 +54,7 @@ const GRUPOS = [
   },
   {
     titulo: 'Gestión',
+    nacion: 'tierra',
     items: [
       { id: 'proyectos', label: 'Proyectos', icon: FolderKanban },
       { id: 'clientes', label: 'Clientes', icon: Contact },
@@ -54,6 +64,7 @@ const GRUPOS = [
   },
   {
     titulo: 'Sitio web',
+    nacion: 'fuego',
     items: [
       { id: 'blog', label: 'Blog', icon: FileText },
       { id: 'cotizador', label: 'Cotizador', icon: Calculator },
@@ -88,24 +99,23 @@ export default function Admin() {
   const [contraida, setContraida] = useState(leerContraida);
   const [menuMovil, setMenuMovil] = useState(false);
   const [tema, setTema] = useState(() => temaInicial(user?.email));
-  const kawaii = tema === 'kawaii';
-  const nombre = (user?.email || '').toLowerCase() === 'stephaniabilbao@gmail.com' ? 'Steph' : '';
+  const avatar = tema === 'avatar';
+  const saludo = TEXTOS[tema]?.saludo?.(nombreCorto(user?.email));
 
-  const cambiarTema = () => {
-    const siguiente = kawaii ? 'nexcommit' : 'kawaii';
-    guardarTema(user?.email, siguiente);
-    setTema(siguiente);
+  const cambiarTema = (e) => {
+    guardarTema(user?.email, e.target.value);
+    setTema(e.target.value);
   };
 
-  // Rounded font for the kawaii theme, loaded only when it's in use.
   useEffect(() => {
-    if (!kawaii || document.getElementById('fuente-kawaii')) return;
+    const href = FUENTES[tema];
+    if (!href || document.getElementById(`fuente-${tema}`)) return;
     const link = document.createElement('link');
-    link.id = 'fuente-kawaii';
+    link.id = `fuente-${tema}`;
     link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap';
+    link.href = href;
     document.head.appendChild(link);
-  }, [kawaii]);
+  }, [tema]);
   const seccion = seccionDe(params);
   const actual = SECCIONES.find((s) => s.id === seccion);
 
@@ -132,7 +142,10 @@ export default function Admin() {
           {compacta ? (
             <div className="mx-auto mb-2 w-6 border-t border-white/10" aria-hidden="true" />
           ) : (
-            <div className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#5f7891]">{g.titulo}</div>
+            <div className="px-3 mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#5f7891]">
+              {avatar && <Emblema nacion={g.nacion} size={14} />}
+              {g.titulo}
+            </div>
           )}
           <div className="flex flex-col gap-0.5">
             {g.items.map((item) => {
@@ -175,27 +188,32 @@ export default function Admin() {
             >
               <Menu className="w-5 h-5" />
             </button>
-            {kawaii ? (
-              <Carita animo="feliz" size={34} className="kawaii-flota" />
-            ) : (
+            {tema === 'kawaii' && <Carita animo="feliz" size={34} className="kawaii-flota" />}
+            {avatar && <Personaje quien="aang" size={38} className="avatar-flota" />}
+            {tema === 'nexcommit' && (
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#248bde] to-[#67c8f3] flex items-center justify-center text-white font-bold text-sm shrink-0">NC</div>
             )}
-            <span className="text-white font-semibold text-lg hidden sm:inline">
-              {kawaii ? `¡Hola${nombre ? ` ${nombre}` : ''}! Borahae 💜` : 'Panel'}
-            </span>
+            <span className="avatar-titulo text-white font-semibold text-lg hidden sm:inline">{saludo || 'Panel'}</span>
+            {avatar && <CuatroNaciones size={16} className="hidden xl:inline-flex ml-1" />}
             <span className="text-[#9aafc3] text-sm truncate md:hidden">· {actual?.label}</span>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
-            <button
-              type="button"
-              onClick={cambiarTema}
-              className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs text-[#9aafc3] hover:text-white hover:bg-white/5 border border-white/10"
-              title={kawaii ? 'Volver al tema NexCommit' : 'Probar el tema Borahae 💜'}
-              aria-label="Cambiar tema del panel"
+            <label
+              className="relative flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs text-[#9aafc3] hover:text-white hover:bg-white/5 border border-white/10 cursor-pointer"
+              title="Cambiar tema del panel"
             >
-              <Sparkles className="w-4 h-4" />
-              <span className="hidden lg:inline">{kawaii ? 'Tema NexCommit' : 'Tema Borahae 💜'}</span>
-            </button>
+              <Sparkles className="w-4 h-4 shrink-0" />
+              <span className="hidden lg:inline">Tema {TEMAS[tema].label}</span>
+              {/* Invisible native select on top: keyboard and mobile pickers for free. */}
+              <select
+                value={tema}
+                onChange={cambiarTema}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                aria-label="Cambiar tema del panel"
+              >
+                {Object.values(TEMAS).map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+              </select>
+            </label>
             <AccesosMenu />
             <span className="text-sm text-[#9aafc3] hidden lg:inline truncate max-w-[220px]">{user?.email}</span>
             <button

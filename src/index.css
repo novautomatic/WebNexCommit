@@ -396,3 +396,113 @@ select optgroup {
 @media (prefers-reduced-motion: reduce) {
   [data-tema='kawaii'] .kawaii-flota { animation: none; }
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Panel theme "Avatar 🌀" (Avatar: The Last Airbender). Active when the admin
+   root carries data-tema="avatar" (default for Fabián). Ink-and-parchment base,
+   Air Nomad orange/saffron as the main accent, Aang's arrow blue as the second
+   one, and the four nations colors on the strips and emblems.
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-tema='avatar'] {
+  --a-fondo: #17110b;
+  --a-barra: #1f170f;
+  --a-tarjeta: #281d13;
+  --a-campo: #33251a;
+  --a-activo: #4a3220;
+  --a-texto-2: #ecd9b4;
+  --a-texto-3: #b89a6e;
+  --a-aire: #f5a524;
+  --a-azafran: #f6c544;
+  --a-flecha: #4fa3d9;
+  --a-agua: #4fa3d9;
+  --a-tierra: #6cbf4f;
+  --a-fuego: #e2483d;
+  --a-borde: rgba(245, 165, 36, 0.2);
+  font-family: 'Nunito', 'Inter', system-ui, sans-serif;
+  background-color: var(--a-fondo);
+  /* Faint air swirls over a glow of the four nations in the corners. */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='none' stroke='%23f5a524' stroke-opacity='0.07' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M40 40c0-4 6-4 6 0 0 7-12 7-12 0 0-11 18-11 18 0 0 15-24 15-24 0'/%3E%3Cpath d='M130 120c0-4 6-4 6 0 0 7-12 7-12 0 0-11 18-11 18 0 0 15-24 15-24 0'/%3E%3Cpath d='M100 30q10-8 20 0t20 0M20 140q10-8 20 0t20 0'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(circle at 0% 0%, rgba(245, 165, 36, 0.10), transparent 40%),
+    radial-gradient(circle at 100% 0%, rgba(79, 163, 217, 0.09), transparent 40%),
+    radial-gradient(circle at 0% 100%, rgba(108, 191, 79, 0.07), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(226, 72, 61, 0.08), transparent 40%);
+  background-attachment: fixed;
+}
+
+[data-tema='avatar'].bg-\[\#0a1628\],
+[data-tema='avatar'] .bg-\[\#0a1628\] { background-color: var(--a-fondo) !important; }
+[data-tema='avatar'] .bg-\[\#0d1e30\] { background-color: var(--a-tarjeta) !important; }
+[data-tema='avatar'] .bg-\[\#0c1a2c\] { background-color: var(--a-barra) !important; }
+[data-tema='avatar'] .bg-\[\#151f33\],
+[data-tema='avatar'] .bg-\[\#0f172a\]\/60 { background-color: var(--a-campo) !important; }
+[data-tema='avatar'] .bg-\[\#1a3050\] { background-color: var(--a-activo) !important; }
+[data-tema='avatar'] .text-\[\#9aafc3\] { color: var(--a-texto-2) !important; }
+[data-tema='avatar'] .text-\[\#5f7891\] { color: var(--a-texto-3) !important; }
+[data-tema='avatar'] .text-\[\#67c8f3\],
+[data-tema='avatar'] .hover\:text-\[\#67c8f3\]:hover { color: var(--a-aire) !important; }
+[data-tema='avatar'] .border-\[\#67c8f3\],
+[data-tema='avatar'] .focus\:border-\[\#67c8f3\]:focus { border-color: var(--a-aire) !important; }
+[data-tema='avatar'] .border-white\/10,
+[data-tema='avatar'] .border-white\/5 { border-color: var(--a-borde) !important; }
+
+/* Panel header: the four nations strip underneath. */
+[data-tema='avatar'] > header {
+  border-bottom: 3px solid transparent !important;
+  border-image: linear-gradient(90deg,
+    var(--a-aire) 0 25%, var(--a-agua) 25% 50%, var(--a-tierra) 50% 75%, var(--a-fuego) 75% 100%) 1;
+}
+
+/* Active sidebar item: Aang's arrow in blue on the left edge. */
+[data-tema='avatar'] aside .bg-\[\#1a3050\] {
+  box-shadow: inset 3px 0 0 var(--a-flecha);
+  background-image: linear-gradient(90deg, rgba(245, 165, 36, 0.16), transparent);
+}
+
+/* Primary buttons and brand gradients: Air Nomad robes, orange → saffron. */
+[data-tema='avatar'] .bg-\[\#248bde\] {
+  background-image: linear-gradient(135deg, var(--a-aire), var(--a-azafran)) !important;
+  background-color: var(--a-aire) !important;
+  color: #2b1a10 !important;
+  font-weight: 700;
+  box-shadow: 0 6px 18px -8px rgba(245, 165, 36, 0.75);
+}
+[data-tema='avatar'] .hover\:bg-\[\#2f9bf0\]:hover { filter: brightness(1.08); }
+[data-tema='avatar'] .bg-gradient-to-br.from-\[\#248bde\] {
+  background-image: linear-gradient(135deg, var(--a-aire), var(--a-azafran)) !important;
+  color: #2b1a10 !important;
+}
+
+/* Cards with a thin top edge in saffron, like a scroll. */
+[data-tema='avatar'] main .rounded-xl.border {
+  box-shadow: inset 0 1px 0 rgba(246, 197, 68, 0.18);
+}
+
+/* Titles in an engraved serif. */
+[data-tema='avatar'] .avatar-titulo,
+[data-tema='avatar'] main h1,
+[data-tema='avatar'] main h2 {
+  font-family: 'Cinzel', 'Nunito', serif;
+  letter-spacing: 0.02em;
+}
+
+/* Team Avatar banner: a parchment band with the four nations edge. */
+[data-tema='avatar'] .avatar-pergamino {
+  background:
+    linear-gradient(90deg, var(--a-aire) 0 25%, var(--a-agua) 25% 50%, var(--a-tierra) 50% 75%, var(--a-fuego) 75% 100%) top / 100% 3px no-repeat,
+    linear-gradient(180deg, #3a2a1a, #2a1e13);
+  border: 1px solid var(--a-borde);
+}
+
+[data-tema='avatar'] select option,
+[data-tema='avatar'] select optgroup { background-color: var(--a-tarjeta); }
+
+/* The characters float like they're riding Appa. */
+@keyframes avatar-flota {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(-1.5deg); }
+}
+[data-tema='avatar'] .avatar-flota { animation: avatar-flota 3.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  [data-tema='avatar'] .avatar-flota { animation: none; }
+}

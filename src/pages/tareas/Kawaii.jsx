@@ -77,13 +77,3 @@ export function Carita({ animo = 'contenta', size = 56, className = '', titulo }
     </svg>
   );
 }
-
-// Friendly empty state with the mascot.
-export function VacioKawaii({ texto }) {
-  return (
-    <div className="flex flex-col items-center gap-2 py-6 text-center">
-      <Carita animo="dormida" size={64} />
-      <p className="text-sm text-[#9aafc3]">{texto}</p>
-    </div>
-  );
-}
