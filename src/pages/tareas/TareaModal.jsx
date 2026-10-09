@@ -204,7 +204,7 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
           <p className="text-xs text-[#9aafc3] flex items-center gap-2">
             <MessageCircle className="w-3.5 h-3.5 text-[#34d399]" />
             {canalesAviso.length
-              ? `Al guardar se le avisará por ${canalesAviso.join(' y ')} al responsable (salvo que seas tú).`
+              ? `Al guardar se le avisará por ${canalesAviso.join(' y ')} al responsable${responsable?.whatsapp ? ' (el WhatsApp no, si eres tú)' : ''}.`
               : 'Esta persona tiene los avisos apagados y sin WhatsApp en Equipo: no recibirá aviso.'}
           </p>
         )}
