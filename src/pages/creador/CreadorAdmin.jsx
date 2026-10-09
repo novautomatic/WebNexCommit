@@ -4,7 +4,7 @@
 // backend de Agente-Next.
 import React, { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ExternalLink, MessageCircle, Save, Settings, Sparkles } from 'lucide-react';
+import { Coins, ExternalLink, MessageCircle, Save, Settings, Sparkles } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { ErrorBox, Pill, btnGhost, btnPrimary, card, inputClass, labelClass } from '../tareas/ui';
 
@@ -18,6 +18,30 @@ const ESTADOS = {
 };
 
 const SITIO = 'https://www.nexcommit.com';
+
+// ─── Consumo de IA ───────────────────────────────────────────────────────────
+const consumoVacio = () => ({ llamadas: 0, generacion: 0, edicion: 0, descartada: 0, tokensIn: 0, tokensOut: 0, tokensCache: 0, costo: 0, sinTarifa: 0 });
+
+function sumarConsumo(acc, c) {
+  acc.llamadas += 1;
+  acc[c.tipo] = (acc[c.tipo] || 0) + 1;
+  acc.tokensIn += c.tokens_in || 0;
+  acc.tokensOut += c.tokens_out || 0;
+  acc.tokensCache += c.tokens_cache || 0;
+  if (c.costo_usd == null) acc.sinTarifa += 1;
+  else acc.costo += Number(c.costo_usd);
+  return acc;
+}
+
+const fmtTokens = (n) => Math.round(n).toLocaleString('es-CL');
+const fmtUsd = (n) => {
+  const dec = n > 0 && n < 1 ? 4 : 2;
+  return `US$ ${n.toLocaleString('es-CL', { minimumFractionDigits: dec, maximumFractionDigits: dec })}`;
+};
+const fmtClp = (usd, tasa) => {
+  const v = usd * tasa;
+  return `$${v.toLocaleString('es-CL', { maximumFractionDigits: v > 0 && v < 10 ? 1 : 0 })} CLP`;
+};
 
 async function q(promesa) {
   const { data, error } = await promesa;
@@ -46,14 +70,23 @@ function useCreador() {
         const lista = (intereses[ev.lead_id] ||= []);
         if (!lista.includes(ev.detalle)) lista.push(ev.detalle);
       }
+      // Tokens y costo de cada llamada a la IA (migración 20261010160000; si
+      // aún no corre, el consumo queda vacío).
+      const { data: consumo } = await supabase.from('creador_consumo')
+        .select('pagina_id, slug, tipo, modelo, tokens_in, tokens_out, tokens_cache, costo_usd, created_at')
+        .order('created_at', { ascending: false }).limit(10000);
+      const porPagina = {};
+      for (const c of consumo ?? []) {
+        if (c.pagina_id) sumarConsumo((porPagina[c.pagina_id] ||= consumoVacio()), c);
+      }
       return {
         config,
         equipo,
-        leads: leads.map((l) => ({
-          ...l,
-          pagina: Array.isArray(l.pagina) ? l.pagina[0] || null : l.pagina,
-          intereses: intereses[l.id] || [],
-        })),
+        consumo: consumo ?? null,
+        leads: leads.map((l) => {
+          const pagina = Array.isArray(l.pagina) ? l.pagina[0] || null : l.pagina;
+          return { ...l, pagina, intereses: intereses[l.id] || [], consumo: pagina ? porPagina[pagina.id] || null : null };
+        }),
       };
     },
     refetchInterval: 60_000,
@@ -78,6 +111,7 @@ function Config({ config, equipo }) {
     productos_max: config?.productos_max ?? 10,
     max_caracteres: config?.max_caracteres ?? 300,
     responsable_id: config?.responsable_id ?? '',
+    usd_clp: config?.usd_clp ?? 950,
   }));
   const guardar = useMutation({
     mutationFn: () => q(supabase.from('creador_config').update({
@@ -88,6 +122,7 @@ function Config({ config, equipo }) {
       ...(config && 'ediciones_manuales' in config ? { ediciones_manuales: Number(f.ediciones_manuales) } : {}),
       ...(config && 'productos_max' in config ? { productos_max: Number(f.productos_max) } : {}),
       max_caracteres: Number(f.max_caracteres),
+      ...(config && 'usd_clp' in config ? { usd_clp: Number(f.usd_clp) } : {}),
       responsable_id: f.responsable_id || null,
     }).eq('id', 1)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['creador'] }),
@@ -108,6 +143,7 @@ function Config({ config, equipo }) {
         <div><label className={labelClass}>Ediciones manuales</label><input type="number" min={0} max={100} value={f.ediciones_manuales} onChange={num('ediciones_manuales')} className={inputClass} /></div>
         <div><label className={labelClass}>Productos por tienda</label><input type="number" min={1} max={50} value={f.productos_max} onChange={num('productos_max')} className={inputClass} /></div>
         <div><label className={labelClass}>Caracteres por mensaje</label><input type="number" min={50} max={2000} value={f.max_caracteres} onChange={num('max_caracteres')} className={inputClass} /></div>
+        <div><label className={labelClass}>Dólar (CLP)</label><input type="number" min={1} max={99999} step="0.01" value={f.usd_clp} onChange={num('usd_clp')} className={inputClass} /></div>
         <div>
           <label className={labelClass}>Responsable de ventas</label>
           <select value={f.responsable_id} onChange={num('responsable_id')} className={inputClass}>
@@ -131,7 +167,107 @@ function Config({ config, equipo }) {
   );
 }
 
-function FilaLead({ lead }) {
+function ConsumoIA({ consumo, tasa }) {
+  const r = useMemo(() => {
+    const ahora = new Date();
+    const hoy = ahora.toDateString();
+    const mes = `${ahora.getFullYear()}-${ahora.getMonth()}`;
+    const total = consumoVacio();
+    const delDia = consumoVacio();
+    const delMes = consumoVacio();
+    const paginas = {};
+    const modelos = new Set();
+    for (const c of consumo) {
+      const f = new Date(c.created_at);
+      sumarConsumo(total, c);
+      if (f.toDateString() === hoy) sumarConsumo(delDia, c);
+      if (`${f.getFullYear()}-${f.getMonth()}` === mes) sumarConsumo(delMes, c);
+      if (c.modelo) modelos.add(c.modelo);
+      const k = c.pagina_id || `slug:${c.slug || '—'}`;
+      const p = (paginas[k] ||= { slug: c.slug, viva: !!c.pagina_id, ...consumoVacio() });
+      sumarConsumo(p, c);
+    }
+    const lista = Object.values(paginas);
+    const conGeneracion = lista.filter((p) => p.generacion > 0);
+    const prom = (arr, campo) => (arr.length ? arr.reduce((a, p) => a + p[campo], 0) / arr.length : 0);
+    // Promedio por tipo de llamada (generación vs. edición por chat).
+    const porTipo = (tipo) => {
+      const filas = consumo.filter((c) => c.tipo === tipo);
+      const acc = filas.reduce((a, c) => sumarConsumo(a, c), consumoVacio());
+      return { n: filas.length, tokens: filas.length ? (acc.tokensIn + acc.tokensOut) / filas.length : 0, costo: filas.length ? acc.costo / filas.length : 0 };
+    };
+    return {
+      total, delDia, delMes, modelos: [...modelos],
+      paginas: conGeneracion.length,
+      promPagina: { tokens: prom(conGeneracion, 'tokensIn') + prom(conGeneracion, 'tokensOut'), costo: prom(conGeneracion, 'costo') },
+      generacion: porTipo('generacion'),
+      edicion: porTipo('edicion'),
+      top: [...lista].sort((a, b) => b.costo - a.costo).slice(0, 5),
+    };
+  }, [consumo]);
+
+  const tile = (titulo, c) => (
+    <div className="rounded-lg border border-white/10 bg-white/[0.02] px-4 py-3">
+      <div className="text-xs text-[#9aafc3]">{titulo}</div>
+      <div className="text-white text-xl font-semibold mt-1">{fmtUsd(c.costo)}</div>
+      <div className="text-[11px] text-[#9aafc3] mt-0.5">≈ {fmtClp(c.costo, tasa)}</div>
+      <div className="text-[11px] text-[#5f7891] mt-1">
+        {fmtTokens(c.tokensIn + c.tokensOut)} tokens · {c.llamadas} {c.llamadas === 1 ? 'llamada' : 'llamadas'}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className={`${card} p-4 md:p-5`}>
+      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
+        <h3 className="text-white font-medium flex items-center gap-2"><Coins className="w-4 h-4 text-[#fbbf24]" /> Consumo de IA</h3>
+        <span className="text-[11px] text-[#5f7891]">
+          {r.modelos.length ? `Modelo: ${r.modelos.join(', ')}` : 'Sin llamadas registradas'} · 1 USD = ${Number(tasa).toLocaleString('es-CL')} CLP
+        </span>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {tile('Hoy', r.delDia)}
+        {tile('Este mes', r.delMes)}
+        {tile('Histórico', r.total)}
+        <div className="rounded-lg border border-white/10 bg-white/[0.02] px-4 py-3">
+          <div className="text-xs text-[#9aafc3]">Promedio por página</div>
+          <div className="text-white text-xl font-semibold mt-1">{fmtUsd(r.promPagina.costo)}</div>
+          <div className="text-[11px] text-[#9aafc3] mt-0.5">≈ {fmtClp(r.promPagina.costo, tasa)}</div>
+          <div className="text-[11px] text-[#5f7891] mt-1">{fmtTokens(r.promPagina.tokens)} tokens · {r.paginas} páginas</div>
+        </div>
+      </div>
+      <div className="grid md:grid-cols-2 gap-3 mt-3 text-xs">
+        <div className="rounded-lg border border-white/10 px-4 py-3 text-[#cfe0f0] space-y-1">
+          <div>
+            <span className="text-[#9aafc3]">Crear página:</span> {fmtTokens(r.generacion.tokens)} tokens · {fmtUsd(r.generacion.costo)} promedio
+            <span className="text-[#5f7891]"> ({r.generacion.n})</span>
+          </div>
+          <div>
+            <span className="text-[#9aafc3]">Edición por chat:</span> {fmtTokens(r.edicion.tokens)} tokens · {fmtUsd(r.edicion.costo)} promedio
+            <span className="text-[#5f7891]"> ({r.edicion.n})</span>
+          </div>
+          <div className="text-[#9aafc3]">
+            Entrada {fmtTokens(r.total.tokensIn)} ({fmtTokens(r.total.tokensCache)} en caché) · Salida {fmtTokens(r.total.tokensOut)}
+          </div>
+          {r.total.descartada > 0 && <div className="text-[#fbbf24]">{r.total.descartada} llamadas descartadas (se pagaron pero no se guardaron).</div>}
+          {r.total.sinTarifa > 0 && <div className="text-[#f87171]">{r.total.sinTarifa} llamadas sin tarifa cargada: su costo no está sumado.</div>}
+        </div>
+        <div className="rounded-lg border border-white/10 px-4 py-3">
+          <div className="text-[#9aafc3] mb-1">Páginas que más consumen</div>
+          {r.top.length === 0 && <div className="text-[#5f7891]">Todavía no hay consumo.</div>}
+          {r.top.map((p, i) => (
+            <div key={i} className="flex justify-between gap-3 text-[#cfe0f0]">
+              <span className="truncate">/{p.slug || '—'}{!p.viva && <span className="text-[#5f7891]"> (borrada)</span>}</span>
+              <span className="shrink-0">{fmtTokens(p.tokensIn + p.tokensOut)} tk · {fmtUsd(p.costo)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FilaLead({ lead, tasa }) {
   const qc = useQueryClient();
   const [notas, setNotas] = useState(lead.notas || '');
   const p = lead.pagina;
@@ -192,6 +328,19 @@ function FilaLead({ lead }) {
               {typeof p.ediciones_manuales_max === 'number' && <> · manual {p.ediciones_manuales_usadas}/{p.ediciones_manuales_max}</>}
               {' '}· {p.visitas} visitas
             </div>
+            {lead.consumo && (
+              <div
+                className="text-[#fbbf24] mt-1"
+                title={[
+                  `Entrada: ${fmtTokens(lead.consumo.tokensIn)} tokens (${fmtTokens(lead.consumo.tokensCache)} en caché)`,
+                  `Salida: ${fmtTokens(lead.consumo.tokensOut)} tokens`,
+                  `Llamadas: ${lead.consumo.generacion} creación, ${lead.consumo.edicion} edición${lead.consumo.descartada ? `, ${lead.consumo.descartada} descartada` : ''}`,
+                  lead.consumo.sinTarifa ? `${lead.consumo.sinTarifa} sin tarifa (costo no sumado)` : '',
+                ].filter(Boolean).join('\n')}
+              >
+                IA: {fmtTokens(lead.consumo.tokensIn + lead.consumo.tokensOut)} tokens · {fmtUsd(lead.consumo.costo)} · ≈ {fmtClp(lead.consumo.costo, tasa)}
+              </div>
+            )}
             <div className="mt-2 flex flex-wrap gap-1">
               <button type="button" className="text-[11px] px-2 py-1 rounded border border-white/10 text-[#9aafc3] hover:text-white" onClick={() => extender(3)} disabled={pagina.isPending}>+3 días</button>
               <button
@@ -304,6 +453,8 @@ export default function CreadorAdmin() {
             ))}
           </div>
 
+          {data.consumo && <ConsumoIA consumo={data.consumo} tasa={Number(data.config?.usd_clp) || 950} />}
+
           <Config key={data.config?.updated_at} config={data.config} equipo={data.equipo} />
 
           <div className={`${card} overflow-hidden`}>
@@ -337,7 +488,7 @@ export default function CreadorAdmin() {
                   </tr>
                 </thead>
                 <tbody>
-                  {visibles.map((l) => <FilaLead key={l.id} lead={l} />)}
+                  {visibles.map((l) => <FilaLead key={l.id} lead={l} tasa={Number(data.config?.usd_clp) || 950} />)}
                 </tbody>
               </table>
               {visibles.length === 0 && <p className="text-sm text-[#9aafc3] text-center py-8">No hay leads con este filtro.</p>}
