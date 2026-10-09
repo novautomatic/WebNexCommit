@@ -1,7 +1,7 @@
 // Panel derecho del editor: formularios de cada sección, estilo de la sección,
 // diseño general de la página y la lista de secciones (estructura).
 import React, { useState } from 'react';
-import { ArrowDown, ArrowUp, Eye, EyeOff, ImagePlus, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Eye, EyeOff, ImagePlus, Plus, Sparkles, Trash2 } from 'lucide-react';
 
 // ─── Campos ─────────────────────────────────────────────────────────────────
 export function Campo({ label, valor, onCambio, max, multi = false, ayuda, placeholder, tipo = 'text' }) {
@@ -264,9 +264,13 @@ export function PanelSeccion({ seccion, indice, contenido, mod, campo, set, abri
   );
 }
 
-export function Estructura({ secciones, mod, onSeleccionar, onAccion }) {
+export function Estructura({ secciones, mod, onSeleccionar, onAccion, iaDisponibles, onIA }) {
   return (
     <div className="ed-panel-cuerpo">
+      <button type="button" className="ed-ir-ia" onClick={onIA}>
+        <Sparkles aria-hidden="true" />
+        <span><b>Pedir cambios a la IA</b><small>{iaDisponibles > 0 ? `Te quedan ${iaDisponibles} pedidos` : 'Ya usaste tus pedidos'}</small></span>
+      </button>
       <div className="ed-panel-tit"><h3>Secciones de tu página</h3></div>
       <p className="ed-nota">Haz clic en una sección para editarla, o directamente sobre la página.</p>
       <ul className="ed-estructura">

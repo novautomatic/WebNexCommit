@@ -534,7 +534,8 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
                 onCerrar={() => seleccionar(null)}
               />
             ) : (
-              <Estructura secciones={secciones} mod={mod} onSeleccionar={(id) => seleccionar(id, true)} onAccion={accion} />
+              <Estructura secciones={secciones} mod={mod} onSeleccionar={(id) => seleccionar(id, true)} onAccion={accion}
+                iaDisponibles={disponiblesIA} onIA={() => setPestana('ia')} />
             ))}
             {mod && pestana === 'diseno' && (
               <PanelDiseno contenido={contenido} mod={mod} campo={campo} set={set} logo={logo} abrirLogo={() => abrirFoto('logo')} />

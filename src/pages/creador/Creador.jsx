@@ -2,6 +2,7 @@
 // visual a pantalla completa (editor/Editor.jsx).
 // Se prerenderiza (paso "registro"): nada de window/localStorage durante el render.
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, Check, ImagePlus, Loader2, Lock, Sparkles, Trash2, X,
@@ -547,9 +548,14 @@ export default function Creador() {
       )}
       {paso === 'generando' && <PasoGenerando />}
       {paso === 'pagina' && estado?.pagina && (
-        <Suspense fallback={<div className="cr-generando"><Loader2 className="cr-gira" aria-hidden="true" /><p>Abriendo tu editor…</p></div>}>
-          <Editor token={token} estado={estado} onActualizar={setEstado} onSalir={salir} />
-        </Suspense>
+        // Portal al <body>: la landing tiene contenedores animados con transform
+        // y, dentro de ellos, un `position: fixed` deja de cubrir la pantalla.
+        createPortal(
+          <Suspense fallback={<div className="cr-generando"><Loader2 className="cr-gira" aria-hidden="true" /><p>Abriendo tu editor…</p></div>}>
+            <Editor token={token} estado={estado} onActualizar={setEstado} onSalir={salir} />
+          </Suspense>,
+          document.body,
+        )
       )}
       {paso === 'registro' && (
         <p className="cr-info cr-ya">¿Ya creaste tu página? Escribe el mismo correo y celular: te enviamos un código para entrar a editarla.</p>

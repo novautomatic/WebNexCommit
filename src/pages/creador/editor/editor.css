@@ -130,6 +130,13 @@
 .ed-galeria-item button svg { width: 13px; height: 13px; }
 .ed-galeria-mas { aspect-ratio: 4 / 3; border: 1px dashed rgba(103,200,243,0.45); border-radius: 10px; background: none; color: var(--ed-sky); cursor: pointer; display: grid; place-items: center; align-content: center; gap: 4px; font-size: 11.5px; font-weight: 700; }
 
+/* Acceso a la IA desde la lista de secciones */
+.ed-ir-ia { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer; border: 1px solid rgba(103,200,243,0.4); border-radius: 14px; padding: 12px 14px; background: linear-gradient(110deg, rgba(36,139,222,0.28), rgba(103,200,243,0.08)); }
+.ed-ir-ia:hover { border-color: var(--ed-sky); }
+.ed-ir-ia > svg { width: 22px; height: 22px; color: var(--ed-sky); }
+.ed-ir-ia b { display: block; font-size: 14.5px; }
+.ed-ir-ia small { color: var(--ed-muted); font-size: 12.5px; }
+
 /* Estructura y paleta */
 .ed-estructura { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .ed-estructura li { display: flex; align-items: center; gap: 6px; background: var(--ed-panel2); border: 1px solid var(--ed-line); border-radius: 12px; padding: 4px 4px 4px 6px; }
