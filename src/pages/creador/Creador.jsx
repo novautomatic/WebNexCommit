@@ -147,8 +147,8 @@ function PasoRegistro({ inicial, onListo }) {
       </div>
 
       <p className="cr-info">
-        Usamos estos datos para crear tu página de prueba, enviarte el código y contactarte <b>sobre tu página</b>
-        (por ejemplo, para ofrecerte dejarla permanente). Solo una página de prueba por correo y por celular.
+        Usamos estos datos para crear tu maqueta, enviarte el código y contactarte <b>sobre tu página</b>
+        (por ejemplo, para avanzar con tu sitio definitivo). Solo una maqueta por correo y por celular.
         Más detalle en la <Link to="/privacy">política de privacidad</Link>.
       </p>
 
@@ -523,7 +523,7 @@ function PasoPagina({ token, estado, onActualizar, onSalir }) {
   };
 
   const compartir = `https://wa.me/?text=${encodeURIComponent(`¡Mira la página de ${pagina.contenido?.nombre || lead.empresa}! ${pagina.url}`)}`;
-  const permanente = waNexcommit(`Hola! Creé mi página ${pagina.url.replace('https://www.', '')} con el Creador y quiero dejarla permanente.`);
+  const permanente = waNexcommit(`Hola! Creé la maqueta ${pagina.url.replace('https://www.', '')} con el Creador y quiero avanzar con mi página web.`);
 
   return (
     <div className="cr-panel">
@@ -587,7 +587,7 @@ function PasoPagina({ token, estado, onActualizar, onSalir }) {
         </div>
 
         <a className="nh-btn nh-btn-wa cr-btn" href={permanente} target="_blank" rel="noopener noreferrer" onClick={() => evento('creador_click_permanente')}>
-          <MessageCircle aria-hidden="true" /> Quiero mi página permanente
+          <MessageCircle aria-hidden="true" /> Quiero avanzar con NexCommit
         </a>
         <button type="button" className="cr-link cr-salir" onClick={onSalir}>Cerrar sesión</button>
       </div>

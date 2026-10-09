@@ -12,8 +12,8 @@ const FAQS = [
     a: 'Sí. La página de prueba no cuesta nada y no pedimos tarjeta. Es nuestra forma de mostrarte lo que podemos hacer por tu negocio.',
   },
   {
-    q: '¿Cuánto dura mi página?',
-    a: 'La página de prueba queda publicada 5 días en tu link nexcommit.com/tu-empresa. Si te gusta, te ayudamos a dejarla permanente, con tu propio dominio y todo lo que necesites.',
+    q: '¿Qué pasa después de crear mi maqueta?',
+    a: 'Queda publicada 5 días en tu link nexcommit.com/tu-empresa para que la veas y la compartas. Si quieres seguir, nuestro equipo toma esa maqueta como base y la convierte en tu página definitiva: diseño a medida, tu propio dominio y todo lo que necesites.',
   },
   {
     q: '¿Puedo hacerle cambios?',
@@ -50,16 +50,17 @@ export default function CreaTuWeb() {
         <div className="nh-wrap ctw-grid">
           <div>
             <div className="ctw-badge"><Gift aria-hidden="true" /> Gratis · sin tarjeta</div>
-            <h1>Tu página web, creada con IA en <em>2 minutos</em>.</h1>
+            <h1>Vive la experiencia NexCommit y mira cómo sería <em>tu página web</em>.</h1>
             <p className="nh-lead">
-              Cuéntanos qué hace tu negocio y nuestro asistente escribe los textos, elige los colores y busca fotos
-              de tu rubro. Te queda publicada en tu propio link: <b style={{ color: '#fff' }}>nexcommit.com/tu-empresa</b>.
+              Cuéntanos de tu negocio y en 2 minutos armamos con IA una maqueta de tu sitio, publicada en
+              {' '}<b style={{ color: '#fff', whiteSpace: 'nowrap' }}>nexcommit.com/tu-empresa</b>. Es tu punto de partida: si te gusta,
+              nuestro equipo la convierte en tu página definitiva, con tu dominio y todo lo que tu negocio necesite.
             </p>
             <ul className="ctw-lista">
-              <li><Check aria-hidden="true" /> Textos profesionales escritos para tu negocio</li>
-              <li><Check aria-hidden="true" /> Botón de WhatsApp y formulario de contacto que te llega al correo</li>
-              <li><Check aria-hidden="true" /> Tu logo, tus colores y fotos de tu rubro</li>
-              <li><Check aria-hidden="true" /> Chat para pedir cambios después de crearla</li>
+              <li><Check aria-hidden="true" /> Una maqueta real de tu página, lista para ver y compartir</li>
+              <li><Check aria-hidden="true" /> Textos, colores y fotos pensados para tu rubro</li>
+              <li><Check aria-hidden="true" /> Ajústala por chat y mira los cambios al instante</li>
+              <li><Check aria-hidden="true" /> Si quieres seguir, nuestro equipo avanza contigo desde ahí</li>
             </ul>
           </div>
           <Creador />

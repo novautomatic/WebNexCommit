@@ -9,7 +9,11 @@
     radial-gradient(420px 300px at 10% 0%, rgba(37, 211, 102, 0.08), transparent 70%);
 }
 .ctw-grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 48px; align-items: start; }
-.ctw-hero h1 { font-size: clamp(38px, 5.4vw, 62px); color: #fff; }
+.ctw-hero h1 { font-size: clamp(36px, 4.8vw, 56px); color: #fff; }
+/* Con la página ya creada, el panel (chat + vista previa) ocupa todo el ancho
+   y el texto de bienvenida se oculta para no empujarlo hacia abajo. */
+.ctw-grid:has(.cr-ancho) { grid-template-columns: minmax(0, 1fr); }
+.ctw-grid:has(.cr-ancho) > :first-child { display: none; }
 .ctw-hero h1 em { font-style: normal; color: var(--nh-sky); }
 .ctw-badge {
   display: inline-flex; align-items: center; gap: 8px; margin-bottom: 22px;
