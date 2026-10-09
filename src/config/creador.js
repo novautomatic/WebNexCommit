@@ -9,11 +9,6 @@ export const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '';
 
 export const SITIO = 'https://www.nexcommit.com';
 
-/** URL que se muestra en la vista previa: en local, directo al backend. */
-export function urlVistaPrevia(slug) {
-  return import.meta.env.DEV ? `${CREADOR_API}/p/${slug}` : `${SITIO}/${slug}`;
-}
-
 const CLAVE_TOKEN = 'nc_creador_token';
 
 export function leerToken() {

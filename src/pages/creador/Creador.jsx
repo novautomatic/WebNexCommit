@@ -1,14 +1,17 @@
-// Asistente del Creador de páginas: registro → código → formulario → página + chat.
+// Asistente del Creador de páginas: registro → código → formulario → editor
+// visual a pantalla completa (editor/Editor.jsx).
 // Se prerenderiza (paso "registro"): nada de window/localStorage durante el render.
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, Check, Copy, ExternalLink, ImagePlus, Loader2, Lock, MessageCircle, RefreshCw, Send, Sparkles, Trash2, X,
+  ArrowRight, Check, ImagePlus, Loader2, Lock, Sparkles, Trash2, X,
 } from 'lucide-react';
 import {
-  api, ESTILOS, guardarToken, leerToken, TURNSTILE_SITE_KEY, urlVistaPrevia, SITIO,
+  api, ESTILOS, guardarToken, leerToken, TURNSTILE_SITE_KEY, SITIO,
 } from '../../config/creador';
-import { WHATSAPP_NUMBER } from '../../config/contact';
+
+// El editor pesa: se carga recién cuando hay una página que editar.
+const Editor = lazy(() => import('./editor/Editor'));
 
 const MAX_LOGO = 500 * 1024;
 const TIPOS_LOGO = ['image/png', 'image/jpeg', 'image/webp'];
@@ -25,22 +28,10 @@ function slugificar(s) {
     .replace(/-+$/g, '');
 }
 
-function restante(expira) {
-  const ms = new Date(expira).getTime() - Date.now();
-  if (ms <= 0) return null;
-  const h = Math.floor(ms / 3_600_000);
-  const d = Math.floor(h / 24);
-  if (d >= 2) return `${d} días`;
-  if (d === 1) return h % 24 ? `1 día y ${h % 24} h` : '1 día';
-  if (h >= 1) return `${h} h`;
-  return `${Math.max(1, Math.ceil(ms / 60000))} min`;
-}
-
 function evento(nombre, params = {}) {
   if (typeof window !== 'undefined' && typeof window.gtag === 'function') window.gtag('event', nombre, params);
 }
 
-const waNexcommit = (texto) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(texto)}`;
 
 // ─── Captcha (Cloudflare Turnstile) ─────────────────────────────────────────
 let cargaTurnstile;
@@ -442,168 +433,6 @@ function PasoGenerando() {
   );
 }
 
-// ─── Paso 5: página + chat ──────────────────────────────────────────────────
-function PasoPagina({ token, estado, onActualizar, onSalir }) {
-  const { pagina, mensajes: iniciales, limites, lead } = estado;
-  const [mensajes, setMensajes] = useState(iniciales);
-  const [texto, setTexto] = useState('');
-  const [enviando, setEnviando] = useState(false);
-  const [error, setError] = useState('');
-  const [recarga, setRecarga] = useState(0);
-  const [copiado, setCopiado] = useState(false);
-  const [quedan, setQuedan] = useState(() => restante(pagina.expira_at));
-  const chatRef = useRef(null);
-  const max = limites?.max_caracteres || 300;
-  const disponibles = pagina.ediciones_max - pagina.ediciones_usadas;
-  const activa = !pagina.vencida && pagina.estado === 'activa';
-
-  useEffect(() => setMensajes(iniciales), [iniciales]);
-  useEffect(() => {
-    const t = setInterval(() => setQuedan(restante(pagina.expira_at)), 30000);
-    return () => clearInterval(t);
-  }, [pagina.expira_at]);
-  useEffect(() => {
-    chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' });
-  }, [mensajes, enviando]);
-
-  const enviar = async (e) => {
-    e.preventDefault();
-    const m = texto.trim();
-    if (m.length < 3 || enviando) return;
-    setEnviando(true);
-    setError('');
-    setMensajes((p) => [...p, { rol: 'usuario', texto: m, created_at: new Date().toISOString() }]);
-    setTexto('');
-    try {
-      const r = await api('/editar', { metodo: 'POST', cuerpo: { mensaje: m }, token });
-      setMensajes((p) => [...p, { rol: 'asistente', texto: r.respuesta || 'Listo.', created_at: new Date().toISOString() }]);
-      onActualizar({ ...estado, pagina: r.pagina });
-      setRecarga((n) => n + 1);
-      evento('creador_edicion');
-    } catch (err) {
-      setError(err.message);
-      setMensajes((p) => p.slice(0, -1));
-      setTexto(m);
-      if (err.status === 401) onSalir();
-    } finally {
-      setEnviando(false);
-    }
-  };
-
-  const cambiarLogo = (dataUrl) => {
-    setError('');
-    api('/logo', { metodo: 'POST', cuerpo: { imagen: dataUrl || null }, token })
-      .then((r) => {
-        onActualizar({ ...estado, pagina: r.pagina });
-        setRecarga((n) => n + 1);
-      })
-      .catch((err) => setError(err.message));
-  };
-
-  const elegirLogo = (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    if (!TIPOS_LOGO.includes(file.type)) return setError('El logo debe ser PNG, JPG o WEBP.');
-    if (file.size > MAX_LOGO) return setError('El logo pesa más de 500 KB.');
-    const lector = new FileReader();
-    lector.onload = () => cambiarLogo(String(lector.result));
-    lector.readAsDataURL(file);
-    return undefined;
-  };
-
-  const copiar = async () => {
-    try {
-      await navigator.clipboard.writeText(pagina.url);
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 1800);
-    } catch {
-      /* clipboard blocked: the link is visible to copy by hand */
-    }
-  };
-
-  const compartir = `https://wa.me/?text=${encodeURIComponent(`¡Mira la página de ${pagina.contenido?.nombre || lead.empresa}! ${pagina.url}`)}`;
-  const permanente = waNexcommit(`Hola! Creé la maqueta ${pagina.url.replace('https://www.', '')} con el Creador y quiero avanzar con mi página web.`);
-
-  return (
-    <div className="cr-panel">
-      <div className="cr-lado">
-        <div className="cr-link-box">
-          <div className="cr-link-top">
-            <span className={`cr-estado ${activa ? 'on' : 'off'}`}>{activa ? 'Publicada' : 'Vencida'}</span>
-            {activa && quedan && <span className="cr-quedan">Vence en <b>{quedan}</b></span>}
-          </div>
-          <a className="cr-url" href={pagina.url} target="_blank" rel="noopener noreferrer">
-            {pagina.url.replace('https://www.', '')} <ExternalLink aria-hidden="true" />
-          </a>
-          <div className="cr-acciones">
-            <button type="button" className="cr-chip" onClick={copiar}>{copiado ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}{copiado ? 'Copiado' : 'Copiar link'}</button>
-            <a className="cr-chip" href={compartir} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" />Compartir</a>
-            {activa && (
-              <label className="cr-chip">
-                <ImagePlus aria-hidden="true" />{pagina.logo_url ? 'Cambiar logo' : 'Subir logo'}
-                <input type="file" accept="image/png,image/jpeg,image/webp" onChange={elegirLogo} hidden />
-              </label>
-            )}
-          </div>
-        </div>
-
-        <div className="cr-chat">
-          <div className="cr-chat-head">
-            <Sparkles aria-hidden="true" />
-            <div><b>Asistente de tu página</b><small>{activa ? `${disponibles} de ${pagina.ediciones_max} ediciones disponibles` : 'Página vencida'}</small></div>
-          </div>
-          <div className="cr-msgs" ref={chatRef}>
-            {mensajes.map((m, i) => (
-              <div key={i} className={`cr-msg ${m.rol}`}>{m.texto}</div>
-            ))}
-            {enviando && <div className="cr-msg asistente escribiendo"><i /><i /><i /></div>}
-          </div>
-          {activa && disponibles > 0 ? (
-            <form className="cr-chat-form" onSubmit={enviar}>
-              <textarea
-                value={texto}
-                onChange={(e) => setTexto(e.target.value.slice(0, max))}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) enviar(e); }}
-                placeholder="Ej: cambia el color a verde y agrega que hacemos envíos a domicilio"
-                rows={2}
-                maxLength={max}
-                disabled={enviando}
-                aria-label="Pedido de cambio"
-              />
-              <div className="cr-chat-pie">
-                <Contador valor={texto} max={max} />
-                <button type="submit" className="cr-enviar" disabled={enviando || texto.trim().length < 3} aria-label="Enviar">
-                  {enviando ? <Loader2 className="cr-gira" /> : <Send />}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <div className="cr-sin-ediciones">
-              {activa ? 'Usaste todas tus ediciones.' : 'Tu página de prueba terminó.'} ¿Quieres más cambios, tu propio dominio o que quede permanente?
-            </div>
-          )}
-          <Aviso error={error} />
-        </div>
-
-        <a className="nh-btn nh-btn-wa cr-btn" href={permanente} target="_blank" rel="noopener noreferrer" onClick={() => evento('creador_click_permanente')}>
-          <MessageCircle aria-hidden="true" /> Quiero avanzar con NexCommit
-        </a>
-        <button type="button" className="cr-link cr-salir" onClick={onSalir}>Cerrar sesión</button>
-      </div>
-
-      <div className="cr-preview">
-        <div className="cr-chrome">
-          <div className="nh-dots"><i /><i /><i /></div>
-          <div className="nh-url"><Lock aria-hidden="true" /><span>{pagina.url.replace('https://', '')}</span></div>
-          <button type="button" className="cr-recargar" onClick={() => setRecarga((n) => n + 1)} aria-label="Recargar vista previa"><RefreshCw /></button>
-        </div>
-        <iframe key={recarga} src={`${urlVistaPrevia(pagina.slug)}?v=${recarga}`} title="Vista previa de tu página" loading="lazy" />
-      </div>
-    </div>
-  );
-}
-
 // ─── Orquestador ────────────────────────────────────────────────────────────
 const REG_VACIO = { nombre: '', empresa: '', email: '', telefono: '', acepta_terminos: false, acepta_marketing: false };
 
@@ -718,7 +547,9 @@ export default function Creador() {
       )}
       {paso === 'generando' && <PasoGenerando />}
       {paso === 'pagina' && estado?.pagina && (
-        <PasoPagina token={token} estado={estado} onActualizar={setEstado} onSalir={salir} />
+        <Suspense fallback={<div className="cr-generando"><Loader2 className="cr-gira" aria-hidden="true" /><p>Abriendo tu editor…</p></div>}>
+          <Editor token={token} estado={estado} onActualizar={setEstado} onSalir={salir} />
+        </Suspense>
       )}
       {paso === 'registro' && (
         <p className="cr-info cr-ya">¿Ya creaste tu página? Escribe el mismo correo y celular: te enviamos un código para entrar a editarla.</p>
