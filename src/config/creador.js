@@ -47,9 +47,59 @@ export async function api(ruta, { metodo = 'GET', cuerpo, token } = {}) {
     const err = new Error(data.error || 'Algo salió mal. Intenta de nuevo.');
     err.status = r.status;
     err.codigo = data.codigo;
+    if (data.codigo === 'bloqueado') marcarBloqueado(err.message);
+    if (data.codigo === 'advertencia') avisarModeracion({ tipo: 'advertencia', mensaje: err.message, n: data.advertencia, max: data.max_advertencias });
     throw err;
   }
+  if (ruta === '/estado') limpiarBloqueo(); // si el equipo lo desbloqueó, la sesión vuelve a servir
   return data;
+}
+
+// ─── Moderación: advertencias y bloqueo ─────────────────────────────────────
+// El backend responde codigo 'advertencia' (1 y 2) o 'bloqueado' (3.ª
+// infracción). <GuardiaModeracion> escucha este evento y muestra el aviso o la
+// pantalla roja. El bloqueo queda marcado en este navegador 7 días (el backend
+// lo hace cumplir igual: no deja entrar ni con otro navegador).
+const EVENTO = 'nc-creador-moderacion';
+const CLAVE_BLOQUEO = 'nc_creador_bloqueado';
+
+function avisarModeracion(detalle) {
+  window.dispatchEvent(new CustomEvent(EVENTO, { detail: detalle }));
+}
+
+function marcarBloqueado(mensaje) {
+  try {
+    window.localStorage.setItem(CLAVE_BLOQUEO, JSON.stringify({ hasta: Date.now() + 7 * 86_400_000, mensaje }));
+  } catch {
+    /* sin storage: el bloqueo dura lo que la pestaña (el backend lo sigue aplicando) */
+  }
+  avisarModeracion({ tipo: 'bloqueado', mensaje });
+}
+
+function limpiarBloqueo() {
+  if (bloqueoGuardado() === null) return;
+  try {
+    window.localStorage.removeItem(CLAVE_BLOQUEO);
+  } catch {
+    /* nada que limpiar */
+  }
+  avisarModeracion({ tipo: 'desbloqueado' });
+}
+
+/** Mensaje del bloqueo guardado en este navegador, o null. */
+export function bloqueoGuardado() {
+  try {
+    const b = JSON.parse(window.localStorage.getItem(CLAVE_BLOQUEO) || 'null');
+    return b && b.hasta > Date.now() ? b.mensaje || '' : null;
+  } catch {
+    return null;
+  }
+}
+
+export function escucharModeracion(fn) {
+  const h = (e) => fn(e.detail);
+  window.addEventListener(EVENTO, h);
+  return () => window.removeEventListener(EVENTO, h);
 }
 
 export const ESTILOS = [

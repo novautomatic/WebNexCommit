@@ -11,6 +11,8 @@ import {
   api, ESTILOS, guardarToken, leerToken, TURNSTILE_SITE_KEY, SITIO,
 } from '../../config/creador';
 
+import GuardiaModeracion from './GuardiaModeracion';
+
 // El editor pesa: se carga recién cuando hay una página que editar.
 const Editor = lazy(() => import('./editor/Editor'));
 
@@ -535,6 +537,7 @@ export default function Creador() {
 
   return (
     <div className={`cr ${paso === 'pagina' ? 'cr-ancho' : ''}`} ref={raiz} id="creador">
+      <GuardiaModeracion />
       {paso !== 'pagina' && (
         <ol className="cr-pasos" aria-label="Progreso">
           {pasos.map((p, i) => (

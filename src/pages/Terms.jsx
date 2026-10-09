@@ -85,6 +85,7 @@ export default function Terms() {
                   <li>La página de prueba es gratuita, se ofrece una sola vez por correo y por celular, y queda publicada durante el plazo informado al crearla.</li>
                   <li>Los textos los genera una inteligencia artificial a partir de lo que describes: revísalos antes de compartir la página. Eres responsable de que la información publicada sea veraz y no infrinja derechos de terceros.</li>
                   <li>No se permite publicar contenido ilegal, engañoso, ofensivo o que suplante a otra persona o empresa. NexCommit puede suspender una página que incumpla estas reglas.</li>
+                  <li>Todo texto e imagen que envíes (pedidos a la IA, textos del editor, fotos, logo y productos) se revisa de forma automática. Está prohibido el lenguaje obsceno, el contenido sexual o de desnudos, la violencia y la discriminación por género, religión, origen, orientación u otra condición. Cada intento rechazado cuenta: los dos primeros reciben una advertencia y el tercero bloquea la cuenta, suspende la página y ya no permite ingresar. Si crees que fue un error, escríbenos y lo revisamos.</li>
                   <li>El link nexcommit.com/tu-empresa es de NexCommit y se libera después de que la página vence. Para tener un dominio propio y una página permanente se requiere contratar el servicio.</li>
                   <li>El servicio tiene cupos diarios y puede pausarse o terminar en cualquier momento.</li>
                 </ul>

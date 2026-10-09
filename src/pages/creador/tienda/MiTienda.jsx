@@ -11,6 +11,7 @@ import SEO from '../../../components/SEO';
 import { api, guardarToken, leerToken } from '../../../config/creador';
 import { WHATSAPP_NUMBER } from '../../../config/contact';
 import SelectorFoto from '../editor/SelectorFoto';
+import GuardiaModeracion from '../GuardiaModeracion';
 import { GRUPOS, TODAS } from './funciones';
 import '../creador.css';
 import '../editor/editor.css';
@@ -361,7 +362,17 @@ function Cuenta({ datos, token }) {
 }
 
 // ─── Panel ──────────────────────────────────────────────────────────────────
+// La guardia de moderación va por fuera: tapa el panel en cualquiera de sus estados.
 export default function MiTienda() {
+  return (
+    <>
+      <GuardiaModeracion />
+      <PanelTienda />
+    </>
+  );
+}
+
+function PanelTienda() {
   const [token, setToken] = useState('');
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState('');

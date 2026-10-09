@@ -4,7 +4,7 @@
 // backend de Agente-Next.
 import React, { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Coins, ExternalLink, MessageCircle, Save, Settings, Sparkles } from 'lucide-react';
+import { Coins, ExternalLink, MessageCircle, Save, Settings, ShieldAlert, Sparkles } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { ErrorBox, Pill, btnGhost, btnPrimary, card, inputClass, labelClass } from '../tareas/ui';
 
@@ -79,13 +79,25 @@ function useCreador() {
       for (const c of consumo ?? []) {
         if (c.pagina_id) sumarConsumo((porPagina[c.pagina_id] ||= consumoVacio()), c);
       }
+      // Moderación (migración 20261010170000; si aún no corre, se omite):
+      // advertencias, bloqueo y los intentos rechazados de cada lead.
+      const [{ data: moderacion }, { data: infracciones }] = await Promise.all([
+        supabase.from('creador_leads').select('id, advertencias, bloqueado_at, bloqueo_motivo').gt('advertencias', 0).limit(1000),
+        supabase.from('creador_infracciones').select('lead_id, origen, categorias, extracto, created_at')
+          .order('created_at', { ascending: false }).limit(1000),
+      ]);
+      const modPorLead = Object.fromEntries((moderacion ?? []).map((m) => [m.id, { ...m, intentos: [] }]));
+      for (const i of infracciones ?? []) modPorLead[i.lead_id]?.intentos.push(i);
       return {
         config,
         equipo,
         consumo: consumo ?? null,
         leads: leads.map((l) => {
           const pagina = Array.isArray(l.pagina) ? l.pagina[0] || null : l.pagina;
-          return { ...l, pagina, intereses: intereses[l.id] || [], consumo: pagina ? porPagina[pagina.id] || null : null };
+          return {
+            ...l, pagina, intereses: intereses[l.id] || [], consumo: pagina ? porPagina[pagina.id] || null : null,
+            moderacion: modPorLead[l.id] || null,
+          };
         }),
       };
     },
@@ -267,6 +279,59 @@ function ConsumoIA({ consumo, tasa }) {
   );
 }
 
+// Advertencias y bloqueo por contenido prohibido (2 advertencias, a la 3.ª se
+// bloquea). Desbloquear deja las advertencias en 0 y reactiva la página.
+function Moderacion({ lead }) {
+  const qc = useQueryClient();
+  const [ver, setVer] = useState(false);
+  const m = lead.moderacion;
+  const desbloquear = useMutation({
+    mutationFn: () => q(supabase.rpc('creador_desbloquear', { p_lead: lead.id })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['creador'] }),
+  });
+  return (
+    <div className="mt-2 text-[11px]">
+      <div className="flex flex-wrap items-center gap-1">
+        {m.bloqueado_at
+          ? <Pill color="#f87171"><ShieldAlert className="w-3 h-3 inline -mt-0.5" /> Bloqueado</Pill>
+          : <Pill color="#fbbf24">{m.advertencias}/2 advertencias</Pill>}
+        {m.intentos.length > 0 && (
+          <button type="button" className="text-[#9aafc3] hover:text-white underline" onClick={() => setVer((v) => !v)}>
+            {ver ? 'Ocultar intentos' : `Ver ${m.intentos.length} intento${m.intentos.length === 1 ? '' : 's'}`}
+          </button>
+        )}
+        {m.bloqueado_at && (
+          <button
+            type="button"
+            className="px-2 py-0.5 rounded border border-white/10 text-[#9aafc3] hover:text-white"
+            onClick={() => window.confirm(`¿Desbloquear a ${lead.empresa}? Sus advertencias vuelven a 0 y su página se reactiva.`) && desbloquear.mutate()}
+            disabled={desbloquear.isPending}
+          >
+            Desbloquear
+          </button>
+        )}
+      </div>
+      {m.bloqueado_at && (
+        <div className="text-[#f87171] mt-1">
+          {new Date(m.bloqueado_at).toLocaleString('es-CL', { dateStyle: 'short', timeStyle: 'short' })}
+          {m.bloqueo_motivo ? ` · ${m.bloqueo_motivo}` : ''}
+        </div>
+      )}
+      {ver && (
+        <ul className="mt-1 space-y-1 text-[#cfe0f0]">
+          {m.intentos.map((i, k) => (
+            <li key={k} className="rounded bg-white/[0.03] px-2 py-1">
+              <span className="text-[#9aafc3]">{new Date(i.created_at).toLocaleString('es-CL', { dateStyle: 'short', timeStyle: 'short' })} · {i.origen} · {i.categorias.join(', ')}</span>
+              {i.extracto && <div className="break-words line-clamp-3">{i.extracto}</div>}
+            </li>
+          ))}
+        </ul>
+      )}
+      <ErrorBox error={desbloquear.error} />
+    </div>
+  );
+}
+
 function FilaLead({ lead, tasa }) {
   const qc = useQueryClient();
   const [notas, setNotas] = useState(lead.notas || '');
@@ -302,6 +367,7 @@ function FilaLead({ lead, tasa }) {
             {p.tipo === 'ecommerce' ? <Pill color="#c4b5fd">Tienda online</Pill> : <Pill color="#67c8f3">Landing</Pill>}
           </div>
         )}
+        {lead.moderacion && <Moderacion lead={lead} />}
         {lead.intereses.length > 0 && (
           <div className="mt-2 text-[11px] text-[#fbbf24]" title="Funciones bloqueadas que intentó abrir en su panel">
             🔥 Quiere: {lead.intereses.slice(0, 4).join(', ')}{lead.intereses.length > 4 ? ` y ${lead.intereses.length - 4} más` : ''}
