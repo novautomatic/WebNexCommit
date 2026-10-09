@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import { BlogList } from './pages/blog/BlogList';
 import { BlogPost } from './pages/blog/BlogPost';
 const Admin = lazy(() => import('./pages/Admin'));
+const MiTienda = lazy(() => import('./pages/creador/tienda/MiTienda'));
 import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import Privacy from './pages/Privacy';
@@ -49,7 +50,8 @@ const GA_MEASUREMENT_ID = 'G-FBHZGW2YB7';
 function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const isAdmin = location.pathname.startsWith('/admin');
+  // /mi-tienda (panel de las tiendas del Creador) también va sin el menú del sitio.
+  const isAdmin = location.pathname.startsWith('/admin') || location.pathname === '/mi-tienda';
   const hideDock = isAdmin || location.pathname === '/login';
   const lpMatch = location.pathname.match(/^\/lp\/([^/]+)/);
   const dockTopic = lpMatch ? getAdLanding(lpMatch[1])?.topic : undefined;
@@ -186,6 +188,7 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/lp/:slug" element={<AdLanding />} />
           <Route path="/crea-tu-web" element={<CreaTuWeb />} />
+          <Route path="/mi-tienda" element={<Suspense fallback={null}><MiTienda /></Suspense>} />
         </Routes>
 
         {!isAdmin && (<>

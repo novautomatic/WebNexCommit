@@ -32,15 +32,28 @@ function useCreador() {
       const [config, leads, equipo] = await Promise.all([
         q(supabase.from('creador_config').select('*').eq('id', 1).maybeSingle()),
         q(supabase.from('creador_leads')
-          .select('*, pagina:creador_paginas(*)')
+          .select('id, nombre, empresa, email, telefono, acepta_marketing, verificado_at, estado, notas, anonimizado_at, created_at, pagina:creador_paginas(*)')
           .order('created_at', { ascending: false })
           .limit(300)),
         q(supabase.from('equipo').select('id, nombre, email').eq('activo', true).order('nombre')),
       ]);
+      // Funciones bloqueadas que cada cliente intentó abrir en /mi-tienda (señal
+      // de venta). Si la tabla aún no existe (migración pendiente), se omite.
+      const { data: eventos } = await supabase.from('creador_eventos').select('lead_id, detalle, created_at')
+        .order('created_at', { ascending: false }).limit(1000);
+      const intereses = {};
+      for (const ev of eventos ?? []) {
+        const lista = (intereses[ev.lead_id] ||= []);
+        if (!lista.includes(ev.detalle)) lista.push(ev.detalle);
+      }
       return {
         config,
         equipo,
-        leads: leads.map((l) => ({ ...l, pagina: Array.isArray(l.pagina) ? l.pagina[0] || null : l.pagina })),
+        leads: leads.map((l) => ({
+          ...l,
+          pagina: Array.isArray(l.pagina) ? l.pagina[0] || null : l.pagina,
+          intereses: intereses[l.id] || [],
+        })),
       };
     },
     refetchInterval: 60_000,
@@ -62,6 +75,7 @@ function Config({ config, equipo }) {
     tope_diario: config?.tope_diario ?? 30,
     ediciones: config?.ediciones ?? 5,
     ediciones_manuales: config?.ediciones_manuales ?? 5,
+    productos_max: config?.productos_max ?? 10,
     max_caracteres: config?.max_caracteres ?? 300,
     responsable_id: config?.responsable_id ?? '',
   }));
@@ -72,6 +86,7 @@ function Config({ config, equipo }) {
       tope_diario: Number(f.tope_diario),
       ediciones: Number(f.ediciones),
       ...(config && 'ediciones_manuales' in config ? { ediciones_manuales: Number(f.ediciones_manuales) } : {}),
+      ...(config && 'productos_max' in config ? { productos_max: Number(f.productos_max) } : {}),
       max_caracteres: Number(f.max_caracteres),
       responsable_id: f.responsable_id || null,
     }).eq('id', 1)),
@@ -91,6 +106,7 @@ function Config({ config, equipo }) {
         <div><label className={labelClass}>Páginas por día</label><input type="number" min={0} max={1000} value={f.tope_diario} onChange={num('tope_diario')} className={inputClass} /></div>
         <div><label className={labelClass}>Pedidos a la IA</label><input type="number" min={0} max={50} value={f.ediciones} onChange={num('ediciones')} className={inputClass} /></div>
         <div><label className={labelClass}>Ediciones manuales</label><input type="number" min={0} max={100} value={f.ediciones_manuales} onChange={num('ediciones_manuales')} className={inputClass} /></div>
+        <div><label className={labelClass}>Productos por tienda</label><input type="number" min={1} max={50} value={f.productos_max} onChange={num('productos_max')} className={inputClass} /></div>
         <div><label className={labelClass}>Caracteres por mensaje</label><input type="number" min={50} max={2000} value={f.max_caracteres} onChange={num('max_caracteres')} className={inputClass} /></div>
         <div>
           <label className={labelClass}>Responsable de ventas</label>
@@ -145,6 +161,16 @@ function FilaLead({ lead }) {
         <div className="text-white font-medium">{lead.empresa}</div>
         <div className="text-xs text-[#9aafc3]">{lead.anonimizado_at ? 'Anonimizado' : lead.nombre}</div>
         <div className="text-[11px] text-[#5f7891] mt-1">{new Date(lead.created_at).toLocaleString('es-CL', { dateStyle: 'short', timeStyle: 'short' })}</div>
+        {p && (
+          <div className="mt-1">
+            {p.tipo === 'ecommerce' ? <Pill color="#c4b5fd">Tienda online</Pill> : <Pill color="#67c8f3">Landing</Pill>}
+          </div>
+        )}
+        {lead.intereses.length > 0 && (
+          <div className="mt-2 text-[11px] text-[#fbbf24]" title="Funciones bloqueadas que intentó abrir en su panel">
+            🔥 Quiere: {lead.intereses.slice(0, 4).join(', ')}{lead.intereses.length > 4 ? ` y ${lead.intereses.length - 4} más` : ''}
+          </div>
+        )}
       </td>
       <td className="px-3 py-3 text-xs">
         {lead.email && <div className="text-[#cfe0f0] break-all">{lead.email}</div>}

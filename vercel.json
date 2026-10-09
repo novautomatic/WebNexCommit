@@ -11,6 +11,7 @@
     { "source": "/privacy", "destination": "/spa" },
     { "source": "/terms", "destination": "/spa" },
     { "source": "/crea-tu-web", "destination": "/spa" },
+    { "source": "/mi-tienda", "destination": "/spa" },
     { "source": "/:slug([a-z0-9][a-z0-9-]{1,38}[a-z0-9])", "destination": "https://back-chat-next.vercel.app/creador/p/:slug" },
     { "source": "/(.*)", "destination": "/spa" }
   ],

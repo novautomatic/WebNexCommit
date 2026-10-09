@@ -148,6 +148,7 @@ export default function Privacy() {
                   <li>La página queda publicada durante el plazo informado y se elimina 30 días después de vencer.</li>
                   <li>Tus datos de registro se anonimizan a los 12 meses, salvo que pases a ser cliente. Guardamos solo una huella cifrada (hash) del correo y del celular para no repetir la promoción.</li>
                   <li>Los mensajes que dejan las visitas en el formulario de tu página se reenvían a tu correo y se borran a los 30 días. En ese tratamiento NexCommit actúa por cuenta tuya.</li>
+                  <li>Si creas una tienda online, te enviamos por correo un usuario y una contraseña para tu panel (guardamos solo una versión cifrada de la contraseña). Los pedidos que hacen tus compradores (productos, total y, si lo escriben, su nombre y una nota) se envían por WhatsApp a tu número, quedan en tu panel y se borran a los 90 días. En ese tratamiento NexCommit actúa por cuenta tuya.</li>
                 </ul>
                 <p className="text-brand-muted leading-relaxed">
                   Para ejercer tus derechos de acceso, rectificación, supresión, oposición, portabilidad o bloqueo, escribe a nexcommit@gmail.com.

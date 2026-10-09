@@ -1,7 +1,15 @@
 /* Editor visual del Creador: pantalla completa sobre el sitio. */
-.ed {
+/* .ed-modal también lleva las variables: el selector de fotos se usa fuera del
+   editor (panel /mi-tienda). */
+.ed, .ed-modal {
   --ed-bg: #08182a; --ed-panel: #0d1f33; --ed-panel2: #11263d; --ed-line: rgba(124, 170, 214, 0.18);
   --ed-text: #eaf3fc; --ed-muted: #8fa6bd; --ed-brand: #248bde; --ed-sky: #67c8f3; --ed-wa: #25d366;
+}
+.ed-modal { color: var(--ed-text); font: 14px/1.45 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+.ed-modal svg { width: 16px; height: 16px; flex: none; }
+.ed-modal button { font: inherit; color: inherit; }
+.ed-modal input { width: 100%; font: inherit; font-size: 14px; color: var(--ed-text); background: rgba(3, 12, 22, 0.55); border: 1px solid var(--ed-line); border-radius: 10px; padding: 9px 11px; outline: none; }
+.ed {
   position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column;
   background: var(--ed-bg); color: var(--ed-text); font: 14px/1.45 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
@@ -37,6 +45,10 @@
 .ed-publicar em { font-style: normal; font-size: 11.5px; background: rgba(0,0,0,0.22); border-radius: 999px; padding: 1px 8px; font-variant-numeric: tabular-nums; }
 .ed-avanzar {display: inline-flex; align-items: center; gap: 8px; background: var(--ed-wa); color: #05301a; text-decoration: none; font-weight: 800; font-size: 13.5px; padding: 9px 16px; border-radius: 999px; white-space: nowrap; }
 .ed-avanzar:hover { filter: brightness(1.05); }
+.ed-mi-tienda { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(103,200,243,0.45); color: #fff; text-decoration: none; font-weight: 700; font-size: 13.5px; padding: 8px 14px; border-radius: 999px; white-space: nowrap; }
+.ed-mi-tienda:hover { background: rgba(103,200,243,0.1); }
+.ed-btn-bloque { justify-content: center; text-decoration: none; }
+@media (max-width: 1100px) { .ed-mi-tienda span { display: none; } }
 .ed-banda-error { display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(239, 68, 68, 0.14); color: #fecaca; border-bottom: 1px solid rgba(239, 68, 68, 0.35); padding: 8px 14px; font-weight: 600; }
 .ed-banda-error button { border: 0; background: none; cursor: pointer; color: inherit; display: grid; place-items: center; }
 

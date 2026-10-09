@@ -12,7 +12,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Check, Copy, ExternalLink, LayoutList, Loader2, LogOut, MessageCircle, Monitor, Paintbrush,
-  PanelRightOpen, Plus, Redo2, Smartphone, Sparkles, Undo2, Upload, X,
+  PanelRightOpen, Plus, Redo2, Smartphone, Sparkles, Store, Undo2, Upload, X,
 } from 'lucide-react';
 import { api } from '../../../config/creador';
 import { WHATSAPP_NUMBER } from '../../../config/contact';
@@ -142,8 +142,8 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
     try {
       // Sin ediciones manuales: se muestra la página publicada, sin edición.
       return mod.plantilla.renderPagina(
-        { ...pagina, logo_url: logo, contenido: mod.esquema.sanearContenido(bloqueado ? publicado : contenido) },
-        { editor: !bloqueado },
+        { ...pagina, logo_url: logo, contenido: mod.esquema.sanearContenido({ ...(bloqueado ? publicado : contenido), tipo: pagina.tipo }) },
+        { editor: !bloqueado, productos: pagina.productos || [] },
       );
     } catch (e) {
       console.error('[editor] render', e);
@@ -516,6 +516,11 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
           )}
         </div>
         <div className="ed-top-der">
+          {pagina.tipo === 'ecommerce' && (
+            <a className="ed-mi-tienda" href="/mi-tienda" target="_blank" rel="noopener noreferrer" title="Productos y ventas de tu tienda">
+              <Store aria-hidden="true" /> <span>Mi tienda</span>
+            </a>
+          )}
           <a className="ed-avanzar" href={avanzar} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" /> <span>Quiero avanzar con NexCommit</span></a>
           <button type="button" className="ed-icono" onClick={onSalir} title="Cerrar sesión" aria-label="Cerrar sesión"><LogOut /></button>
         </div>

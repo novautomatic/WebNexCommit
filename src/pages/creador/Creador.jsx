@@ -5,7 +5,7 @@ import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useStat
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, Check, ImagePlus, Loader2, Lock, Sparkles, Trash2, X,
+  ArrowRight, Check, ImagePlus, LayoutTemplate, Loader2, Lock, ShoppingBag, Sparkles, Trash2, X,
 } from 'lucide-react';
 import {
   api, ESTILOS, guardarToken, leerToken, TURNSTILE_SITE_KEY, SITIO,
@@ -323,6 +323,7 @@ function slugDeUrl() {
 
 function PasoFormulario({ lead, limites, onCreada }) {
   const [f, setF] = useState(() => ({
+    tipo: '',
     slug: slugDeUrl() || slugificar(lead.empresa),
     rubro: '',
     descripcion: '',
@@ -347,6 +348,7 @@ function PasoFormulario({ lead, limites, onCreada }) {
   const enviar = async (e) => {
     e.preventDefault();
     setError('');
+    if (!f.tipo) return setError('Elige qué tipo de página necesitas: Landing Page o Tienda online.');
     if (!slugOk) return setError('Elige un link disponible para tu página.');
     if (!f.rubro.trim() || f.descripcion.trim().length < 10) return setError('Cuéntanos tu rubro y qué hace tu negocio (al menos una frase).');
     onCreada(f, setError);
@@ -360,6 +362,21 @@ function PasoFormulario({ lead, limites, onCreada }) {
         <div><h3>Cuéntanos de {lead.empresa}</h3><p>Mientras más claro, mejor queda. La IA escribe los textos, elige colores y busca fotos de tu rubro.</p></div>
       </div>
 
+      <div className="cr-tipo" role="radiogroup" aria-label="Tipo de página">
+        <span className="cr-tipo-tit">¿Qué tipo de página necesitas?</span>
+        <div className="cr-tipo-op">
+          {[
+            { v: 'landing', t: 'Landing Page', d: 'Una página para presentar tu negocio y que te contacten por WhatsApp.', i: <LayoutTemplate aria-hidden="true" /> },
+            { v: 'ecommerce', t: 'Tienda online', d: 'Muestra hasta 10 productos con carrito y recibe los pedidos por WhatsApp. Incluye panel para administrarla.', i: <ShoppingBag aria-hidden="true" /> },
+          ].map((o) => (
+            <button key={o.v} type="button" role="radio" aria-checked={f.tipo === o.v} className={f.tipo === o.v ? 'on' : ''}
+              onClick={() => setF((p) => ({ ...p, tipo: o.v }))}>
+              {o.i}<b>{o.t}</b><small>{o.d}</small>{f.tipo === o.v && <Check className="cr-tipo-ok" aria-hidden="true" />}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <SelectorSlug valor={f.slug} onCambio={(v) => setF((p) => ({ ...p, slug: v }))} ciudad={f.ciudad} rubro={f.rubro} onEstado={setSlugOk} />
 
       <div className="cr-grid2">
@@ -369,8 +386,11 @@ function PasoFormulario({ lead, limites, onCreada }) {
       <label>¿Qué hace tu negocio? <Contador valor={f.descripcion} max={300} />
         <textarea value={f.descripcion} onChange={set('descripcion')} maxLength={300} rows={3} placeholder="Ej: Cafetería de especialidad con pastelería casera, desayunos y espacio para trabajar." />
       </label>
-      <label>Servicios o productos principales <Contador valor={f.servicios} max={300} />
-        <textarea value={f.servicios} onChange={set('servicios')} maxLength={300} rows={2} placeholder="Ej: café de grano, desayunos, tortas por encargo, catering para oficinas" />
+      <label>{f.tipo === 'ecommerce' ? '¿Qué productos vendes?' : 'Servicios o productos principales'} <Contador valor={f.servicios} max={300} />
+        <textarea value={f.servicios} onChange={set('servicios')} maxLength={300} rows={2}
+          placeholder={f.tipo === 'ecommerce'
+            ? 'Ej: tortas de chocolate, cheesecake de frambuesa, galletas de avena, café de grano. Creamos 4 productos de ejemplo y después agregas los tuyos.'
+            : 'Ej: café de grano, desayunos, tortas por encargo, catering para oficinas'} />
       </label>
       <div className="cr-grid2">
         <label>Estilo
@@ -401,7 +421,7 @@ function PasoFormulario({ lead, limites, onCreada }) {
 
       <Aviso error={error} />
       <button className="nh-btn cr-btn" type="submit">
-        <Sparkles aria-hidden="true" /> Crear mi página
+        <Sparkles aria-hidden="true" /> {f.tipo === 'ecommerce' ? 'Crear mi tienda' : 'Crear mi página'}
       </button>
       <p className="cr-info">Se crea una sola vez. Después tendrás un chat para hacerle ajustes.</p>
     </form>

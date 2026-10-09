@@ -235,6 +235,19 @@ export function FormSeccion({ seccion, indice, contenido, mod, campo, set, abrir
           </div>
         </>
       );
+    case 'destacados':
+    case 'catalogo':
+      return (
+        <>
+          {campo(seccion.tipo === 'destacados' ? 'tienda.destacados_titulo' : 'tienda.catalogo_titulo', 'Título de la sección', L.tituloSeccion)}
+          <p className="ed-nota">
+            {seccion.tipo === 'destacados'
+              ? 'Muestra en un carrusel los productos marcados como «Destacado» (o todos, si no marcas ninguno).'
+              : 'Muestra todos tus productos activos, con su botón para agregar al carrito.'}
+          </p>
+          <a className="ed-btn ed-btn-bloque" href="/mi-tienda" target="_blank" rel="noopener noreferrer">Administrar productos y precios</a>
+        </>
+      );
     case 'banda':
       return (
         <>
