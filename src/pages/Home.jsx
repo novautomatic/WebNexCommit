@@ -243,6 +243,18 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Creador de páginas con IA */}
+      <div className="nh-wrap">
+        <Link to="/crea-tu-web" className="nh-creador">
+          <span className="nh-creador-ic"><Sparkles aria-hidden="true" /></span>
+          <span className="nh-creador-txt">
+            <b>Prueba gratis: crea la página de tu negocio con IA</b>
+            <span>Lista en 2 minutos, con tu propio link nexcommit.com/tu-empresa. Sin tarjeta.</span>
+          </span>
+          <span className="nh-btn nh-creador-btn">Probar <ArrowRight aria-hidden="true" /></span>
+        </Link>
+      </div>
+
       {/* Servicios y plazos */}
       <section id="plazos" className="nh-block">
         <div className="nh-wrap">

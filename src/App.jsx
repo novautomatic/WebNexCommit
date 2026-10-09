@@ -97,6 +97,9 @@ function App() {
               <Link to="/blog" className="hover:text-white transition-colors duration-200">
                 Blog
               </Link>
+              <Link to="/crea-tu-web" className="text-[#67c8f3] hover:text-white transition-colors duration-200">
+                Crea tu web gratis
+              </Link>
               <WhatsAppLink
                   placement="nav"
                   className="hover:text-white transition-colors duration-200"
@@ -140,6 +143,13 @@ function App() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Blog
+                </Link>
+                <Link
+                  to="/crea-tu-web"
+                  className="text-[#67c8f3] text-sm font-medium py-2 hover:text-white transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Crea tu web gratis
                 </Link>
                 <WhatsAppLink
                   placement="nav"
