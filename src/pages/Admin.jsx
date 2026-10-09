@@ -32,11 +32,13 @@ import AccesosMenu from './configuracion/AccesosMenu';
 import { TEMAS, TEXTOS, TemaContext, guardarTema, nombreCorto, temaInicial } from '../hooks/tema';
 import { Miembro } from './tareas/BtsTema';
 import { CuatroNaciones, Emblema, Personaje } from './tareas/AvatarTema';
+import { CincoElementos, Elemento } from './tareas/ElementalTema';
 
 // Extra fonts per theme, loaded only when that theme is in use.
 const FUENTES = {
   kawaii: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap',
   avatar: 'https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Nunito:wght@500;600;700&display=swap',
+  elemental: 'https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap',
 };
 
 // `nacion` = emblem shown next to the group title in the Avatar theme.
@@ -190,11 +192,13 @@ export default function Admin() {
             </button>
             {tema === 'kawaii' && <Miembro quien="jungkook" size={38} className="kawaii-flota" />}
             {avatar && <Personaje quien="aang" size={38} className="avatar-flota" />}
+            {tema === 'elemental' && <Elemento quien="llama" size={40} className="elemental-flota" />}
             {tema === 'nexcommit' && (
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#248bde] to-[#67c8f3] flex items-center justify-center text-white font-bold text-sm shrink-0">NC</div>
             )}
             <span className="avatar-titulo text-white font-semibold text-lg hidden sm:inline">{saludo || 'Panel'}</span>
             {avatar && <CuatroNaciones size={16} className="hidden xl:inline-flex ml-1" />}
+            {tema === 'elemental' && <CincoElementos size={20} className="hidden xl:inline-flex ml-1" />}
             <span className="text-[#9aafc3] text-sm truncate md:hidden">· {actual?.label}</span>
           </div>
           <div className="flex items-center gap-2 md:gap-4">

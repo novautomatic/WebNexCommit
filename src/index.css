@@ -514,3 +514,114 @@ select optgroup {
 @media (prefers-reduced-motion: reduce) {
   [data-tema='avatar'] .avatar-flota { animation: none; }
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Panel theme "Elemental 🔥" (Llama, Aqua, Roca, Aire, Hoja). Active when the
+   admin root carries data-tema="elemental" (default for jpa.pizarro). Deep navy
+   base, Llama's orange → amber as the main accent and the five element colors
+   on the strips and banner.
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-tema='elemental'] {
+  --e-fondo: #0a0f20;
+  --e-barra: #0d1328;
+  --e-tarjeta: #121a34;
+  --e-campo: #19223f;
+  --e-activo: #2b2240;
+  --e-texto-2: #c9d3ee;
+  --e-texto-3: #8a97bd;
+  --e-llama: #ff7a1a;
+  --e-ambar: #ffc14d;
+  --e-aqua: #3d9bff;
+  --e-roca: #c98a4b;
+  --e-aire: #cfd8ff;
+  --e-hoja: #7ed957;
+  --e-borde: rgba(255, 122, 26, 0.2);
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  background-color: var(--e-fondo);
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(255, 122, 26, 0.12), transparent 40%),
+    radial-gradient(circle at 100% 0%, rgba(61, 155, 255, 0.10), transparent 40%),
+    radial-gradient(circle at 0% 100%, rgba(126, 217, 87, 0.07), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(201, 138, 75, 0.09), transparent 40%);
+  background-attachment: fixed;
+}
+
+[data-tema='elemental'].bg-\[\#0a1628\],
+[data-tema='elemental'] .bg-\[\#0a1628\] { background-color: var(--e-fondo) !important; }
+[data-tema='elemental'] .bg-\[\#0d1e30\] { background-color: var(--e-tarjeta) !important; }
+[data-tema='elemental'] .bg-\[\#0c1a2c\] { background-color: var(--e-barra) !important; }
+[data-tema='elemental'] .bg-\[\#151f33\],
+[data-tema='elemental'] .bg-\[\#0f172a\]\/60 { background-color: var(--e-campo) !important; }
+[data-tema='elemental'] .bg-\[\#1a3050\] { background-color: var(--e-activo) !important; }
+[data-tema='elemental'] .text-\[\#9aafc3\] { color: var(--e-texto-2) !important; }
+[data-tema='elemental'] .text-\[\#5f7891\] { color: var(--e-texto-3) !important; }
+[data-tema='elemental'] .text-\[\#67c8f3\],
+[data-tema='elemental'] .hover\:text-\[\#67c8f3\]:hover { color: var(--e-llama) !important; }
+[data-tema='elemental'] .border-\[\#67c8f3\],
+[data-tema='elemental'] .focus\:border-\[\#67c8f3\]:focus { border-color: var(--e-llama) !important; }
+[data-tema='elemental'] .border-white\/10,
+[data-tema='elemental'] .border-white\/5 { border-color: var(--e-borde) !important; }
+
+/* Panel header: the five elements strip underneath. */
+[data-tema='elemental'] > header {
+  border-bottom: 3px solid transparent !important;
+  border-image: linear-gradient(90deg,
+    var(--e-llama) 0 20%, var(--e-aqua) 20% 40%, var(--e-roca) 40% 60%, var(--e-aire) 60% 80%, var(--e-hoja) 80% 100%) 1;
+}
+
+/* Active sidebar item: an ember edge on the left. */
+[data-tema='elemental'] aside .bg-\[\#1a3050\] {
+  box-shadow: inset 3px 0 0 var(--e-llama);
+  background-image: linear-gradient(90deg, rgba(255, 122, 26, 0.18), transparent);
+}
+
+/* Primary buttons and brand gradients: orange → amber. */
+[data-tema='elemental'] .bg-\[\#248bde\] {
+  background-image: linear-gradient(135deg, var(--e-llama), var(--e-ambar)) !important;
+  background-color: var(--e-llama) !important;
+  color: #2a1006 !important;
+  font-weight: 700;
+  box-shadow: 0 6px 18px -8px rgba(255, 122, 26, 0.8);
+}
+[data-tema='elemental'] .hover\:bg-\[\#2f9bf0\]:hover { filter: brightness(1.08); }
+[data-tema='elemental'] .bg-gradient-to-br.from-\[\#248bde\] {
+  background-image: linear-gradient(135deg, var(--e-llama), var(--e-ambar)) !important;
+  color: #2a1006 !important;
+}
+
+/* Cards with a faint ember edge on top. */
+[data-tema='elemental'] main .rounded-xl.border {
+  box-shadow: inset 0 1px 0 rgba(255, 193, 77, 0.16);
+}
+
+[data-tema='elemental'] .elemental-titulo,
+[data-tema='elemental'] .avatar-titulo,
+[data-tema='elemental'] main h1,
+[data-tema='elemental'] main h2 {
+  letter-spacing: 0.01em;
+}
+
+/* Elemental team banner in the summary. */
+[data-tema='elemental'] .elemental-banda {
+  background:
+    linear-gradient(90deg,
+      var(--e-llama) 0 20%, var(--e-aqua) 20% 40%, var(--e-roca) 40% 60%, var(--e-aire) 60% 80%, var(--e-hoja) 80% 100%) top / 100% 3px no-repeat,
+    linear-gradient(180deg, #1a2244, var(--e-tarjeta));
+  border: 1px solid var(--e-borde);
+}
+
+[data-tema='elemental'] select option,
+[data-tema='elemental'] select optgroup { background-color: var(--e-tarjeta); }
+
+/* The spirits hover, with a soft glow. */
+@keyframes elemental-flota {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+[data-tema='elemental'] .elemental-flota {
+  animation: elemental-flota 3.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(255, 150, 60, 0.35));
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-tema='elemental'] .elemental-flota { animation: none; }
+}
