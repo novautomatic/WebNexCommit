@@ -6,6 +6,7 @@ import { card } from './ui';
 import { useTema, useTextos } from '../../hooks/tema';
 import { Mascota } from './Mascota';
 import { EquipoAvatar } from './AvatarTema';
+import { EquipoBts } from './BtsTema';
 
 const SEMANAS = 8;
 // Open-work charts never contain completed tasks: keep them out of the legend.
@@ -92,6 +93,7 @@ export default function ResumenVista({ tareas, proyecto, miembro, onAbrir, onEle
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
       {tema === 'avatar' && <EquipoAvatar />}
+      {tema === 'kawaii' && <EquipoBts />}
       <section className={`${card} p-5 xl:col-span-2`} aria-labelledby="avance-titulo">
         <div className="flex flex-wrap items-end justify-between gap-4 mb-4">
           <Mascota animo={animo} size={72} titulo={frase} />

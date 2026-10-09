@@ -387,6 +387,14 @@ select optgroup {
 [data-tema='kawaii'] select option,
 [data-tema='kawaii'] select optgroup { background-color: var(--k-tarjeta); }
 
+/* BTS banner in the summary: lilac card with a purple → pink top edge. */
+[data-tema='kawaii'] .bts-banda {
+  background:
+    linear-gradient(90deg, #a78bfa, #f472b6) top / 100% 3px no-repeat,
+    linear-gradient(180deg, #3a2160, var(--k-tarjeta));
+  border: 1px solid rgba(216, 180, 254, 0.25);
+}
+
 /* Tiny bounce for the mascot. */
 @keyframes kawaii-flota {
   0%, 100% { transform: translateY(0); }

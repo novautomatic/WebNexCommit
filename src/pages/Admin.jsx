@@ -30,7 +30,7 @@ import { ClientesPagina, EquipoPagina, ProyectosPagina } from './tareas/GestionP
 import ConfiguracionAdmin from './configuracion/ConfiguracionAdmin';
 import AccesosMenu from './configuracion/AccesosMenu';
 import { TEMAS, TEXTOS, TemaContext, guardarTema, nombreCorto, temaInicial } from '../hooks/tema';
-import { Carita } from './tareas/Kawaii';
+import { Miembro } from './tareas/BtsTema';
 import { CuatroNaciones, Emblema, Personaje } from './tareas/AvatarTema';
 
 // Extra fonts per theme, loaded only when that theme is in use.
@@ -188,7 +188,7 @@ export default function Admin() {
             >
               <Menu className="w-5 h-5" />
             </button>
-            {tema === 'kawaii' && <Carita animo="feliz" size={34} className="kawaii-flota" />}
+            {tema === 'kawaii' && <Miembro quien="jungkook" size={38} className="kawaii-flota" />}
             {avatar && <Personaje quien="aang" size={38} className="avatar-flota" />}
             {tema === 'nexcommit' && (
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#248bde] to-[#67c8f3] flex items-center justify-center text-white font-bold text-sm shrink-0">NC</div>

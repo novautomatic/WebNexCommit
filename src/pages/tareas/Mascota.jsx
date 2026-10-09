@@ -1,34 +1,30 @@
-// Theme-aware mascot: the purple mochi in Borahae, a Team Avatar member in
+// Theme-aware mascot: a BTS member in Borahae, a Team Avatar member in
 // Avatar, nothing in the NexCommit theme.
 import React from 'react';
 import { useTema, useTextos } from '../../hooks/tema';
-import { Carita } from './Kawaii';
+import { Miembro } from './BtsTema';
 import { Personaje } from './AvatarTema';
 
-// Mood → character in the Avatar theme.
-const PERSONAJE_POR_ANIMO = {
-  feliz: 'aang',
-  contenta: 'katara',
-  preocupada: 'zuko',
-  dormida: 'appa',
+// Mood → character per theme.
+const POR_ANIMO = {
+  kawaii: { feliz: 'jhope', contenta: 'jimin', preocupada: 'rm', dormida: 'suga' },
+  avatar: { feliz: 'aang', contenta: 'katara', preocupada: 'zuko', dormida: 'appa' },
 };
 
 // animo: 'feliz' | 'contenta' | 'preocupada' | 'dormida'. `quien` forces a character.
 export function Mascota({ animo = 'contenta', quien, size = 56, className = '', titulo }) {
   const tema = useTema();
-  if (tema === 'kawaii') return <Carita animo={animo} size={size} className={`kawaii-flota ${className}`} titulo={titulo} />;
-  if (tema === 'avatar') {
-    return (
-      <Personaje
-        quien={quien || PERSONAJE_POR_ANIMO[animo]}
-        dormido={animo === 'dormida'}
-        size={size}
-        className={`avatar-flota ${className}`}
-        titulo={titulo}
-      />
-    );
-  }
-  return null;
+  if (!POR_ANIMO[tema]) return null;
+  const Comp = tema === 'kawaii' ? Miembro : Personaje;
+  return (
+    <Comp
+      quien={quien || POR_ANIMO[tema][animo]}
+      dormido={animo === 'dormida'}
+      size={size}
+      className={`${tema === 'kawaii' ? 'kawaii-flota' : 'avatar-flota'} ${className}`}
+      titulo={titulo}
+    />
+  );
 }
 
 // Empty state with the theme's mascot, or plain text in the NexCommit theme.

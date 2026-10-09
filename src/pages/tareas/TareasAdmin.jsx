@@ -140,7 +140,7 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
           <h1 className="text-2xl font-semibold text-white flex items-center gap-2">
             <Mascota
               animo={kpis.vencidas ? 'preocupada' : 'feliz'}
-              quien={tema === 'avatar' ? (kpis.vencidas ? 'toph' : 'sokka') : undefined}
+              quien={{ avatar: kpis.vencidas ? 'toph' : 'sokka', kawaii: kpis.vencidas ? 'rm' : 'jin' }[tema]}
               size={40}
             />
             <span className="avatar-titulo">{textos.tituloTareas}</span>

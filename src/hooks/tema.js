@@ -80,12 +80,12 @@ export const TEXTOS = {
       abiertas: '📋 Abiertas', mias: '💜 Mías', vencidas: '🥺 Vencidas', semana: '⏰ Vencen en 7 días',
       sinAsignar: '🫧 Sin asignar', completadas: '🎉 Completadas (7 días)',
     },
-    vacio: 'No hay tareas con estos filtros… ¡a descansar un ratito! 💤',
+    vacio: 'No hay tareas con estos filtros… Suga se fue a dormir una siesta 💤',
     frase: {
-      dormida: () => 'Todavía no hay tareas por aquí 💤',
-      preocupada: (n) => `Hay ${n} atrasada${n === 1 ? '' : 's'}… ¡tú puedes! 💪💜`,
-      feliz: () => '¡Vamos increíble! Borahae 💜✨',
-      contenta: () => '¡Paso a pasito se llega lejos! 🌸',
+      dormida: () => 'Suga está durmiendo: todavía no hay tareas por aquí 💤',
+      preocupada: (n) => `Hay ${n} atrasada${n === 1 ? '' : 's'}… RM dice: ¡tú puedes! 💪💜`,
+      feliz: () => '¡Vamos increíble! j-hope está orgulloso 🌞 Borahae 💜',
+      contenta: () => 'Paso a pasito se llega lejos, como dice Jimin 🐥🌸',
     },
   },
   avatar: {
