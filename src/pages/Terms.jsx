@@ -80,7 +80,18 @@ export default function Terms() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-white mb-4">8. Modificaciones</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">8. Creador de páginas gratuito</h2>
+                <ul className="list-disc list-inside space-y-2 text-brand-muted">
+                  <li>La página de prueba es gratuita, se ofrece una sola vez por correo y por celular, y queda publicada durante el plazo informado al crearla.</li>
+                  <li>Los textos los genera una inteligencia artificial a partir de lo que describes: revísalos antes de compartir la página. Eres responsable de que la información publicada sea veraz y no infrinja derechos de terceros.</li>
+                  <li>No se permite publicar contenido ilegal, engañoso, ofensivo o que suplante a otra persona o empresa. NexCommit puede suspender una página que incumpla estas reglas.</li>
+                  <li>El link nexcommit.com/tu-empresa es de NexCommit y se libera después de que la página vence. Para tener un dominio propio y una página permanente se requiere contratar el servicio.</li>
+                  <li>El servicio tiene cupos diarios y puede pausarse o terminar en cualquier momento.</li>
+                </ul>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold text-white mb-4">9. Modificaciones</h2>
                 <p className="text-brand-muted leading-relaxed">
                   NexCommit podrá modificar estos términos cuando sea necesario.
                 </p>

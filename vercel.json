@@ -3,6 +3,15 @@
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
+    { "source": "/admin", "destination": "/spa" },
+    { "source": "/login", "destination": "/spa" },
+    { "source": "/reset-password", "destination": "/spa" },
+    { "source": "/blog", "destination": "/spa" },
+    { "source": "/servicios", "destination": "/spa" },
+    { "source": "/privacy", "destination": "/spa" },
+    { "source": "/terms", "destination": "/spa" },
+    { "source": "/crea-tu-web", "destination": "/spa" },
+    { "source": "/:slug([a-z0-9][a-z0-9-]{1,38}[a-z0-9])", "destination": "https://back-chat-next.vercel.app/creador/p/:slug" },
     { "source": "/(.*)", "destination": "/spa" }
   ],
   "headers": [

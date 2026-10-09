@@ -13,6 +13,7 @@ import {
   Plug,
   Search,
   ShoppingBag,
+  Sparkles,
   UtensilsCrossed,
   Workflow,
 } from 'lucide-react';
@@ -209,7 +210,9 @@ export default function Home() {
               <WhatsAppLink topic="una página web" placement="home_hero" className="nh-btn nh-btn-wa">
                 <MessageCircle aria-hidden="true" /> Cotizar por WhatsApp
               </WhatsAppLink>
-              <a className="nh-btn nh-btn-ghost" href="#proyectos">Ver proyectos reales</a>
+              <Link className="nh-btn nh-btn-ghost" to="/crea-tu-web">
+                <Sparkles aria-hidden="true" /> Crea tu página gratis con IA
+              </Link>
             </div>
             <div className="nh-trust">
               <span><i />Respondemos el mismo día hábil</span>

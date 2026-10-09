@@ -19,10 +19,12 @@ import {
   PanelLeftOpen,
   Sparkles,
   Users,
+  Wand2,
   X,
 } from 'lucide-react';
 import { BlogAdmin } from './blog/BlogAdmin';
 import Cotizador from './Cotizador';
+import CreadorAdmin from './creador/CreadorAdmin';
 import TareasAdmin from './tareas/TareasAdmin';
 import { ClientesPagina, EquipoPagina, ProyectosPagina } from './tareas/GestionPaginas';
 import ConfiguracionAdmin from './configuracion/ConfiguracionAdmin';
@@ -55,6 +57,7 @@ const GRUPOS = [
     items: [
       { id: 'blog', label: 'Blog', icon: FileText },
       { id: 'cotizador', label: 'Cotizador', icon: Calculator },
+      { id: 'creador', label: 'Creador', icon: Wand2 },
     ],
   },
 ];
@@ -257,6 +260,7 @@ export default function Admin() {
             {seccion === 'accesos' && <ConfiguracionAdmin />}
             {seccion === 'blog' && <BlogAdmin />}
             {seccion === 'cotizador' && <Cotizador />}
+            {seccion === 'creador' && <CreadorAdmin />}
           </main>
         </div>
       </div>

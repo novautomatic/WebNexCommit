@@ -18,6 +18,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { BrandLogo } from './components/Brand';
 import SiteMeta from './components/SiteMeta';
 import AdLanding from './pages/AdLanding';
+import CreaTuWeb from './pages/CreaTuWeb';
 import { ContactDock, WhatsAppLink } from './components/ContactButtons';
 import CookieConsent, { resetCookieConsent } from './components/CookieConsent';
 import { captureAdClick, GOOGLE_ADS } from './config/contact';
@@ -174,6 +175,7 @@ function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/lp/:slug" element={<AdLanding />} />
+          <Route path="/crea-tu-web" element={<CreaTuWeb />} />
         </Routes>
 
         {!isAdmin && (<>

@@ -36,6 +36,7 @@ function buildSitemap(postEntries) {
 
   const staticEntries = [
     buildUrlEntry({ loc: `${SITE_URL}/`, lastmod: today, changefreq: 'weekly', priority: '1.0' }),
+    buildUrlEntry({ loc: `${SITE_URL}/crea-tu-web`, lastmod: today, changefreq: 'monthly', priority: '0.9' }),
     buildUrlEntry({ loc: `${SITE_URL}/servicios`, lastmod: today, changefreq: 'monthly', priority: '0.6' }),
     buildUrlEntry({ loc: `${SITE_URL}/blog`, lastmod: today, changefreq: 'weekly', priority: '0.8' }),
   ];

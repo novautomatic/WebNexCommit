@@ -135,7 +135,27 @@ export default function Privacy() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-white mb-4">10. Modificaciones</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">10. Creador de páginas (crea-tu-web)</h2>
+                <p className="text-brand-muted leading-relaxed mb-3">
+                  Si creas una página de prueba en nexcommit.com/crea-tu-web, tratamos tu nombre, empresa, correo y celular para
+                  verificar tu correo, crear y publicar tu página, evitar que se cree más de una por persona y contactarte sobre ella
+                  (por ejemplo, para ofrecerte dejarla permanente). La base es la ejecución del servicio que solicitas. Solo te enviamos
+                  ofertas generales de NexCommit si marcas la casilla correspondiente, y puedes retirar ese consentimiento cuando quieras.
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-brand-muted mb-3">
+                  <li>Los textos de tu página se generan con OpenAI (Estados Unidos) a partir de la descripción de tu negocio; no le enviamos tu nombre, correo ni celular.</li>
+                  <li>Las fotos provienen de Pexels; el correo se envía por Google (Gmail) y los datos se guardan en Supabase.</li>
+                  <li>La página queda publicada durante el plazo informado y se elimina 30 días después de vencer.</li>
+                  <li>Tus datos de registro se anonimizan a los 12 meses, salvo que pases a ser cliente. Guardamos solo una huella cifrada (hash) del correo y del celular para no repetir la promoción.</li>
+                  <li>Los mensajes que dejan las visitas en el formulario de tu página se reenvían a tu correo y se borran a los 30 días. En ese tratamiento NexCommit actúa por cuenta tuya.</li>
+                </ul>
+                <p className="text-brand-muted leading-relaxed">
+                  Para ejercer tus derechos de acceso, rectificación, supresión, oposición, portabilidad o bloqueo, escribe a nexcommit@gmail.com.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold text-white mb-4">11. Modificaciones</h2>
                 <p className="text-brand-muted leading-relaxed">
                   NexCommit podrá actualizar esta política para reflejar cambios regulatorios o mejoras operativas.
                 </p>

@@ -29,6 +29,7 @@ const routes = [
   '/blog',
   '/privacy',
   '/terms',
+  '/crea-tu-web',
   ...ADS_LANDINGS.map((l) => `/lp/${l.slug}`),
 ];
 
