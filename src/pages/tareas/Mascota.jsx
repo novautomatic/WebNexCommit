@@ -4,24 +4,29 @@ import React from 'react';
 import { useTema, useTextos } from '../../hooks/tema';
 import { Miembro } from './BtsTema';
 import { Personaje } from './AvatarTema';
+import { Elemento } from './ElementalTema';
 
 // Mood → character per theme.
 const POR_ANIMO = {
   kawaii: { feliz: 'jhope', contenta: 'jimin', preocupada: 'rm', dormida: 'suga' },
   avatar: { feliz: 'aang', contenta: 'katara', preocupada: 'zuko', dormida: 'appa' },
+  elemental: { feliz: 'hoja', contenta: 'aqua', preocupada: 'llama', dormida: 'roca' },
 };
+const COMPONENTE = { kawaii: Miembro, avatar: Personaje, elemental: Elemento };
+// Sleepy character for empty states.
+const DORMIDO = { avatar: 'momo', elemental: 'roca' };
 
 // animo: 'feliz' | 'contenta' | 'preocupada' | 'dormida'. `quien` forces a character.
 export function Mascota({ animo = 'contenta', quien, size = 56, className = '', titulo }) {
   const tema = useTema();
-  if (!POR_ANIMO[tema]) return null;
-  const Comp = tema === 'kawaii' ? Miembro : Personaje;
+  const Comp = COMPONENTE[tema];
+  if (!Comp) return null;
   return (
     <Comp
       quien={quien || POR_ANIMO[tema][animo]}
       dormido={animo === 'dormida'}
       size={size}
-      className={`${tema === 'kawaii' ? 'kawaii-flota' : 'avatar-flota'} ${className}`}
+      className={`${tema}-flota ${className}`}
       titulo={titulo}
     />
   );
@@ -34,7 +39,7 @@ export function Vacio({ texto }) {
   if (tema === 'nexcommit') return <p className="text-sm text-[#9aafc3]">{texto}</p>;
   return (
     <div className="flex flex-col items-center gap-2 py-6 text-center">
-      <Mascota animo="dormida" quien={tema === 'avatar' ? 'momo' : undefined} size={64} />
+      <Mascota animo="dormida" quien={DORMIDO[tema]} size={64} />
       <p className="text-sm text-[#9aafc3]">{textos.vacio || texto}</p>
     </div>
   );
