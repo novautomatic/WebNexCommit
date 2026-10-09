@@ -32,7 +32,7 @@ function useCreador() {
       const [config, leads, equipo] = await Promise.all([
         q(supabase.from('creador_config').select('*').eq('id', 1).maybeSingle()),
         q(supabase.from('creador_leads')
-          .select('*, pagina:creador_paginas(id, slug, expira_at, publicada_at, ediciones_usadas, ediciones_max, visitas, estado, logo_url, contenido)')
+          .select('*, pagina:creador_paginas(*)')
           .order('created_at', { ascending: false })
           .limit(300)),
         q(supabase.from('equipo').select('id, nombre, email').eq('activo', true).order('nombre')),
@@ -61,6 +61,7 @@ function Config({ config, equipo }) {
     duracion_dias: config?.duracion_dias ?? 5,
     tope_diario: config?.tope_diario ?? 30,
     ediciones: config?.ediciones ?? 5,
+    ediciones_manuales: config?.ediciones_manuales ?? 5,
     max_caracteres: config?.max_caracteres ?? 300,
     responsable_id: config?.responsable_id ?? '',
   }));
@@ -70,6 +71,7 @@ function Config({ config, equipo }) {
       duracion_dias: Number(f.duracion_dias),
       tope_diario: Number(f.tope_diario),
       ediciones: Number(f.ediciones),
+      ...(config && 'ediciones_manuales' in config ? { ediciones_manuales: Number(f.ediciones_manuales) } : {}),
       max_caracteres: Number(f.max_caracteres),
       responsable_id: f.responsable_id || null,
     }).eq('id', 1)),
@@ -87,7 +89,8 @@ function Config({ config, equipo }) {
         </label>
         <div><label className={labelClass}>Duración (días)</label><input type="number" min={1} max={60} value={f.duracion_dias} onChange={num('duracion_dias')} className={inputClass} /></div>
         <div><label className={labelClass}>Páginas por día</label><input type="number" min={0} max={1000} value={f.tope_diario} onChange={num('tope_diario')} className={inputClass} /></div>
-        <div><label className={labelClass}>Ediciones por chat</label><input type="number" min={0} max={50} value={f.ediciones} onChange={num('ediciones')} className={inputClass} /></div>
+        <div><label className={labelClass}>Pedidos a la IA</label><input type="number" min={0} max={50} value={f.ediciones} onChange={num('ediciones')} className={inputClass} /></div>
+        <div><label className={labelClass}>Ediciones manuales</label><input type="number" min={0} max={100} value={f.ediciones_manuales} onChange={num('ediciones_manuales')} className={inputClass} /></div>
         <div><label className={labelClass}>Caracteres por mensaje</label><input type="number" min={50} max={2000} value={f.max_caracteres} onChange={num('max_caracteres')} className={inputClass} /></div>
         <div>
           <label className={labelClass}>Responsable de ventas</label>
@@ -103,7 +106,8 @@ function Config({ config, equipo }) {
         </button>
         {guardar.isSuccess && <span className="text-sm text-emerald-400">Guardado.</span>}
         <p className="text-xs text-[#9aafc3] max-w-xl">
-          La duración y las ediciones se aplican a las páginas nuevas. El responsable recibe la tarea, el WhatsApp y el correo de cada lead.
+          La duración y los topes se aplican a las páginas nuevas (una edición manual = una vez que el cliente presiona «Publicar cambios»).
+          El responsable recibe la tarea, el WhatsApp y el correo de cada lead.
         </p>
       </div>
       <ErrorBox error={guardar.error} />
@@ -157,9 +161,25 @@ function FilaLead({ lead }) {
               <Pill color={v.color}>{v.texto}</Pill>
               {p.estado === 'suspendida' && <Pill color="#f87171">Suspendida</Pill>}
             </div>
-            <div className="text-[#9aafc3] mt-1">{p.ediciones_usadas}/{p.ediciones_max} ediciones · {p.visitas} visitas</div>
+            <div className="text-[#9aafc3] mt-1">
+              IA {p.ediciones_usadas}/{p.ediciones_max}
+              {typeof p.ediciones_manuales_max === 'number' && <> · manual {p.ediciones_manuales_usadas}/{p.ediciones_manuales_max}</>}
+              {' '}· {p.visitas} visitas
+            </div>
             <div className="mt-2 flex flex-wrap gap-1">
               <button type="button" className="text-[11px] px-2 py-1 rounded border border-white/10 text-[#9aafc3] hover:text-white" onClick={() => extender(3)} disabled={pagina.isPending}>+3 días</button>
+              <button
+                type="button"
+                className="text-[11px] px-2 py-1 rounded border border-white/10 text-[#9aafc3] hover:text-white"
+                title="Regala 3 pedidos a la IA y 3 ediciones manuales más"
+                onClick={() => pagina.mutate({
+                  ediciones_max: p.ediciones_max + 3,
+                  ...(typeof p.ediciones_manuales_max === 'number' ? { ediciones_manuales_max: p.ediciones_manuales_max + 3 } : {}),
+                })}
+                disabled={pagina.isPending}
+              >
+                +3 ediciones
+              </button>
               <button
                 type="button"
                 className="text-[11px] px-2 py-1 rounded border border-white/10 text-[#9aafc3] hover:text-white"

@@ -46,6 +46,7 @@ export async function api(ruta, { metodo = 'GET', cuerpo, token } = {}) {
   if (!r.ok) {
     const err = new Error(data.error || 'Algo salió mal. Intenta de nuevo.');
     err.status = r.status;
+    err.codigo = data.codigo;
     throw err;
   }
   return data;

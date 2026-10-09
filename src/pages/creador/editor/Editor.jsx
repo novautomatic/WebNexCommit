@@ -2,7 +2,9 @@
 // bloques de acupuntura-mtch): lienzo con la página real, edición de textos en
 // el lugar, barra por sección (subir/bajar/duplicar/ocultar/eliminar), agregar
 // secciones, inspector con estilo por sección, diseño general, fotos, vista
-// escritorio/celular, deshacer/rehacer, autoguardado y el chat con IA.
+// escritorio/celular, deshacer/rehacer y el chat con IA. Los cambios se
+// juntan en un borrador (guardado en el navegador) y se suben con «Publicar
+// cambios»: cada publicación gasta una edición manual (tope aparte del de IA).
 //
 // El lienzo es un iframe en sandbox (sin acceso al sitio) que pinta la página
 // con la plantilla del backend; habla con este componente solo por
@@ -10,7 +12,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Check, Copy, ExternalLink, LayoutList, Loader2, LogOut, MessageCircle, Monitor, Paintbrush,
-  PanelRightOpen, Plus, Redo2, Smartphone, Sparkles, Undo2, X,
+  PanelRightOpen, Plus, Redo2, Smartphone, Sparkles, Undo2, Upload, X,
 } from 'lucide-react';
 import { api } from '../../../config/creador';
 import { WHATSAPP_NUMBER } from '../../../config/contact';
@@ -18,6 +20,7 @@ import { cargarModulos, getRuta, setRuta } from './modulos';
 import { Campo, Estructura, PanelDiseno, PanelSeccion, Paleta } from './Inspector';
 import SelectorFoto from './SelectorFoto';
 import ChatIA from './ChatIA';
+import CapaGratuita from './CapaGratuita';
 import './editor.css';
 
 const CLAVE_AYUDA = 'nc_editor_ayuda_vista';
@@ -41,24 +44,43 @@ function ayudaVista() {
   }
 }
 
-const ESTADO_GUARDADO = {
-  guardado: { texto: 'Guardado', clase: 'ok' },
-  'sin-guardar': { texto: 'Cambios sin guardar', clase: '' },
-  guardando: { texto: 'Guardando…', clase: '' },
-  error: { texto: 'No se guardó', clase: 'mal' },
-};
+// Borrador sin publicar: vive en el navegador (cada publicación gasta una
+// edición manual, así que entre publicaciones no se guarda en el servidor).
+const claveBorrador = (slug) => `nc_borrador_${slug}`;
+
+function leerBorrador(slug) {
+  try {
+    const b = JSON.parse(window.localStorage.getItem(claveBorrador(slug)) || 'null');
+    return b && Array.isArray(b.secciones) ? b : null;
+  } catch {
+    return null;
+  }
+}
+
+function guardarBorrador(slug, contenido) {
+  try {
+    if (contenido) window.localStorage.setItem(claveBorrador(slug), JSON.stringify(contenido));
+    else window.localStorage.removeItem(claveBorrador(slug));
+  } catch {
+    /* storage unavailable — the draft lasts only while the tab is open */
+  }
+}
 
 export default function Editor({ token, estado, onActualizar, onSalir }) {
   const { pagina, limites } = estado;
   const [mod, setMod] = useState(null);
   const [errorMod, setErrorMod] = useState('');
-  const [hist, setHist] = useState(() => ({ actual: pagina.contenido, pasado: [], futuro: [], ultima: null }));
+  const [recuperado] = useState(() => leerBorrador(pagina.slug));
+  const [hist, setHist] = useState(() => ({ actual: recuperado ?? pagina.contenido, pasado: [], futuro: [], ultima: null }));
   const contenido = hist.actual;
+  const [publicado, setPublicado] = useState(pagina.contenido);
+  const [publicando, setPublicando] = useState(false);
+  const [avisoBorrador, setAvisoBorrador] = useState(Boolean(recuperado));
+  const [celebrar, setCelebrar] = useState(null);
   const [logo, setLogo] = useState(pagina.logo_url);
   const [sel, setSel] = useState(null);
   const [pestana, setPestana] = useState('editar');
   const [vista, setVista] = useState('escritorio');
-  const [guardado, setGuardado] = useState('guardado');
   const [errorGuardar, setErrorGuardar] = useState('');
   const [insertarEn, setInsertarEn] = useState(null);
   const [foto, setFoto] = useState(null);
@@ -73,14 +95,19 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
   const iframe = useRef(null);
   const listo = useRef(false);
   const contenidoRef = useRef(contenido);
-  const guardadoRef = useRef(pagina.contenido);
   const selRef = useRef(null);
   const htmlRef = useRef('');
   const omitirRef = useRef(null);
   const verRef = useRef(null);
 
   const activa = !pagina.vencida && pagina.estado === 'activa';
-  const disponiblesIA = pagina.ediciones_max - pagina.ediciones_usadas;
+  const disponiblesIA = Math.max(0, pagina.ediciones_max - pagina.ediciones_usadas);
+  // null = sin tope (la migración de ediciones manuales aún no se corrió).
+  const maxManual = pagina.ediciones_manuales_max;
+  const conTopeManual = typeof maxManual === 'number';
+  const disponiblesManual = conTopeManual ? Math.max(0, maxManual - pagina.ediciones_manuales_usadas) : Infinity;
+  const bloqueado = conTopeManual && disponiblesManual <= 0;
+  const sinPublicar = contenido !== publicado && !bloqueado;
   const secciones = contenido.secciones || [];
   const indiceSel = secciones.findIndex((s) => s.id === sel);
   const seccionSel = indiceSel >= 0 ? secciones[indiceSel] : null;
@@ -113,15 +140,16 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
   const html = useMemo(() => {
     if (!mod) return '';
     try {
+      // Sin ediciones manuales: se muestra la página publicada, sin edición.
       return mod.plantilla.renderPagina(
-        { ...pagina, logo_url: logo, contenido: mod.esquema.sanearContenido(contenido) },
-        { editor: true },
+        { ...pagina, logo_url: logo, contenido: mod.esquema.sanearContenido(bloqueado ? publicado : contenido) },
+        { editor: !bloqueado },
       );
     } catch (e) {
       console.error('[editor] render', e);
       return '';
     }
-  }, [mod, contenido, logo, pagina]);
+  }, [mod, contenido, publicado, bloqueado, logo, pagina]);
 
   // El iframe arranca con el primer HTML; los cambios siguientes le llegan por
   // postMessage (sin recargarlo: no parpadea ni pierde el scroll).
@@ -169,21 +197,18 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
         ultima: clave ? { clave, t: ahora } : null,
       };
     });
-    setGuardado('sin-guardar');
   }, []);
 
   const deshacer = useCallback(() => {
     setHist((h) => (h.pasado.length
       ? { actual: h.pasado[h.pasado.length - 1], pasado: h.pasado.slice(0, -1), futuro: [h.actual, ...h.futuro], ultima: null }
       : h));
-    setGuardado('sin-guardar');
   }, []);
 
   const rehacer = useCallback(() => {
     setHist((h) => (h.futuro.length
       ? { actual: h.futuro[0], pasado: [...h.pasado, h.actual], futuro: h.futuro.slice(1), ultima: null }
       : h));
-    setGuardado('sin-guardar');
   }, []);
 
   useEffect(() => {
@@ -203,41 +228,45 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
     return () => window.removeEventListener('keydown', teclas);
   }, [deshacer, rehacer]);
 
-  // ─── Guardado ─────────────────────────────────────────────────────────────
-  const guardarAhora = useCallback(async () => {
-    const c = contenidoRef.current;
-    if (c === guardadoRef.current) return true;
-    setGuardado('guardando');
-    try {
-      await api('/contenido', { metodo: 'PUT', cuerpo: { contenido: c }, token });
-      guardadoRef.current = c;
-      setGuardado(contenidoRef.current === c ? 'guardado' : 'sin-guardar');
-      setErrorGuardar('');
-      return true;
-    } catch (e) {
-      setGuardado('error');
-      setErrorGuardar(e.message);
-      if (e.status === 401) onSalir();
-      return false;
-    }
-  }, [token, onSalir]);
-
+  // ─── Publicación ──────────────────────────────────────────────────────────
+  // Cada «Publicar cambios» gasta una edición manual; entre publicaciones el
+  // borrador queda en el navegador (no se pierde al cerrar la pestaña).
   useEffect(() => {
-    if (!activa || contenido === guardadoRef.current) return undefined;
-    const t = setTimeout(guardarAhora, 1300);
+    const t = setTimeout(() => guardarBorrador(pagina.slug, contenido === publicado ? null : contenido), 400);
     return () => clearTimeout(t);
-  }, [contenido, guardarAhora, activa]);
+  }, [contenido, publicado, pagina.slug]);
+
+  const publicar = async () => {
+    if (publicando || !sinPublicar) return;
+    const c = contenido;
+    setPublicando(true);
+    setErrorGuardar('');
+    try {
+      const r = await api('/contenido', { metodo: 'PUT', cuerpo: { contenido: c }, token });
+      setPublicado(c);
+      setAvisoBorrador(false);
+      onActualizar({ ...estado, pagina: r.pagina });
+      const p = r.pagina;
+      if (typeof p.ediciones_manuales_max === 'number' && p.ediciones_manuales_usadas >= p.ediciones_manuales_max) setCelebrar('manual');
+    } catch (e) {
+      if (e.codigo === 'sin_ediciones') setCelebrar('manual');
+      else setErrorGuardar(e.message);
+      if (e.status === 401) onSalir();
+    } finally {
+      setPublicando(false);
+    }
+  };
 
   useEffect(() => {
     const avisar = (e) => {
-      if (contenidoRef.current !== guardadoRef.current) {
+      if (sinPublicar) {
         e.preventDefault();
         e.returnValue = '';
       }
     };
     window.addEventListener('beforeunload', avisar);
     return () => window.removeEventListener('beforeunload', avisar);
-  }, []);
+  }, [sinPublicar]);
 
   // ─── Acciones ─────────────────────────────────────────────────────────────
   const set = useCallback((ruta, v) => cambiar((c) => setRuta(c, ruta, v), `insp:${ruta}`), [cambiar]);
@@ -383,18 +412,21 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
     setErrorIA('');
     setMensajes((p) => [...p, { rol: 'usuario', texto: m }]);
     try {
-      if (!(await guardarAhora())) throw new Error('Primero guardemos tus cambios: revisa el aviso de arriba.');
-      const r = await api('/editar', { metodo: 'POST', cuerpo: { mensaje: m }, token });
+      // La IA parte del borrador que el cliente está viendo (aunque no lo haya publicado).
+      const cuerpo = { mensaje: m, ...(sinPublicar ? { contenido } : {}) };
+      const r = await api('/editar', { metodo: 'POST', cuerpo, token });
       setMensajes((p) => [...p, { rol: 'asistente', texto: r.respuesta || 'Listo, actualicé tu página.' }]);
       const nuevo = r.pagina.contenido;
-      guardadoRef.current = nuevo;
+      setPublicado(nuevo);
       setHist((h) => ({ actual: nuevo, pasado: [...h.pasado.slice(-59), h.actual], futuro: [], ultima: null }));
-      setGuardado('guardado');
+      setAvisoBorrador(false);
       onActualizar({ ...estado, pagina: r.pagina });
+      if (r.pagina.ediciones_usadas >= r.pagina.ediciones_max) setCelebrar('ia');
       return true;
     } catch (e) {
-      setErrorIA(e.message);
       setMensajes((p) => p.slice(0, -1));
+      if (e.codigo === 'sin_ediciones') setCelebrar('ia');
+      else setErrorIA(e.message);
       if (e.status === 401) onSalir();
       return false;
     } finally {
@@ -426,7 +458,8 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
     <Campo key={ruta} label={label} max={max} multi={multi} placeholder={placeholder} ayuda={ayudaCampo}
       valor={getRuta(contenido, ruta)} onCambio={(v) => set(ruta, v)} />
   );
-  const eg = ESTADO_GUARDADO[guardado];
+  const datosCapa = { maxManual, maxIA: pagina.ediciones_max, quedanManual: disponiblesManual, quedanIA: disponiblesIA };
+  const capa = (tipo) => <CapaGratuita tipo={tipo} slug={pagina.slug} url={pagina.url} datos={datosCapa} />;
 
   if (!activa) {
     return (
@@ -463,15 +496,24 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
           {quedan && <span className="ed-quedan">Vence en <b>{quedan}</b></span>}
         </div>
         <div className="ed-top-centro">
-          <button type="button" className="ed-icono" onClick={deshacer} disabled={!hist.pasado.length} title="Deshacer (Ctrl+Z)" aria-label="Deshacer"><Undo2 /></button>
-          <button type="button" className="ed-icono" onClick={rehacer} disabled={!hist.futuro.length} title="Rehacer (Ctrl+Y)" aria-label="Rehacer"><Redo2 /></button>
+          {!bloqueado && (
+            <>
+              <button type="button" className="ed-icono" onClick={deshacer} disabled={!hist.pasado.length} title="Deshacer (Ctrl+Z)" aria-label="Deshacer"><Undo2 /></button>
+              <button type="button" className="ed-icono" onClick={rehacer} disabled={!hist.futuro.length} title="Rehacer (Ctrl+Y)" aria-label="Rehacer"><Redo2 /></button>
+            </>
+          )}
           <div className="ed-vista" role="group" aria-label="Vista">
             <button type="button" className={vista === 'escritorio' ? 'on' : ''} onClick={() => setVista('escritorio')} title="Escritorio" aria-pressed={vista === 'escritorio'}><Monitor /></button>
             <button type="button" className={vista === 'movil' ? 'on' : ''} onClick={() => setVista('movil')} title="Celular" aria-pressed={vista === 'movil'}><Smartphone /></button>
           </div>
-          <span className={`ed-guardado ${eg.clase}`} role="status">
-            {guardado === 'guardando' ? <Loader2 className="cr-gira" /> : guardado === 'guardado' ? <Check /> : null}{eg.texto}
-          </span>
+          {!bloqueado && (
+            <button type="button" className={`ed-publicar ${sinPublicar ? 'pendiente' : ''}`} onClick={publicar} disabled={!sinPublicar || publicando}
+              title="Cada vez que publicas usas una edición: haz todos tus cambios y publica al final">
+              {publicando ? <Loader2 className="cr-gira" /> : sinPublicar ? <Upload /> : <Check />}
+              <span>{publicando ? 'Publicando…' : sinPublicar ? 'Publicar cambios' : 'Todo publicado'}</span>
+              {conTopeManual && <em>{disponiblesManual}/{maxManual}</em>}
+            </button>
+          )}
         </div>
         <div className="ed-top-der">
           <a className="ed-avanzar" href={avanzar} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" /> <span>Quiero avanzar con NexCommit</span></a>
@@ -489,11 +531,22 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
       <div className="ed-cuerpo">
         {/* ─── Lienzo ─── */}
         <div className={`ed-lienzo ${vista === 'movil' ? 'movil' : ''}`}>
-          {ayuda && mod && (
+          {ayuda && mod && !bloqueado && (
             <div className="ed-ayuda">
               <Sparkles aria-hidden="true" />
-              <span><b>Así se edita:</b> haz clic en cualquier texto y escribe. Al pasar por una sección verás «+ Agregar sección aquí», y al seleccionarla, botones para moverla u ocultarla.</span>
+              <span>
+                <b>Así se edita:</b> haz clic en cualquier texto y escribe; selecciona una sección para moverla u ocultarla.
+                Cuando termines, presiona <b>Publicar cambios</b>
+                {conTopeManual ? ` (tienes ${maxManual} publicaciones gratis: junta varios cambios en cada una)` : ''}.
+              </span>
               <button type="button" onClick={cerrarAyuda} aria-label="Entendido"><X /></button>
+            </div>
+          )}
+          {avisoBorrador && !bloqueado && (
+            <div className="ed-ayuda">
+              <Upload aria-hidden="true" />
+              <span>Recuperamos los cambios que no alcanzaste a publicar. Revísalos y presiona <b>Publicar cambios</b>.</span>
+              <button type="button" onClick={() => setAvisoBorrador(false)} aria-label="Cerrar"><X /></button>
             </div>
           )}
           {errorMod && <div className="cr-aviso error ed-error-mod">{errorMod}</div>}
@@ -520,7 +573,8 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
             <button type="button" className="ed-cerrar-movil" onClick={() => setPanelMovil(false)} aria-label="Cerrar panel"><X /></button>
           </div>
           <div className="ed-panel-scroll">
-            {mod && pestana === 'editar' && (seccionSel ? (
+            {bloqueado && pestana !== 'ia' && <div className="ed-panel-cuerpo">{capa('manual')}</div>}
+            {mod && !bloqueado && pestana === 'editar' && (seccionSel ? (
               <PanelSeccion
                 key={seccionSel.id}
                 seccion={seccionSel}
@@ -537,10 +591,10 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
               <Estructura secciones={secciones} mod={mod} onSeleccionar={(id) => seleccionar(id, true)} onAccion={accion}
                 iaDisponibles={disponiblesIA} onIA={() => setPestana('ia')} />
             ))}
-            {mod && pestana === 'diseno' && (
+            {mod && !bloqueado && pestana === 'diseno' && (
               <PanelDiseno contenido={contenido} mod={mod} campo={campo} set={set} logo={logo} abrirLogo={() => abrirFoto('logo')} />
             )}
-            {mod && pestana === 'agregar' && (
+            {mod && !bloqueado && pestana === 'agregar' && (
               <div className="ed-panel-cuerpo">
                 <div className="ed-panel-tit"><h3>Agregar una sección</h3></div>
                 <p className="ed-nota">
@@ -558,12 +612,17 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
                 enviando={enviandoIA}
                 error={errorIA}
                 onEnviar={enviarIA}
+                agotado={capa('ia')}
               />
             )}
           </div>
         </aside>
         <button type="button" className="ed-abrir-movil" onClick={() => setPanelMovil(true)}><PanelRightOpen aria-hidden="true" /> Editar</button>
       </div>
+
+      {celebrar && (
+        <CapaGratuita modal tipo={celebrar} slug={pagina.slug} url={pagina.url} datos={datosCapa} onCerrar={() => setCelebrar(null)} />
+      )}
 
       {foto && (
         <SelectorFoto

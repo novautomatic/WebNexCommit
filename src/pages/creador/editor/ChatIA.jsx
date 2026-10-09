@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Loader2, Send, Sparkles } from 'lucide-react';
 
-export default function ChatIA({ mensajes, disponibles, maximas, maxCaracteres, enviando, error, onEnviar }) {
+export default function ChatIA({ mensajes, disponibles, maximas, maxCaracteres, enviando, error, onEnviar, agotado }) {
   const [texto, setTexto] = useState('');
   const lista = useRef(null);
 
@@ -26,7 +26,7 @@ export default function ChatIA({ mensajes, disponibles, maximas, maxCaracteres, 
         <h3><Sparkles className="ed-ic-tit" /> Asistente IA</h3>
         <span className="ed-pill">{disponibles}/{maximas} pedidos</span>
       </div>
-      <p className="ed-nota">Pídele cambios grandes de una vez: reescribir textos, cambiar el tono o los colores. Los ajustes pequeños hazlos tú en la página: son ilimitados.</p>
+      <p className="ed-nota">Pídele cambios grandes de una vez: reescribir textos, cambiar el tono o los colores. Los ajustes pequeños hazlos tú directo en la página.</p>
       <div className="ed-msgs" ref={lista}>
         {mensajes.map((m, i) => <div key={i} className={`cr-msg ${m.rol}`}>{m.texto}</div>)}
         {enviando && <div className="cr-msg asistente escribiendo"><i /><i /><i /></div>}
@@ -50,9 +50,7 @@ export default function ChatIA({ mensajes, disponibles, maximas, maxCaracteres, 
             </button>
           </div>
         </form>
-      ) : (
-        <p className="ed-nota ed-caja">Usaste todos los pedidos a la IA. Puedes seguir editando a mano todo lo que quieras.</p>
-      )}
+      ) : agotado}
       {error && <div className="cr-aviso error">{error}</div>}
     </div>
   );
