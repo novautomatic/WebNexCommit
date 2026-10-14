@@ -12,7 +12,7 @@ export default function EquipoVista({ equipo, tareas }) {
         <p className="text-sm text-[#9aafc3] max-w-2xl">
           Quienes aparecen aquí pueden entrar al sistema de tareas con su correo. Cuando crean una tarea o se les asigna
           una, les llega un correo (y un WhatsApp al responsable si lo tiene). De lunes a viernes a las 8:00 reciben un
-          resumen de las tareas sin cerrar que tienen asignadas o crearon. Solo un dueño puede editar esta lista.
+          resumen de las tareas sin cerrar que tienen asignadas. Solo un dueño puede editar esta lista.
         </p>
         <button type="button" className={btnPrimary} onClick={() => setEditando({})}>
           <Plus className="w-4 h-4" /> Agregar persona
