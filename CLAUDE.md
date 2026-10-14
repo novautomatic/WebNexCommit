@@ -31,6 +31,9 @@ npm run preview   # Preview production build locally
 - `src/components/ContactButtons.jsx` - `WhatsAppLink` and `ContactDock` (mobile bar + desktop bubble).
 - GA4 (`G-FBHZGW2YB7`) loads in `index.html` with Consent Mode v2 defaulting to denied; `src/components/CookieConsent.jsx` grants it after the visitor accepts.
 
+**OpenAI costs (`/admin?tab=openai`, owners only):**
+- `src/pages/openai/OpenAIAdmin.jsx` reads `GET <Agente-Next back>/nexcommit/openai/panel` (route `src/routes/nexcommitOpenai.js` in `novautomatic/back_chat_next`), which checks the NexCommit session JWT + `equipo.rol = 'dueno'` and merges: the real OpenAI bill (Costs API) and tokens per API key (Usage API) via `OPENAI_ADMIN_KEY`; chats from Agente-Next `trazas` (RPC `uso_detalle`, file `db/uso-detalle.sql`); Creator from `creador_consumo`. The Creator uses its own key `OPENAI_API_KEY_CREADOR` (same OpenAI project; falls back to `OPENAI_API_KEY`). The USD→CLP rate lives in `creador_config.usd_clp`.
+
 **Tasks system (`/admin?tab=tareas`):**
 - Schema, RLS, triggers and crons in `supabase/migrations/20261007120000_sistema_tareas.sql` (tables `equipo`, `proyectos`, `tareas`, `tarea_comentarios`, `tarea_historial`, `avisos_whatsapp`). Access = active row in `equipo` matching the session email (`es_equipo()`); only `rol = 'dueno'` edits `equipo`.
 - UI in `src/pages/tareas/` (board, list, projects, team, task modal with comments/history/notices); data hooks in `src/hooks/tareas.js` with realtime refresh.

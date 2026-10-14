@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthContext';
 import SEO from '../components/SEO';
 import {
   BarChart3,
+  Bot,
   Briefcase,
   CalendarDays,
   Calculator,
@@ -25,6 +26,7 @@ import {
 import { BlogAdmin } from './blog/BlogAdmin';
 import Cotizador from './Cotizador';
 import CreadorAdmin from './creador/CreadorAdmin';
+import OpenAIAdmin from './openai/OpenAIAdmin';
 import TareasAdmin from './tareas/TareasAdmin';
 import { ClientesPagina, EquipoPagina, ProyectosPagina } from './tareas/GestionPaginas';
 import ConfiguracionAdmin from './configuracion/ConfiguracionAdmin';
@@ -71,6 +73,13 @@ const GRUPOS = [
       { id: 'blog', label: 'Blog', icon: FileText },
       { id: 'cotizador', label: 'Cotizador', icon: Calculator },
       { id: 'creador', label: 'Creador', icon: Wand2 },
+    ],
+  },
+  {
+    titulo: 'Costos',
+    nacion: 'agua',
+    items: [
+      { id: 'openai', label: 'OpenAI', icon: Bot },
     ],
   },
 ];
@@ -283,6 +292,7 @@ export default function Admin() {
             {seccion === 'blog' && <BlogAdmin />}
             {seccion === 'cotizador' && <Cotizador />}
             {seccion === 'creador' && <CreadorAdmin />}
+            {seccion === 'openai' && <OpenAIAdmin />}
           </main>
         </div>
       </div>
