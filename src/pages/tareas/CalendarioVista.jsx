@@ -1,11 +1,27 @@
 import React, { useMemo, useState } from 'react';
-import { AlertTriangle, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { ESTADO, estaAbierta, hoyISO } from '../../hooks/tareas';
 import { Leyenda } from './graficos';
 import { btnGhost, card } from './ui';
 
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const MAX_POR_DIA = 3;
+// Every delivery date is a team meeting (same rule as the 9:00 email, migration 20261014150000).
+const HORA_REUNION = '16:00';
+
+const fechaLarga = (d) => new Date(`${d}T12:00:00`).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+
+function Reunion({ compacta = false }) {
+  return (
+    <span
+      title={`Reunión de entrega a las ${HORA_REUNION}`}
+      className="inline-flex items-center gap-1 rounded-full bg-[#67c8f3]/15 text-[#67c8f3] px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap"
+    >
+      <Users className="w-3 h-3" aria-hidden="true" />
+      {compacta ? HORA_REUNION : `Reunión ${HORA_REUNION}`}
+    </span>
+  );
+}
 
 const iso = (y, m, d) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
@@ -77,6 +93,14 @@ export default function CalendarioVista({ tareas, onAbrir }) {
     setDiaAbierto(null);
   };
 
+  // Past/today: any non-cancelled task. Future: only if something is still open (same as the email).
+  const esReunion = (d) => (porDia.get(d) || []).some((t) => d <= hoy || estaAbierta(t));
+  const proxima = useMemo(
+    () => [...porDia.keys()].filter((d) => d >= hoy && esReunion(d)).sort()[0] || null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [porDia, hoy],
+  );
+
   const diasConTareas = celdas.filter((c) => c.delMes && porDia.has(c.iso));
   const sinFecha = tareas.filter((t) => estaAbierta(t) && !t.fecha_limite).length;
   const abiertoLista = diaAbierto ? porDia.get(diaAbierto) || [] : [];
@@ -92,6 +116,16 @@ export default function CalendarioVista({ tareas, onAbrir }) {
         </div>
         <Leyenda />
       </div>
+
+      <p className="text-sm text-[#9aafc3] flex items-center gap-2 flex-wrap">
+        <Reunion />
+        <span>
+          Cada fecha de entrega es reunión del equipo.{' '}
+          {proxima === hoy && <b className="text-white">Hoy hay reunión de entrega a las {HORA_REUNION}.</b>}
+          {proxima && proxima !== hoy && <>Próxima: <b className="text-white capitalize">{fechaLarga(proxima)}</b> a las {HORA_REUNION}.</>}
+          {!proxima && 'No hay próxima reunión: ninguna tarea abierta tiene fecha.'}
+        </span>
+      </p>
 
       {/* Month grid (tablet/desktop). */}
       <div className={`${card} hidden md:block overflow-hidden`}>
@@ -117,6 +151,7 @@ export default function CalendarioVista({ tareas, onAbrir }) {
                   >
                     {c.dia}
                   </span>
+                  {esReunion(c.iso) && <Reunion compacta />}
                 </div>
                 {lista.slice(0, MAX_POR_DIA).map((t) => <Chip key={t.id} t={t} hoy={hoy} onAbrir={onAbrir} />)}
                 {lista.length > MAX_POR_DIA && (
@@ -137,8 +172,9 @@ export default function CalendarioVista({ tareas, onAbrir }) {
       {diaAbierto && (
         <div className={`${card} p-4 hidden md:block`}>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-white">
-              {new Date(`${diaAbierto}T12:00:00`).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <span className="capitalize">{fechaLarga(diaAbierto)}</span>
+              {esReunion(diaAbierto) && <Reunion />}
             </h3>
             <button type="button" className="text-xs text-[#9aafc3] hover:text-white" onClick={() => setDiaAbierto(null)}>Cerrar</button>
           </div>
@@ -151,9 +187,12 @@ export default function CalendarioVista({ tareas, onAbrir }) {
         {!diasConTareas.length && <p className="text-sm text-[#9aafc3]">No hay tareas con fecha en este mes.</p>}
         {diasConTareas.map((c) => (
           <div key={c.iso} className={`${card} p-3`}>
-            <div className={`text-xs mb-2 capitalize ${c.iso === hoy ? 'text-[#67c8f3] font-semibold' : 'text-[#9aafc3]'}`}>
-              {c.iso === hoy ? 'Hoy · ' : ''}
-              {new Date(`${c.iso}T12:00:00`).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'short' })}
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className={`text-xs capitalize ${c.iso === hoy ? 'text-[#67c8f3] font-semibold' : 'text-[#9aafc3]'}`}>
+                {c.iso === hoy ? 'Hoy · ' : ''}
+                {new Date(`${c.iso}T12:00:00`).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'short' })}
+              </div>
+              {esReunion(c.iso) && <Reunion />}
             </div>
             <div className="space-y-1.5">{porDia.get(c.iso).map((t) => <Chip key={t.id} t={t} hoy={hoy} onAbrir={onAbrir} completo />)}</div>
           </div>
