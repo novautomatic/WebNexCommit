@@ -35,6 +35,21 @@ const faqJsonLd = {
   mainEntity: FAQS.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
 };
 
+// Describes the builder itself as a free web app made by NexCommit.
+const appJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'Creador de páginas web con IA de NexCommit',
+  url: 'https://www.nexcommit.com/crea-tu-web',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  inLanguage: 'es-CL',
+  description:
+    'Crea gratis la página web de tu negocio con inteligencia artificial y ajústala conversando con un asistente por chat. Se publica en nexcommit.com/tu-empresa.',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'CLP' },
+  provider: { '@id': 'https://www.nexcommit.com/#organization' },
+};
+
 export default function CreaTuWeb() {
   return (
     <div className="nh">
@@ -43,7 +58,7 @@ export default function CreaTuWeb() {
         description="Crea gratis la página web de tu negocio con inteligencia artificial. Cuéntanos qué haces, elige tu link nexcommit.com/tu-empresa y publícala en minutos."
         keywords="crear página web gratis, página web con IA, crear sitio web gratis Chile, página web para mi negocio, creador de páginas web"
         canonicalUrl="https://www.nexcommit.com/crea-tu-web"
-        jsonLd={[faqJsonLd]}
+        jsonLd={[appJsonLd, faqJsonLd]}
       />
 
       <section className="ctw-hero">

@@ -10,11 +10,12 @@ const organizationJsonLd = {
   '@type': 'ProfessionalService',
   '@id': 'https://www.nexcommit.com/#organization',
   name: 'NexCommit',
+  alternateName: 'Nex Commit',
   url: 'https://www.nexcommit.com/',
   logo: 'https://www.nexcommit.com/icon-512.png',
   image: 'https://www.nexcommit.com/nexcommit-og-image.png',
   description:
-    'Agencia chilena de desarrollo de páginas web, tiendas online, aplicaciones a medida, automatización y chatbots con inteligencia artificial para empresas.',
+    'Agencia chilena de desarrollo de páginas web, tiendas online, aplicaciones a medida, automatización y chatbots con inteligencia artificial para empresas. Ofrece un creador gratuito de páginas web con IA en nexcommit.com/crea-tu-web.',
   slogan: 'Más que un proyecto, una alianza',
   telephone: '+56929237511',
   priceRange: '$$',
@@ -28,7 +29,16 @@ const organizationJsonLd = {
     'Chatbots con inteligencia artificial',
     'Automatización de procesos',
     'Aplicaciones web',
+    'Creador de páginas web gratis con IA',
   ],
+  // The free AI page builder, so Google ties "crear página web gratis" to us.
+  makesOffer: {
+    '@type': 'Offer',
+    name: 'Creador de páginas web gratis con inteligencia artificial',
+    url: 'https://www.nexcommit.com/crea-tu-web',
+    price: '0',
+    priceCurrency: 'CLP',
+  },
   contactPoint: {
     '@type': 'ContactPoint',
     telephone: '+56929237511',

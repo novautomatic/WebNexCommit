@@ -50,6 +50,11 @@ export const HOME_FAQS = [
       'Creamos páginas web, landing pages y tiendas online; chatbots con inteligencia artificial para WhatsApp, Instagram, Facebook Messenger y web; sistemas para restaurantes con pantallas de cocina (KDS), alta en Uber Eats y delivery con la flota de Uber; integración de pagos online y presenciales (Webpay, Mercado Pago, Flow y TUU); conexiones por API con cualquier sistema; aulas virtuales y plataformas de cursos; automatizaciones y sistemas a medida con dashboards. Partimos por lo que tu negocio necesita hoy y crecemos contigo.',
   },
   {
+    question: '¿Puedo crear mi página web gratis con NexCommit?',
+    answer:
+      'Sí. En nexcommit.com/crea-tu-web nuestro creador con inteligencia artificial arma gratis y sin tarjeta una página para tu negocio en unos 2 minutos: le cuentas qué haces, eliges tu link nexcommit.com/tu-empresa y la ajustas conversando con el asistente por chat. Queda publicada 5 días como prueba; si te gusta, nuestro equipo la convierte en tu página definitiva con tu propio dominio.',
+  },
+  {
     question: '¿Cuánto cuesta una página web?',
     answer:
       'Depende del alcance: no cuesta lo mismo una landing page para una campaña que una tienda online con pagos y despacho. Tras una conversación corta por WhatsApp te enviamos una propuesta por escrito con alcance, plazo y precio cerrado, sin letra chica y antes de empezar.',
