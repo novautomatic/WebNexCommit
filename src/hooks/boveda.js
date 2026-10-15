@@ -1,4 +1,6 @@
-// Data layer for the team password vault (tables in 20261015120000_boveda_claves.sql, shared by 20261015180000_boveda_compartida.sql).
+// Data layer for the team password vault. Tables and functions live in
+// supabase/migrations/20261015120000_boveda_claves.sql, 20261015180000_boveda_compartida.sql
+// and 20261016120000..121000_boveda_2fa_*.sql (email code + recovery).
 // Everything stored here is already encrypted in the browser (see src/lib/boveda.js).
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
@@ -9,34 +11,53 @@ async function unwrap(promise) {
   return data;
 }
 
-// Row with the wrapped key, or null when the user has not created a vault yet.
-export function useBovedaConfig() {
+// Result of the SQL functions that report failures as {ok:false, error} instead of raising.
+function exigirOk(r) {
+  if (!r?.ok) {
+    const e = new Error(r?.error || 'No se pudo completar.');
+    e.restantes = r?.restantes;
+    throw e;
+  }
+  return r;
+}
+
+// Who I am for the vault: does it exist, did I pass the email code, can I administer it.
+// Polled so the screen locks itself when the 30-minute email-code session ends.
+export function useBovedaEstado() {
+  return useQuery({
+    queryKey: ['boveda', 'estado'],
+    queryFn: () => unwrap(supabase.rpc('boveda_estado')),
+    refetchInterval: 30 * 1000,
+  });
+}
+
+// Wrapped key row. Readable only after the email code; `clave_respaldo` is never sent to the browser.
+export function useBovedaConfig(enabled) {
   return useQuery({
     queryKey: ['boveda', 'config'],
-    queryFn: () => unwrap(supabase.from('boveda_config').select('*').maybeSingle()),
+    enabled,
+    queryFn: () => unwrap(supabase.from('boveda_config').select('equipo_id, sal, iteraciones, clave_envuelta').maybeSingle()),
   });
 }
 
-export function useCrearBoveda() {
+function useRpc(nombre, { despues } = {}) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (config) => unwrap(supabase.from('boveda_config').insert(config).select().single()),
-    onSettled: () => qc.invalidateQueries({ queryKey: ['boveda', 'config'] }),
-  });
-}
-
-export function useCambiarPasswordBoveda() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ equipoId, ...campos }) => {
-      const filas = await unwrap(
-        supabase.from('boveda_config').update({ ...campos, updated_at: new Date().toISOString() }).eq('equipo_id', equipoId).select(),
-      );
-      if (!filas?.length) throw new Error('No se pudo cambiar la contraseña maestra.');
+    mutationFn: async (args) => {
+      const r = await unwrap(supabase.rpc(nombre, args));
+      return despues ? despues(r) : r;
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['boveda', 'config'] }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['boveda'] }),
   });
 }
+
+export const usePedirCodigoBoveda = () => useRpc('boveda_pedir_codigo');
+export const useVerificarCodigoBoveda = () => useRpc('boveda_verificar_codigo', { despues: exigirOk });
+export const useCerrarSesionBoveda = () => useRpc('boveda_cerrar_sesion');
+export const useCrearBoveda = () => useRpc('boveda_crear');
+export const useCambiarPasswordBoveda = () => useRpc('boveda_cambiar_password');
+export const useRecuperarBoveda = () => useRpc('boveda_recuperar', { despues: exigirOk });
+export const useReiniciarBoveda = () => useRpc('boveda_reiniciar');
 
 // `enabled` keeps the ciphertext out of memory until the vault is unlocked.
 export function useBovedaEntradas(enabled) {
