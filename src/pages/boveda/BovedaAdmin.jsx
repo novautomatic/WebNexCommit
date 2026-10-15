@@ -75,6 +75,34 @@ function Encabezado({ children }) {
   );
 }
 
+// Master password field with a show/hide eye. `new-password` keeps the browser from autofilling
+// the panel login password here, which would make a correct master password look wrong.
+function CampoPassword({ id, value, onChange, autoFocus }) {
+  const [ver, setVer] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        id={id}
+        type={ver ? 'text' : 'password'}
+        autoComplete="new-password"
+        className={`${inputClass} pr-10`}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        autoFocus={autoFocus}
+        required
+      />
+      <button
+        type="button"
+        onClick={() => setVer((v) => !v)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9aafc3] hover:text-white"
+        aria-label={ver ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+      >
+        {ver ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+      </button>
+    </div>
+  );
+}
+
 function CrearBoveda({ onListo }) {
   const crear = useCrearBoveda();
   const [pass, setPass] = useState('');
@@ -109,11 +137,11 @@ function CrearBoveda({ onListo }) {
         </div>
         <div>
           <label className={labelClass} htmlFor="bv-pass">Contraseña maestra</label>
-          <input id="bv-pass" type="password" autoComplete="new-password" className={inputClass} value={pass} onChange={(e) => setPass(e.target.value)} autoFocus required />
+          <CampoPassword id="bv-pass" value={pass} onChange={setPass} autoFocus />
         </div>
         <div>
           <label className={labelClass} htmlFor="bv-rep">Repítela</label>
-          <input id="bv-rep" type="password" autoComplete="new-password" className={inputClass} value={repetir} onChange={(e) => setRepetir(e.target.value)} required />
+          <CampoPassword id="bv-rep" value={repetir} onChange={setRepetir} />
         </div>
         <ErrorBox error={errorLocal || crear.error} />
         <button type="submit" className={btnPrimary} disabled={trabajando}>{trabajando ? 'Creando…' : 'Crear bóveda'}</button>
@@ -147,7 +175,7 @@ function Desbloquear({ config, onListo }) {
         <p className="text-xs text-[#9aafc3]">Usa la contraseña maestra común del equipo. Si no la tienes, pídesela a quien creó la bóveda.</p>
         <div>
           <label className={labelClass} htmlFor="bv-pass">Contraseña maestra</label>
-          <input id="bv-pass" type="password" autoComplete="off" className={inputClass} value={pass} onChange={(e) => setPass(e.target.value)} autoFocus required />
+          <CampoPassword id="bv-pass" value={pass} onChange={setPass} autoFocus />
         </div>
         <ErrorBox error={error} />
         <button type="submit" className={btnPrimary} disabled={trabajando}>
@@ -445,15 +473,15 @@ function CambiarPassword({ config, onClose }) {
         <p className="text-xs text-[#9aafc3]">Avisa al equipo la nueva contraseña. Si alguien se va, cambia también las claves guardadas: quien conoció la contraseña pudo haberlas copiado.</p>
         <div>
           <label className={labelClass} htmlFor="bv-actual">Contraseña actual</label>
-          <input id="bv-actual" type="password" autoComplete="off" className={inputClass} value={actual} onChange={(e) => setActual(e.target.value)} required autoFocus />
+          <CampoPassword id="bv-actual" value={actual} onChange={setActual} autoFocus />
         </div>
         <div>
           <label className={labelClass} htmlFor="bv-nueva">Contraseña nueva</label>
-          <input id="bv-nueva" type="password" autoComplete="new-password" className={inputClass} value={nueva} onChange={(e) => setNueva(e.target.value)} required />
+          <CampoPassword id="bv-nueva" value={nueva} onChange={setNueva} />
         </div>
         <div>
           <label className={labelClass} htmlFor="bv-rep2">Repite la nueva</label>
-          <input id="bv-rep2" type="password" autoComplete="new-password" className={inputClass} value={repetir} onChange={(e) => setRepetir(e.target.value)} required />
+          <CampoPassword id="bv-rep2" value={repetir} onChange={setRepetir} />
         </div>
         <ErrorBox error={error} />
         <div className="flex justify-end gap-2">
