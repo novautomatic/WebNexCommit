@@ -11,6 +11,7 @@ import {
   Contact,
   FileText,
   FolderKanban,
+  KeyRound,
   LayoutGrid,
   Link2,
   List,
@@ -27,6 +28,7 @@ import { BlogAdmin } from './blog/BlogAdmin';
 import Cotizador from './Cotizador';
 import CreadorAdmin from './creador/CreadorAdmin';
 import OpenAIAdmin from './openai/OpenAIAdmin';
+import BovedaAdmin from './boveda/BovedaAdmin';
 import TareasAdmin from './tareas/TareasAdmin';
 import { ClientesPagina, EquipoPagina, ProyectosPagina } from './tareas/GestionPaginas';
 import ConfiguracionAdmin from './configuracion/ConfiguracionAdmin';
@@ -64,6 +66,7 @@ const GRUPOS = [
       { id: 'clientes', label: 'Clientes', icon: Contact },
       { id: 'equipo', label: 'Equipo', icon: Users },
       { id: 'accesos', label: 'Accesos', icon: Link2 },
+      { id: 'boveda', label: 'Bóveda', icon: KeyRound },
     ],
   },
   {
@@ -289,6 +292,7 @@ export default function Admin() {
             {seccion === 'clientes' && <ClientesPagina irA={irA} />}
             {seccion === 'equipo' && <EquipoPagina />}
             {seccion === 'accesos' && <ConfiguracionAdmin />}
+            {seccion === 'boveda' && <BovedaAdmin />}
             {seccion === 'blog' && <BlogAdmin />}
             {seccion === 'cotizador' && <Cotizador />}
             {seccion === 'creador' && <CreadorAdmin />}
