@@ -31,6 +31,9 @@ npm run preview   # Preview production build locally
 - `src/components/ContactButtons.jsx` - `WhatsAppLink` and `ContactDock` (mobile bar + desktop bubble).
 - GA4 (`G-FBHZGW2YB7`) loads in `index.html` with Consent Mode v2 defaulting to denied; `src/components/CookieConsent.jsx` grants it after the visitor accepts.
 
+**Password vault (`/admin?tab=boveda`):**
+- `src/pages/boveda/BovedaAdmin.jsx`, hooks in `src/hooks/boveda.js`, crypto in `src/lib/boveda.js`, migration `20261015120000_boveda_claves.sql` (tables `boveda_config`, `boveda_entradas`). Personal per team member (RLS `equipo_id = mi_equipo_id()`), zero-knowledge: a random AES-GCM data key encrypts each entry in the browser and is stored only wrapped by a PBKDF2 key derived from the master password. A lost master password is unrecoverable. The key lives only in React state (auto-lock after 5 min idle or on leaving the section). Never expose vault tables through the MCP server or any service-role code.
+
 **OpenAI costs (`/admin?tab=openai`, owners only):**
 - `src/pages/openai/OpenAIAdmin.jsx` reads `GET <Agente-Next back>/nexcommit/openai/panel` (route `src/routes/nexcommitOpenai.js` in `novautomatic/back_chat_next`), which checks the NexCommit session JWT + `equipo.rol = 'dueno'` and merges: the real OpenAI bill (Costs API) and tokens per API key (Usage API) via `OPENAI_ADMIN_KEY`; chats from Agente-Next `trazas` (RPC `uso_detalle`, file `db/uso-detalle.sql`); Creator from `creador_consumo`. The Creator uses its own key `OPENAI_API_KEY_CREADOR` (same OpenAI project; falls back to `OPENAI_API_KEY`). The USD→CLP rate lives in `creador_config.usd_clp`.
 

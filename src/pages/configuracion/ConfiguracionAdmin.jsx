@@ -41,7 +41,7 @@ export default function ConfiguracionAdmin() {
           <h2 className="text-white font-medium flex items-center gap-2"><Link2 className="w-4 h-4 text-[#67c8f3]" /> Accesos directos</h2>
           <p className="text-sm text-[#9aafc3] max-w-2xl">
             Links del equipo a Supabase, carpetas o documentos de Drive, Vercel, etc. Los ve y edita cualquier persona del equipo.
-            No guardes contraseñas ni links públicos con datos sensibles.
+            No guardes contraseñas aquí: para eso está la Bóveda.
           </p>
         </div>
         <button type="button" className={btnPrimary} onClick={() => setEditando({})}>
