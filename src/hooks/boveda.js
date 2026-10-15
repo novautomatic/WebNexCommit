@@ -1,4 +1,4 @@
-// Data layer for the password vault (tables in supabase/migrations/20261015120000_boveda_claves.sql).
+// Data layer for the team password vault (tables in 20261015120000_boveda_claves.sql, shared by 20261015180000_boveda_compartida.sql).
 // Everything stored here is already encrypted in the browser (see src/lib/boveda.js).
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';

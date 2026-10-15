@@ -8,7 +8,7 @@ import {
   useEliminarEntradaBoveda,
   useGuardarEntradaBoveda,
 } from '../../hooks/boveda';
-import { useMiEquipoId } from '../../hooks/tareas';
+import { useEquipo, useMiEquipoId } from '../../hooks/tareas';
 import { MIN_PASSWORD, abrirBoveda, cambiarPassword, cifrarDatos, crearBoveda, descifrarDatos, generarClave } from '../../lib/boveda';
 import { hostDe } from '../configuracion/utils';
 import { ErrorBox, Modal, btnGhost, btnPrimary, card, inputClass, labelClass } from '../tareas/ui';
@@ -67,7 +67,7 @@ function Encabezado({ children }) {
       <div>
         <h2 className="text-white font-medium flex items-center gap-2"><KeyRound className="w-4 h-4 text-[#67c8f3]" /> Bóveda de claves</h2>
         <p className="text-sm text-[#9aafc3] max-w-2xl">
-          Tus webs, usuarios y claves, cifrados con tu contraseña maestra. Solo tú puedes verlos: ni el equipo ni Supabase pueden abrirlos.
+          Webs, usuarios y claves en común del equipo, cifrados con una contraseña maestra compartida. Quien tenga la contraseña ve y edita todo; Supabase no puede abrirlas.
         </p>
       </div>
       {children}
@@ -103,9 +103,9 @@ function CrearBoveda({ onListo }) {
     <>
       <Encabezado />
       <form onSubmit={onSubmit} className={`${card} p-5 max-w-md space-y-4`}>
-        <h3 className="text-white font-medium flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-[#67c8f3]" /> Crea tu contraseña maestra</h3>
+        <h3 className="text-white font-medium flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-[#67c8f3]" /> Crea la contraseña maestra del equipo</h3>
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-          Esta contraseña no se puede recuperar. Si la olvidas, las claves guardadas se pierden. Anótala en un lugar seguro.
+          Es la contraseña de toda la bóveda: la usará todo el equipo, así que compártela solo con ellos y por un canal seguro. No se puede recuperar: si se pierde, las claves se pierden.
         </div>
         <div>
           <label className={labelClass} htmlFor="bv-pass">Contraseña maestra</label>
@@ -143,7 +143,8 @@ function Desbloquear({ config, onListo }) {
     <>
       <Encabezado />
       <form onSubmit={onSubmit} className={`${card} p-5 max-w-md space-y-4`}>
-        <h3 className="text-white font-medium flex items-center gap-2"><Lock className="w-4 h-4 text-[#67c8f3]" /> Bóveda bloqueada</h3>
+        <h3 className="text-white font-medium flex items-center gap-2"><Lock className="w-4 h-4 text-[#67c8f3]" /> Bóveda del equipo bloqueada</h3>
+        <p className="text-xs text-[#9aafc3]">Usa la contraseña maestra común del equipo. Si no la tienes, pídesela a quien creó la bóveda.</p>
         <div>
           <label className={labelClass} htmlFor="bv-pass">Contraseña maestra</label>
           <input id="bv-pass" type="password" autoComplete="off" className={inputClass} value={pass} onChange={(e) => setPass(e.target.value)} autoFocus required />
@@ -158,6 +159,9 @@ function Desbloquear({ config, onListo }) {
 }
 
 function Boveda({ config, llave, onBloquear }) {
+  const { data: equipo = [] } = useEquipo();
+  const { data: yo } = useMiEquipoId();
+  const esDueno = equipo.find((m) => m.id === yo)?.rol === 'dueno';
   const { data: filas = [], isLoading, error } = useBovedaEntradas(true);
   const eliminar = useEliminarEntradaBoveda();
   const [items, setItems] = useState([]);
@@ -232,9 +236,11 @@ function Boveda({ config, llave, onBloquear }) {
     <>
       <Encabezado>
         <div className="flex flex-wrap gap-2">
-          <button type="button" className={btnGhost} onClick={() => setCambiandoPass(true)}>
-            <KeyRound className="w-4 h-4" /> Cambiar contraseña maestra
-          </button>
+          {esDueno && (
+            <button type="button" className={btnGhost} onClick={() => setCambiandoPass(true)}>
+              <KeyRound className="w-4 h-4" /> Cambiar contraseña maestra
+            </button>
+          )}
           <button type="button" className={btnGhost} onClick={onBloquear}>
             <Lock className="w-4 h-4" /> Bloquear
           </button>
@@ -410,7 +416,6 @@ function EntradaForm({ entrada, llave, onClose }) {
 }
 
 function CambiarPassword({ config, onClose }) {
-  const { data: equipoId } = useMiEquipoId();
   const cambiar = useCambiarPasswordBoveda();
   const [actual, setActual] = useState('');
   const [nueva, setNueva] = useState('');
@@ -426,7 +431,7 @@ function CambiarPassword({ config, onClose }) {
     setTrabajando(true);
     try {
       const campos = await cambiarPassword(config, actual, nueva);
-      await cambiar.mutateAsync({ equipoId, ...campos });
+      await cambiar.mutateAsync({ equipoId: config.equipo_id, ...campos });
       onClose();
     } catch (err) {
       setError(err);
@@ -437,6 +442,7 @@ function CambiarPassword({ config, onClose }) {
   return (
     <Modal titulo="Cambiar contraseña maestra" onClose={onClose} ancho="max-w-md">
       <form onSubmit={onSubmit} className="space-y-4">
+        <p className="text-xs text-[#9aafc3]">Avisa al equipo la nueva contraseña. Si alguien se va, cambia también las claves guardadas: quien conoció la contraseña pudo haberlas copiado.</p>
         <div>
           <label className={labelClass} htmlFor="bv-actual">Contraseña actual</label>
           <input id="bv-actual" type="password" autoComplete="off" className={inputClass} value={actual} onChange={(e) => setActual(e.target.value)} required autoFocus />
@@ -452,7 +458,7 @@ function CambiarPassword({ config, onClose }) {
         <ErrorBox error={error} />
         <div className="flex justify-end gap-2">
           <button type="button" className={btnGhost} onClick={onClose}>Cancelar</button>
-          <button type="submit" className={btnPrimary} disabled={trabajando || !equipoId}>{trabajando ? 'Cambiando…' : 'Cambiar'}</button>
+          <button type="submit" className={btnPrimary} disabled={trabajando}>{trabajando ? 'Cambiando…' : 'Cambiar'}</button>
         </div>
       </form>
     </Modal>
