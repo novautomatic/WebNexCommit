@@ -8,6 +8,7 @@ import { BlogList } from './pages/blog/BlogList';
 import { BlogPost } from './pages/blog/BlogPost';
 const Admin = lazy(() => import('./pages/Admin'));
 const MiTienda = lazy(() => import('./pages/creador/tienda/MiTienda'));
+const ConfirmarDatos = lazy(() => import('./pages/ConfirmarDatos'));
 import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import Privacy from './pages/Privacy';
@@ -189,6 +190,7 @@ function App() {
           <Route path="/lp/:slug" element={<AdLanding />} />
           <Route path="/crea-tu-web" element={<CreaTuWeb />} />
           <Route path="/mi-tienda" element={<Suspense fallback={null}><MiTienda /></Suspense>} />
+          <Route path="/confirmar-datos" element={<Suspense fallback={null}><ConfirmarDatos /></Suspense>} />
         </Routes>
 
         {!isAdmin && (<>

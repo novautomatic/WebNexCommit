@@ -156,7 +156,22 @@ export default function Privacy() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-white mb-4">11. Modificaciones</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">11. Clientes de NexCommit y correos</h2>
+                <p className="text-brand-muted leading-relaxed mb-3">
+                  Si eres cliente, guardamos tu nombre, empresa, correo y teléfono para coordinar tus proyectos, el soporte y la
+                  facturación. La base es la ejecución del contrato. Antes de escribirte por correo te pedimos que aceptes estos
+                  términos, ya sea al registrarte en nuestro sitio o desde el enlace personal que te enviamos para confirmar tus datos.
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-brand-muted">
+                  <li>Las novedades y promociones de nuestros servicios son opcionales: solo te llegan si marcas esa casilla.</li>
+                  <li>Cada correo promocional trae un enlace para darte de baja, y el mismo enlace personal te deja corregir tus datos o cambiar tu decisión.</li>
+                  <li>Guardamos la fecha en que aceptaste o retiraste tu consentimiento como respaldo; la dirección IP solo como una huella cifrada (hash).</li>
+                  <li>El registro de correos enviados se borra a los 180 días.</li>
+                </ul>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold text-white mb-4">12. Modificaciones</h2>
                 <p className="text-brand-muted leading-relaxed">
                   NexCommit podrá actualizar esta política para reflejar cambios regulatorios o mejoras operativas.
                 </p>

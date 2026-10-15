@@ -271,6 +271,37 @@ export function useBorrarCliente() {
   });
 }
 
+// Emails to clients (migrations 20261015*_clientes_consentimiento_*.sql). Who may
+// receive what is enforced in SQL: the panel only asks.
+export function useCorreosClientes() {
+  return useQuery({
+    queryKey: ['tareas', 'cliente_correos'],
+    queryFn: async () => {
+      await supabase.rpc('procesar_correos_clientes');
+      return unwrap(supabase.from('cliente_correos').select('*').order('created_at', { ascending: false }).limit(500));
+    },
+    // Keep polling while something is still on its way.
+    refetchInterval: (q) => (q.state.data?.some((c) => c.estado === 'pendiente') ? 5000 : false),
+  });
+}
+
+export function useEnviarInvitacion() {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: (ids) => unwrap(supabase.rpc('cliente_enviar_invitacion', { p_clientes: ids })),
+    onSettled: () => invalidar('clientes', 'cliente_correos'),
+  });
+}
+
+export function useEnviarCampana() {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: ({ asunto, cuerpo, ids }) =>
+      unwrap(supabase.rpc('clientes_enviar_campana', { p_asunto: asunto, p_cuerpo: cuerpo, p_clientes: ids ?? null })),
+    onSettled: () => invalidar('cliente_correos'),
+  });
+}
+
 // Applies a diff of project↔client links. Pass either a project or a client as the fixed side.
 export function useVincularClientes() {
   const invalidar = useInvalidar();
