@@ -1,15 +1,30 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Copy, Eye, EyeOff, KeyRound, Lock, Pencil, Plus, RefreshCw, Search, ShieldCheck, Trash2, Unlock } from 'lucide-react';
+import { Copy, Eye, EyeOff, KeyRound, LifeBuoy, Lock, Mail, Pencil, Plus, RefreshCw, Search, ShieldCheck, Trash2, Unlock } from 'lucide-react';
+import { useAuth } from '../../components/AuthContext';
 import {
   useBovedaConfig,
   useBovedaEntradas,
+  useBovedaEstado,
   useCambiarPasswordBoveda,
+  useCerrarSesionBoveda,
   useCrearBoveda,
   useEliminarEntradaBoveda,
   useGuardarEntradaBoveda,
+  usePedirCodigoBoveda,
+  useRecuperarBoveda,
+  useReiniciarBoveda,
+  useVerificarCodigoBoveda,
 } from '../../hooks/boveda';
-import { useEquipo, useMiEquipoId } from '../../hooks/tareas';
-import { MIN_PASSWORD, abrirBoveda, cambiarPassword, cifrarDatos, crearBoveda, descifrarDatos, generarClave } from '../../lib/boveda';
+import {
+  MIN_PASSWORD,
+  abrirBoveda,
+  cambiarPassword,
+  cifrarDatos,
+  crearBoveda,
+  descifrarDatos,
+  envolverConNuevaPassword,
+  generarClave,
+} from '../../lib/boveda';
 import { hostDe } from '../configuracion/utils';
 import { ErrorBox, Modal, btnGhost, btnPrimary, card, inputClass, labelClass } from '../tareas/ui';
 
@@ -29,10 +44,23 @@ function enlaceDe(sitio) {
 }
 
 export default function BovedaAdmin() {
-  const { data: config, isLoading, error } = useBovedaConfig();
+  const { user } = useAuth();
+  const { data: estado, isLoading, error } = useBovedaEstado();
+  const verificada = Boolean(estado?.verificada);
+  const { data: config, error: errorConfig } = useBovedaConfig(verificada);
+  const cerrarSesion = useCerrarSesionBoveda();
   const [llave, setLlave] = useState(null);
+  const [restaurando, setRestaurando] = useState(false);
 
   const bloquear = useCallback(() => setLlave(null), []);
+  // Explicit lock also ends the email-code session, so the next entry asks for a new code.
+  const salir = () => {
+    setLlave(null);
+    cerrarSesion.mutate();
+  };
+
+  // The email-code session (30 min) ended on the server: drop the key too.
+  if (llave && estado && !estado.verificada) setLlave(null);
 
   // Auto-lock after inactivity. Leaving the section unmounts this and drops the key too.
   useEffect(() => {
@@ -50,15 +78,30 @@ export default function BovedaAdmin() {
     };
   }, [llave, bloquear]);
 
-  return (
-    <div className="max-w-5xl">
-      {isLoading && <p className="text-sm text-[#9aafc3]">Cargando…</p>}
-      <ErrorBox error={error} />
-      {!isLoading && !error && !config && <CrearBoveda onListo={setLlave} />}
-      {!isLoading && !error && config && !llave && <Desbloquear config={config} onListo={setLlave} />}
-      {!isLoading && !error && config && llave && <Boveda config={config} llave={llave} onBloquear={bloquear} />}
-    </div>
-  );
+  let contenido;
+  if (isLoading) contenido = <p className="text-sm text-[#9aafc3]">Cargando…</p>;
+  else if (error) contenido = <ErrorBox error={error} />;
+  else if (!estado?.equipo) contenido = <p className="text-sm text-[#9aafc3]">La Bóveda es solo para el equipo de NexCommit.</p>;
+  else if (!estado.existe) contenido = <CrearBoveda onListo={setLlave} />;
+  else if (!estado.verificada) contenido = <PantallaCodigo email={user?.email} />;
+  else if (errorConfig) contenido = <ErrorBox error={errorConfig} />;
+  else if (!config) contenido = <p className="text-sm text-[#9aafc3]">Cargando…</p>;
+  else if (!llave && restaurando) {
+    contenido = (
+      <Restaurar
+        estado={estado}
+        email={user?.email}
+        onListo={(k) => {
+          setRestaurando(false);
+          setLlave(k);
+        }}
+        onVolver={() => setRestaurando(false)}
+      />
+    );
+  } else if (!llave) contenido = <Desbloquear config={config} estado={estado} onListo={setLlave} onOlvide={() => setRestaurando(true)} />;
+  else contenido = <Boveda config={config} estado={estado} llave={llave} onBloquear={salir} />;
+
+  return <div className="max-w-5xl">{contenido}</div>;
 }
 
 function Encabezado({ children }) {
@@ -67,7 +110,7 @@ function Encabezado({ children }) {
       <div>
         <h2 className="text-white font-medium flex items-center gap-2"><KeyRound className="w-4 h-4 text-[#67c8f3]" /> Bóveda de claves</h2>
         <p className="text-sm text-[#9aafc3] max-w-2xl">
-          Webs, usuarios y claves en común del equipo, cifrados con una contraseña maestra compartida. Quien tenga la contraseña ve y edita todo; Supabase no puede abrirlas.
+          Webs, usuarios y claves en común del equipo, cifrados con una contraseña maestra compartida. Para entrar se pide un código que llega a tu correo y la contraseña maestra.
         </p>
       </div>
       {children}
@@ -103,6 +146,52 @@ function CampoPassword({ id, value, onChange, autoFocus }) {
   );
 }
 
+// "Send me a code" state shared by the access and the restore screens (60 s between sends).
+function useEnvioCodigo(proposito) {
+  const pedir = usePedirCodigoBoveda();
+  const [enviado, setEnviado] = useState(false);
+  const [segundos, setSegundos] = useState(0);
+  useEffect(() => {
+    if (segundos <= 0) return undefined;
+    const t = setTimeout(() => setSegundos((x) => x - 1), 1000);
+    return () => clearTimeout(t);
+  }, [segundos]);
+  const enviar = () =>
+    pedir.mutate(
+      { p_proposito: proposito },
+      {
+        onSuccess: () => {
+          setEnviado(true);
+          setSegundos(60);
+        },
+      },
+    );
+  return { enviado, segundos, enviar, enviando: pedir.isPending, error: pedir.error };
+}
+
+function BotonEnviarCodigo({ envio }) {
+  return (
+    <button type="button" className={envio.enviado ? btnGhost : btnPrimary} onClick={envio.enviar} disabled={envio.enviando || envio.segundos > 0}>
+      <Mail className="w-4 h-4" />
+      {envio.enviando ? 'Enviando…' : envio.enviado ? (envio.segundos > 0 ? `Reenviar en ${envio.segundos} s` : 'Reenviar código') : 'Enviarme el código'}
+    </button>
+  );
+}
+
+const CampoCodigo = ({ value, onChange }) => (
+  <input
+    id="bv-codigo"
+    className={`${inputClass} text-center text-xl tracking-[0.4em] font-mono`}
+    value={value}
+    onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+    inputMode="numeric"
+    autoComplete="one-time-code"
+    maxLength={6}
+    placeholder="000000"
+    required
+  />
+);
+
 function CrearBoveda({ onListo }) {
   const crear = useCrearBoveda();
   const [pass, setPass] = useState('');
@@ -117,8 +206,8 @@ function CrearBoveda({ onListo }) {
     setErrorLocal(null);
     setTrabajando(true);
     try {
-      const { config, llave } = await crearBoveda(pass);
-      await crear.mutateAsync(config);
+      const { config, llave, respaldo } = await crearBoveda(pass);
+      await crear.mutateAsync({ p_sal: config.sal, p_iter: config.iteraciones, p_envuelta: config.clave_envuelta, p_dek: respaldo });
       onListo(llave);
     } catch (err) {
       setErrorLocal(err);
@@ -133,7 +222,8 @@ function CrearBoveda({ onListo }) {
       <form onSubmit={onSubmit} className={`${card} p-5 max-w-md space-y-4`}>
         <h3 className="text-white font-medium flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-[#67c8f3]" /> Crea la contraseña maestra del equipo</h3>
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-          Es la contraseña de toda la bóveda: la usará todo el equipo, así que compártela solo con ellos y por un canal seguro. No se puede recuperar: si se pierde, las claves se pierden.
+          Es la contraseña de toda la bóveda: la usará todo el equipo, así que compártela solo con ellos y por un canal seguro. Si se olvida, un dueño puede
+          restaurarla con un código que llega a su correo. Para eso se guarda una copia de la llave de la bóveda cifrada en el servidor.
         </div>
         <div>
           <label className={labelClass} htmlFor="bv-pass">Contraseña maestra</label>
@@ -150,7 +240,45 @@ function CrearBoveda({ onListo }) {
   );
 }
 
-function Desbloquear({ config, onListo }) {
+// Step 1 of 2: the email code (enforced by the database, not just this screen).
+function PantallaCodigo({ email }) {
+  const envio = useEnvioCodigo('acceso');
+  const verificar = useVerificarCodigoBoveda();
+  const [codigo, setCodigo] = useState('');
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    verificar.mutate({ p_codigo: codigo });
+  };
+
+  return (
+    <>
+      <Encabezado />
+      <form onSubmit={onSubmit} className={`${card} p-5 max-w-md space-y-4`}>
+        <h3 className="text-white font-medium flex items-center gap-2"><Mail className="w-4 h-4 text-[#67c8f3]" /> Paso 1: código por correo</h3>
+        <p className="text-xs text-[#9aafc3]">Te enviamos un código de 6 dígitos a <b className="text-white">{email}</b>. Dura 10 minutos.</p>
+        <BotonEnviarCodigo envio={envio} />
+        <ErrorBox error={envio.error} />
+        {envio.enviado && (
+          <>
+            <div>
+              <label className={labelClass} htmlFor="bv-codigo">Código</label>
+              <CampoCodigo value={codigo} onChange={setCodigo} />
+            </div>
+            <ErrorBox error={verificar.error} />
+            {verificar.error?.restantes !== undefined && <p className="text-xs text-amber-200">Te quedan {verificar.error.restantes} intentos con este código.</p>}
+            <button type="submit" className={btnPrimary} disabled={verificar.isPending || codigo.length !== 6}>
+              {verificar.isPending ? 'Verificando…' : 'Verificar'}
+            </button>
+          </>
+        )}
+      </form>
+    </>
+  );
+}
+
+// Step 2 of 2: the master password.
+function Desbloquear({ config, estado, onListo, onOlvide }) {
   const [pass, setPass] = useState('');
   const [error, setError] = useState(null);
   const [trabajando, setTrabajando] = useState(false);
@@ -171,25 +299,124 @@ function Desbloquear({ config, onListo }) {
     <>
       <Encabezado />
       <form onSubmit={onSubmit} className={`${card} p-5 max-w-md space-y-4`}>
-        <h3 className="text-white font-medium flex items-center gap-2"><Lock className="w-4 h-4 text-[#67c8f3]" /> Bóveda del equipo bloqueada</h3>
+        <h3 className="text-white font-medium flex items-center gap-2"><Lock className="w-4 h-4 text-[#67c8f3]" /> Paso 2: contraseña maestra</h3>
         <p className="text-xs text-[#9aafc3]">Usa la contraseña maestra común del equipo. Si no la tienes, pídesela a quien creó la bóveda.</p>
         <div>
           <label className={labelClass} htmlFor="bv-pass">Contraseña maestra</label>
           <CampoPassword id="bv-pass" value={pass} onChange={setPass} autoFocus />
         </div>
         <ErrorBox error={error} />
-        <button type="submit" className={btnPrimary} disabled={trabajando}>
-          <Unlock className="w-4 h-4" /> {trabajando ? 'Abriendo…' : 'Desbloquear'}
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button type="submit" className={btnPrimary} disabled={trabajando}>
+            <Unlock className="w-4 h-4" /> {trabajando ? 'Abriendo…' : 'Desbloquear'}
+          </button>
+          {estado.admin ? (
+            <button type="button" onClick={onOlvide} className="text-sm text-[#67c8f3] hover:underline">Olvidé mi contraseña maestra</button>
+          ) : (
+            <span className="text-xs text-[#9aafc3]">¿La olvidaste? Un dueño puede restaurarla.</span>
+          )}
+        </div>
       </form>
     </>
   );
 }
 
-function Boveda({ config, llave, onBloquear }) {
-  const { data: equipo = [] } = useEquipo();
-  const { data: yo } = useMiEquipoId();
-  const esDueno = equipo.find((m) => m.id === yo)?.rol === 'dueno';
+// "I forgot the master password": restore by email code, or (old vaults without backup) start over.
+function Restaurar({ estado, email, onListo, onVolver }) {
+  return (
+    <>
+      <Encabezado />
+      <div className={`${card} p-5 max-w-md space-y-4`}>
+        <h3 className="text-white font-medium flex items-center gap-2"><LifeBuoy className="w-4 h-4 text-[#67c8f3]" /> Restaurar la contraseña maestra</h3>
+        {estado.con_respaldo ? <RestaurarConCodigo email={email} onListo={onListo} /> : <ReiniciarSinRespaldo />}
+        <button type="button" onClick={onVolver} className="text-sm text-[#9aafc3] hover:text-white">← Volver</button>
+      </div>
+    </>
+  );
+}
+
+function RestaurarConCodigo({ email, onListo }) {
+  const envio = useEnvioCodigo('recuperacion');
+  const recuperar = useRecuperarBoveda();
+  const cambiar = useCambiarPasswordBoveda();
+  const [codigo, setCodigo] = useState('');
+  const [nueva, setNueva] = useState('');
+  const [repetir, setRepetir] = useState('');
+  const [error, setError] = useState(null);
+  const [trabajando, setTrabajando] = useState(false);
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    if (nueva.length < MIN_PASSWORD) return setError(new Error(`Usa al menos ${MIN_PASSWORD} caracteres.`));
+    if (nueva !== repetir) return setError(new Error('Las contraseñas no coinciden.'));
+    setError(null);
+    setTrabajando(true);
+    try {
+      const { dek } = await recuperar.mutateAsync({ p_codigo: codigo });
+      const nuevo = await envolverConNuevaPassword(dek, nueva);
+      await cambiar.mutateAsync({ p_sal: nuevo.sal, p_iter: nuevo.iteraciones, p_envuelta: nuevo.clave_envuelta });
+      onListo(await abrirBoveda(nueva, nuevo));
+    } catch (err) {
+      setError(err);
+      setTrabajando(false);
+    }
+  };
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <p className="text-xs text-[#9aafc3]">Te enviamos un código de 6 dígitos a <b className="text-white">{email}</b> para elegir una contraseña maestra nueva. Las claves guardadas no se pierden.</p>
+      <BotonEnviarCodigo envio={envio} />
+      <ErrorBox error={envio.error} />
+      {envio.enviado && (
+        <>
+          <div>
+            <label className={labelClass} htmlFor="bv-codigo">Código</label>
+            <CampoCodigo value={codigo} onChange={setCodigo} />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="bv-nueva">Contraseña maestra nueva</label>
+            <CampoPassword id="bv-nueva" value={nueva} onChange={setNueva} />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="bv-rep2">Repite la nueva</label>
+            <CampoPassword id="bv-rep2" value={repetir} onChange={setRepetir} />
+          </div>
+          <ErrorBox error={error} />
+          {error?.restantes !== undefined && <p className="text-xs text-amber-200">Te quedan {error.restantes} intentos con este código.</p>}
+          <button type="submit" className={btnPrimary} disabled={trabajando || codigo.length !== 6}>
+            {trabajando ? 'Restaurando…' : 'Restaurar y entrar'}
+          </button>
+        </>
+      )}
+    </form>
+  );
+}
+
+function ReiniciarSinRespaldo() {
+  const reiniciar = useReiniciarBoveda();
+  const [texto, setTexto] = useState('');
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-[#9aafc3]">
+        Esta bóveda se creó antes de que existiera la restauración, así que <b className="text-white">no se puede restaurar</b>: sin la contraseña maestra, sus claves no se pueden abrir.
+        Lo único posible es borrarla y empezar de nuevo (tendrás que volver a ingresar las claves).
+      </p>
+      <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+        Esto borra la bóveda y todas sus claves para todo el equipo. No se puede deshacer.
+      </div>
+      <div>
+        <label className={labelClass} htmlFor="bv-borrar">Escribe BORRAR para confirmar</label>
+        <input id="bv-borrar" className={inputClass} value={texto} onChange={(e) => setTexto(e.target.value)} autoComplete="off" />
+      </div>
+      <ErrorBox error={reiniciar.error} />
+      <button type="button" className={btnPrimary} disabled={texto !== 'BORRAR' || reiniciar.isPending} onClick={() => reiniciar.mutate()}>
+        <Trash2 className="w-4 h-4" /> {reiniciar.isPending ? 'Borrando…' : 'Borrar y empezar de nuevo'}
+      </button>
+    </div>
+  );
+}
+
+function Boveda({ config, estado, llave, onBloquear }) {
   const { data: filas = [], isLoading, error } = useBovedaEntradas(true);
   const eliminar = useEliminarEntradaBoveda();
   const [items, setItems] = useState([]);
@@ -264,7 +491,7 @@ function Boveda({ config, llave, onBloquear }) {
     <>
       <Encabezado>
         <div className="flex flex-wrap gap-2">
-          {esDueno && (
+          {estado.admin && (
             <button type="button" className={btnGhost} onClick={() => setCambiandoPass(true)}>
               <KeyRound className="w-4 h-4" /> Cambiar contraseña maestra
             </button>
@@ -459,7 +686,7 @@ function CambiarPassword({ config, onClose }) {
     setTrabajando(true);
     try {
       const campos = await cambiarPassword(config, actual, nueva);
-      await cambiar.mutateAsync({ equipoId: config.equipo_id, ...campos });
+      await cambiar.mutateAsync({ p_sal: campos.sal, p_iter: campos.iteraciones, p_envuelta: campos.clave_envuelta });
       onClose();
     } catch (err) {
       setError(err);

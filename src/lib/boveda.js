@@ -1,9 +1,10 @@
 // Client-side crypto for the password vault (panel → Bóveda).
 //
 // Design: a random data key (DEK, AES-GCM 256) encrypts every entry. The DEK is stored
-// only wrapped by a key derived from the master password (PBKDF2-SHA256). Changing the
-// master password re-wraps the DEK, so entries never need re-encrypting. Supabase only
-// ever sees ciphertext; the master password and the DEK never leave the browser.
+// wrapped by a key derived from the master password (PBKDF2-SHA256). Changing the
+// master password re-wraps the DEK, so entries never need re-encrypting. Entries are
+// only ever stored encrypted and the master password never leaves the browser. The
+// DEK is also escrowed once at creation (see crearBoveda) for email-code recovery.
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();
@@ -61,13 +62,24 @@ async function envolver(password, rawDek, iteraciones = ITERACIONES) {
   return { sal: aB64(sal), iteraciones, clave_envuelta: await sellar(kek, rawDek) };
 }
 
-// New vault: returns the row for `boveda_config` and the in-memory data key.
+// New vault: returns the wrapped key for `boveda_crear`, the in-memory data key and the
+// raw data key (base64). The latter goes to the server once, over TLS, to be stored
+// encrypted with the Vault secret so an owner can restore the master password by email.
 export async function crearBoveda(password) {
   const raw = aleatorio(32);
   const config = await envolver(password, raw);
   const llave = await importarDek(raw);
+  const respaldo = aB64(raw);
   raw.fill(0);
-  return { config, llave };
+  return { config, llave, respaldo };
+}
+
+// Restore: wraps the recovered data key (base64) with a new master password.
+export async function envolverConNuevaPassword(dekB64, nueva) {
+  const raw = deB64(dekB64);
+  const config = await envolver(nueva, raw);
+  raw.fill(0);
+  return config;
 }
 
 export async function abrirBoveda(password, config) {
