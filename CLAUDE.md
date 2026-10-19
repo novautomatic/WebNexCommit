@@ -57,7 +57,7 @@ npm run preview   # Preview production build locally
 - `insforge/` and `backend/` are leftovers from the previous InsForge backend and are not used by the frontend.
 
 **Key patterns:**
-- **Routing:** SPA routing using `react-router-dom` with `vercel.json` rewrites for production.
+- **Routing:** SPA routing using `react-router-dom` with `vercel.json` rewrites for production. Any one-segment path (`/algo`) not listed in `vercel.json` is proxied to the Creador back as a client page (`/:slug` → `back-chat-next.vercel.app/creador/p/:slug`), so every new single-segment route must be added to `vercel.json` (→ `/spa`) AND to `RESERVADOS` in the back's `src/creador/slugs.js`.
 - **SEO:** per-page metadata via `src/components/SEO.jsx` (react-helmet-async); `scripts/generate-sitemap.mjs` builds the sitemap. Canonical host is `https://www.nexcommit.com` (apex 308-redirects to www) — never write URLs without `www`.
 - **Prerender:** `npm run build` also builds `src/entry-server.jsx` (SSR) and runs `scripts/prerender.mjs`, which writes static HTML for `/`, `/servicios[/:slug]`, `/blog`, `/privacy`, `/terms` and every `/lp/:slug` (served via `cleanUrls` in `vercel.json`). Every other route falls back to the untouched shell `dist/spa.html` (rewrite destination must be `/spa`, without `.html`: with `cleanUrls` the `.html` form 404s). Head tags baked at build carry `data-pr` and `main.jsx` removes them on boot (React 19 + helmet-async v3 append tags instead of replacing them). New public routes must be added to the list in `prerender.mjs`; components must not touch `window`/`localStorage` during render.
 - **3D Hero:** Layered wireframe composition in `Hero3D.jsx` (icosahedron, dodecahedron, octahedron, particles, glow edges) wrapped in `Float`. Lazy-loaded.
