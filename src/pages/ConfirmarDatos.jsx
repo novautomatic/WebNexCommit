@@ -13,7 +13,10 @@ import './creador/creador.css';
 // Same link works later to change preferences or unsubscribe.
 // RPCs: consentimiento_ver / consentimiento_guardar (migration 20261015121000).
 
-const mensajeError = (err) => err?.message || 'No pudimos cargar tus datos. Intenta de nuevo en un rato.';
+// Only messages raised on purpose in SQL (RAISE EXCEPTION → P0001) are shown as is;
+// anything technical gets a friendly text.
+const mensajeError = (err) =>
+  err?.code === 'P0001' && err.message ? err.message : 'No pudimos cargar tus datos. Intenta de nuevo en un rato.';
 
 export default function ConfirmarDatos() {
   const [params] = useSearchParams();
