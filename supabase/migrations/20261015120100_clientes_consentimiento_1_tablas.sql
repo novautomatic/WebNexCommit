@@ -90,7 +90,7 @@ DO $$
 BEGIN
   IF to_regclass('supabase_migrations.schema_migrations') IS NOT NULL THEN
     INSERT INTO supabase_migrations.schema_migrations (version, name)
-    VALUES ('20261015120000', 'clientes_consentimiento_1_tablas')
+    VALUES ('20261015120100', 'clientes_consentimiento_1_tablas')
     ON CONFLICT DO NOTHING;
   END IF;
 END $$;
