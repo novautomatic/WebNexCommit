@@ -58,6 +58,15 @@
   animation: nh-underline 1.1s .4s cubic-bezier(.2,.8,.2,1) both;
 }
 @keyframes nh-underline { from { transform: scaleX(0.15); } to { transform: scaleX(1); } }
+/* Landings (/lp): títulos más largos que el de la home → un poco más chicos y el destacado
+   puede partirse en líneas, con el subrayado como fondo para que acompañe a cada línea. */
+.nh-hero h1.nh-h1-lp { font-size: clamp(38px, 4.8vw, 58px); }
+.nh-hero h1.nh-h1-lp em {
+  white-space: normal;
+  background: linear-gradient(90deg, var(--nh-brand), var(--nh-sky)) left 94% / 100% 0.1em no-repeat;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.nh-hero h1.nh-h1-lp em::after { display: none; }
 .nh-lead { font-size: 18px; line-height: 1.6; color: var(--nh-muted); max-width: 34em; margin-top: 22px !important; }
 .nh-ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
 .nh-trust { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 30px; font-size: 14px; color: var(--nh-muted); }

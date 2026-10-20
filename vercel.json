@@ -11,6 +11,7 @@
     { "source": "/privacy", "destination": "/spa" },
     { "source": "/terms", "destination": "/spa" },
     { "source": "/crea-tu-web", "destination": "/spa" },
+    { "source": "/precios", "destination": "/spa" },
     { "source": "/mi-tienda", "destination": "/spa" },
     { "source": "/confirmar-datos", "destination": "/spa" },
     { "source": "/mi-espacio", "destination": "/spa" },

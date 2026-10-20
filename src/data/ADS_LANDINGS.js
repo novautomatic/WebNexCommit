@@ -9,6 +9,8 @@ export const SHOW_PRICES = false;
 export const ADS_LANDINGS = [
   {
     slug: 'paginas-web',
+    queries: ['precio pagina web chile', 'cotizar pagina web', 'diseño web profesional chile', 'pagina web para mi negocio'],
+    planes: ['landing-page', 'ecommerce', 'reservas-y-citas', 'web-empresarial'],
     topic: 'una página web',
     eyebrow: 'Diseño y desarrollo web en Chile',
     title: 'Páginas web profesionales para tu empresa',
@@ -34,6 +36,8 @@ export const ADS_LANDINGS = [
   },
   {
     slug: 'landing-page',
+    queries: ['landing page para empresas', 'landing page precio', 'diseño landing page'],
+    planes: ['landing-page', 'web-empresarial'],
     topic: 'una landing page',
     eyebrow: 'Landing pages para campañas y ventas',
     title: 'Landing page profesional',
@@ -59,6 +63,8 @@ export const ADS_LANDINGS = [
   },
   {
     slug: 'aplicaciones-web',
+    queries: ['sistema web a medida', 'desarrollo de software a medida chile', 'sistema de agenda online'],
+    planes: ['reservas-y-citas'],
     topic: 'una aplicación o sistema a medida',
     eyebrow: 'Software y aplicaciones web a medida',
     title: 'Aplicaciones web y sistemas',
@@ -84,6 +90,8 @@ export const ADS_LANDINGS = [
   },
   {
     slug: 'chatbot-ia',
+    queries: ['chatbot para whatsapp business', 'chatbot con ia para empresas', 'agente de ia para whatsapp'],
+    planes: [],
     topic: 'un chatbot con IA',
     eyebrow: 'Chatbots con inteligencia artificial',
     title: 'Chatbot con IA para tu empresa',
@@ -131,6 +139,8 @@ export const ADS_LANDINGS = [
   },
   {
     slug: 'tienda-online',
+    queries: ['tienda online con webpay', 'pagina web con carrito de compras', 'cuanto cuesta una tienda online'],
+    planes: ['ecommerce'],
     topic: 'una tienda online',
     eyebrow: 'Ecommerce para vender en Chile',
     title: 'Tienda online para tu negocio',

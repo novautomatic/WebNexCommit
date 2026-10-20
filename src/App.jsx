@@ -22,6 +22,7 @@ import { BrandLogo } from './components/Brand';
 import SiteMeta from './components/SiteMeta';
 import AdLanding from './pages/AdLanding';
 import CreaTuWeb from './pages/CreaTuWeb';
+import Precios from './pages/Precios';
 import { ContactDock, WhatsAppLink } from './components/ContactButtons';
 import CookieConsent, { resetCookieConsent } from './components/CookieConsent';
 import { captureAdClick, GOOGLE_ADS } from './config/contact';
@@ -101,6 +102,9 @@ function App() {
               <Link to="/servicios" className="hover:text-white transition-colors duration-200">
                 Servicios
               </Link>
+              <Link to="/precios" className="hover:text-white transition-colors duration-200">
+                Precios
+              </Link>
               <Link to="/blog" className="hover:text-white transition-colors duration-200">
                 Blog
               </Link>
@@ -143,6 +147,13 @@ function App() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Servicios
+                </Link>
+                <Link
+                  to="/precios"
+                  className="text-white text-sm font-medium py-2 hover:text-brand-light transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Precios
                 </Link>
                 <Link
                   to="/blog"
@@ -193,6 +204,7 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/lp/:slug" element={<AdLanding />} />
           <Route path="/crea-tu-web" element={<CreaTuWeb />} />
+          <Route path="/precios" element={<Precios />} />
           <Route path="/mi-tienda" element={<Suspense fallback={null}><MiTienda /></Suspense>} />
           <Route path="/confirmar-datos" element={<Suspense fallback={null}><ConfirmarDatos /></Suspense>} />
           <Route path="/mi-espacio" element={<Suspense fallback={null}><MiEspacio /></Suspense>} />
@@ -211,6 +223,9 @@ function App() {
               >
                 <Link to="/servicios" className="hover:text-white transition-colors">
                   Servicios
+                </Link>
+                <Link to="/precios" className="hover:text-white transition-colors">
+                  Precios
                 </Link>
                 <Link to="/blog" className="hover:text-white transition-colors">
                   Blog
