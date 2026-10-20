@@ -35,7 +35,8 @@ const T = {
   AGE_RANGE_18_24: '18–24', AGE_RANGE_25_34: '25–34', AGE_RANGE_35_44: '35–44', AGE_RANGE_45_54: '45–54',
   AGE_RANGE_55_64: '55–64', AGE_RANGE_65_UP: '65+', AGE_RANGE_UNDETERMINED: 'Desconocida',
   EXCELLENT: 'Excelente', GOOD: 'Buena', AVERAGE: 'Promedio', POOR: 'Mala', PENDING: 'Pendiente', UNKNOWN: '—',
-  BEST: 'Mejor', LOW: 'Bajo', LEARNING: 'Aprendiendo',
+  BEST: 'Mejor', LOW: 'Bajo', LEARNING: 'Aprendiendo', NOT_APPLICABLE: 'Aún sin calificar',
+  ONE_PER_CLICK: 'Una por clic', MANY_PER_CLICK: 'Todas', HIDDEN: 'Oculta',
   ABOVE_AVERAGE: 'Sobre el promedio', BELOW_AVERAGE: 'Bajo el promedio',
   ENABLED: 'Activa', PAUSED: 'Pausada', REMOVED: 'Eliminada', ELIGIBLE: 'Apta', RARELY_SERVED: 'Casi no se muestra',
   ADDED: 'Agregada', EXCLUDED: 'Excluida', NONE: '—', ADDED_EXCLUDED: 'Agregada y excluida',
@@ -52,6 +53,6 @@ export function textos(v) {
   if (!v) return [];
   if (Array.isArray(v)) return v.map((x) => x.text || x).filter(Boolean);
   const s = String(v);
-  const m = [...s.matchAll(/text"?\s*[:=]\s*"([^"]+)"/g)].map((x) => x[1]);
+  const m = [...s.matchAll(/text=(.*?)(?=, [a-zA-Z]+=|\})/g)].map((x) => x[1].trim());
   return m.length ? m : [s];
 }
