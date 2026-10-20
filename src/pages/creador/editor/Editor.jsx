@@ -467,7 +467,7 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
         <div className="ed-fin-caja">
           <h2>Tu maqueta terminó</h2>
           <p>Ya pasó el plazo de prueba de <b>{pagina.url.replace('https://www.', '')}</b>. Nuestro equipo puede convertirla en tu página definitiva, con tu dominio y todo lo que necesites.</p>
-          <a className="nh-btn nh-btn-wa" href={avanzar} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" /> Quiero avanzar con NexCommit</a>
+          <a className="nh-btn nh-btn-wa" data-placement="creador_avanzar_modal" href={avanzar} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" /> Quiero avanzar con NexCommit</a>
           <button type="button" className="ed-link" onClick={onSalir}>Cerrar sesión</button>
         </div>
       </div>
@@ -521,7 +521,7 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
               <Store aria-hidden="true" /> <span>Mi tienda</span>
             </a>
           )}
-          <a className="ed-avanzar" href={avanzar} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" /> <span>Quiero avanzar con NexCommit</span></a>
+          <a className="ed-avanzar" data-placement="creador_avanzar_barra" href={avanzar} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" /> <span>Quiero avanzar con NexCommit</span></a>
           <button type="button" className="ed-icono" onClick={onSalir} title="Cerrar sesión" aria-label="Cerrar sesión"><LogOut /></button>
         </div>
       </header>

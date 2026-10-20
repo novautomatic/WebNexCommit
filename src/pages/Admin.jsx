@@ -21,6 +21,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
+  TrendingUp,
   Users,
   Wand2,
   X,
@@ -29,6 +30,7 @@ import { BlogAdmin } from './blog/BlogAdmin';
 import Cotizador from './Cotizador';
 import CreadorAdmin from './creador/CreadorAdmin';
 import OpenAIAdmin from './openai/OpenAIAdmin';
+import GoogleAdmin from './google/GoogleAdmin';
 import BovedaAdmin from './boveda/BovedaAdmin';
 import TareasAdmin from './tareas/TareasAdmin';
 import TareasClienteAdmin from './tareasCliente/TareasClienteAdmin';
@@ -79,6 +81,13 @@ const GRUPOS = [
       { id: 'blog', label: 'Blog', icon: FileText },
       { id: 'cotizador', label: 'Cotizador', icon: Calculator },
       { id: 'creador', label: 'Creador', icon: Wand2 },
+    ],
+  },
+  {
+    titulo: 'Marketing',
+    nacion: 'fuego',
+    items: [
+      { id: 'google', label: 'Herramientas Google', icon: TrendingUp },
     ],
   },
   {
@@ -301,6 +310,7 @@ export default function Admin() {
             {seccion === 'cotizador' && <Cotizador />}
             {seccion === 'creador' && <CreadorAdmin />}
             {seccion === 'openai' && <OpenAIAdmin />}
+            {seccion === 'google' && <GoogleAdmin />}
           </main>
         </div>
       </div>

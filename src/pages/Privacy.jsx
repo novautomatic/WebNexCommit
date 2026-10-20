@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import SEO from '../components/SEO';
 import { POLITICA, RESPONSABLE } from '../config/legal';
+import { CLARITY_ID } from '../lib/clarity';
 
 // Contents follow Ley 21.719 art. 14 ter (minimum information the controller must publish).
 // Responsible-party data lives in src/config/legal.js.
@@ -12,7 +13,7 @@ const h2 = 'text-2xl font-bold text-white mb-4';
 const TRATAMIENTOS = [
   {
     quien: 'Visitantes del sitio',
-    datos: 'Datos de navegación (páginas vistas, dispositivo, origen de la visita) mediante cookies de Google',
+    datos: `Datos de navegación (páginas vistas, dispositivo, origen de la visita) mediante cookies de Google${CLARITY_ID ? ' y, si aceptas, cómo se usa la página (clics y desplazamiento, con textos y formularios ocultos) con Microsoft Clarity' : ''}`,
     para: 'Medir visitas y saber qué anuncios generan contactos',
     base: 'Consentimiento (aviso de cookies)',
     plazo: 'El que tenga configurado Google Analytics (como máximo 14 meses)',
@@ -134,6 +135,7 @@ export default function Privacy() {
                   <li><strong className="text-white">Supabase</strong>: base de datos, archivos y acceso al portal (Estados Unidos).</li>
                   <li><strong className="text-white">Vercel</strong>: alojamiento del sitio y del servidor que envía los correos (Estados Unidos).</li>
                   <li><strong className="text-white">Google</strong>: envío de correos, y con tu consentimiento, Google Analytics y Google Ads (Estados Unidos).</li>
+                  {CLARITY_ID && <li><strong className="text-white">Microsoft</strong>: con tu consentimiento, Microsoft Clarity para ver de forma agregada cómo se navega el sitio, con textos y formularios ocultos (Estados Unidos).</li>}
                   <li><strong className="text-white">OpenAI</strong>: genera los textos de las páginas de «Crea tu web» a partir de la descripción del negocio; no le enviamos datos de contacto (Estados Unidos).</li>
                   <li><strong className="text-white">Meta (WhatsApp)</strong>: avisos y conversaciones por WhatsApp cuando corresponda (Estados Unidos).</li>
                 </ul>
@@ -217,6 +219,7 @@ export default function Privacy() {
                   Con tu consentimiento usamos Google Analytics 4 para medir visitas y Google Ads para saber qué anuncios generan
                   contactos. Estas herramientas guardan cookies en tu navegador y envían datos de navegación a Google, que puede
                   tratarlos fuera de Chile.
+                  {CLARITY_ID && ' También usamos Microsoft Clarity para ver dónde se hace clic y hasta dónde se baja en cada página (mapas de calor y grabaciones con todos los textos y formularios ocultos); Microsoft puede tratar esos datos fuera de Chile.'}
                 </p>
                 <p className={p}>
                   No se activan hasta que aceptas el aviso de cookies. Puedes cambiar tu decisión en cualquier momento desde el enlace

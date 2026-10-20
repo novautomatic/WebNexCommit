@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { CLARITY_ID, activarClarity } from '../lib/clarity';
 
 // Cookie consent for GA4 + Google Ads (Consent Mode v2).
 // index.html starts every storage type as 'denied'; this banner flips it to
@@ -28,6 +29,7 @@ function applyChoice(choice) {
       ad_personalization: choice,
     });
   }
+  if (choice === 'granted') activarClarity();
 }
 
 export default function CookieConsent() {
@@ -54,9 +56,11 @@ export default function CookieConsent() {
         WebkitBackdropFilter: 'blur(18px)',
       }}
     >
+      <p className="text-white font-medium mb-1">¿Nos ayudas a mejorar la web?</p>
       <p className="text-brand-muted leading-relaxed">
-        Usamos cookies de Google Analytics y Google Ads para medir las visitas y saber qué anuncios
-        funcionan. Solo se activan si las aceptas. Más detalle en nuestra{' '}
+        Con tu permiso usamos cookies de Google Analytics, Google Ads{CLARITY_ID ? ' y Microsoft Clarity' : ''} para
+        saber qué páginas sirven y qué anuncios funcionan. No vendemos tus datos y puedes cambiar de opinión
+        cuando quieras desde «Cookies», al pie de la página. Más detalle en nuestra{' '}
         <Link to="/privacy" className="text-white underline underline-offset-2">
           Política de Privacidad
         </Link>

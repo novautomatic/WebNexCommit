@@ -45,7 +45,7 @@ export default function CapaGratuita({ tipo, slug, url, datos, modal = false, on
       <h3>{titulo(slug)}</h3>
       <p>{texto(tipo, datos)}</p>
       <p className="ed-capa-fin"><b>Se acabó la capa gratuita.</b> Escríbenos y seguimos construyendo tu página juntos: más cambios, tu propio dominio y todo lo que necesites.</p>
-      <a className="ed-capa-btn" href={wa} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" /> Seguir editando con NexCommit</a>
+      <a className="ed-capa-btn" data-placement="creador_capa_gratuita" href={wa} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" /> Seguir editando con NexCommit</a>
       {modal && <button type="button" className="ed-link" onClick={onCerrar}>Ahora no</button>}
     </div>
   );

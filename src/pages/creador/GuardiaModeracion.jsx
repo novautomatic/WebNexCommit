@@ -50,7 +50,7 @@ function PantallaBloqueo({ mensaje }) {
         <p style={{ fontSize: 14, lineHeight: 1.5, opacity: 0.85, margin: 0 }}>
           Intentaste publicar contenido obsceno, sexual, violento o discriminatorio tres veces, después de dos advertencias.
           Tu página quedó suspendida. Si crees que es un error, escríbenos por{' '}
-          <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', fontWeight: 700 }}>
+          <a data-placement="creador_moderacion" href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', fontWeight: 700 }}>
             WhatsApp
           </a>.
         </p>

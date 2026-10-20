@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
+import { instalarMedicionDeClics } from './lib/tracking'
+import { activarClaritySiHayConsentimiento } from './lib/clarity'
 
 // Head tags baked in at build time (scripts/prerender.mjs + index.html fallback).
 // React renders its own per route, so drop these to avoid a stale duplicate title.
@@ -15,3 +17,6 @@ createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </StrictMode>,
 )
+
+instalarMedicionDeClics()
+activarClaritySiHayConsentimiento()

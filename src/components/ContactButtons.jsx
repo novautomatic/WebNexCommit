@@ -9,6 +9,7 @@ export function WhatsAppLink({ topic, placement, className, children, onClick, .
       target="_blank"
       rel="noopener noreferrer"
       className={className}
+      data-tracked="1"
       onClick={(e) => {
         trackContact('whatsapp', placement);
         onClick?.(e);
@@ -26,6 +27,7 @@ export function CallLink({ placement, className, children, onClick, ...rest }) {
     <a
       href={telUrl}
       className={className}
+      data-tracked="1"
       onClick={(e) => {
         trackContact('call', placement);
         onClick?.(e);
