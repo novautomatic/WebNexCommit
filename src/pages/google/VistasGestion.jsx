@@ -55,7 +55,63 @@ function CamposCambio({ tipo, datos, setDatos, ops, bloqueado }) {
   );
 }
 
-function TarjetaCambio({ c, ops }) {
+// Antes y después de un cambio aplicado: 7 días previos vs. los días siguientes (sin contar el día
+// del cambio), con los datos diarios de Ads. Con pocos datos lo dice en vez de concluir.
+function sumar(dias) {
+  const t = dias.reduce((a, d) => ({ impr: a.impr + d.impr, clics: a.clics + d.clics, costo: a.costo + d.costo, conv: a.conv + d.conv }), { impr: 0, clics: 0, costo: 0, conv: 0 });
+  const pond = (k) => {
+    const con = dias.filter((d) => d[k] != null && d.impr > 0);
+    const base = con.reduce((a, d) => a + d.impr, 0);
+    return base ? con.reduce((a, d) => a + d[k] * d.impr, 0) / base : null;
+  };
+  return { ...t, ctr: t.impr ? t.clics / t.impr : null, cpc: t.clics ? t.costo / t.clics : null, cuota: pond('cuota'), perd: pond('perd_presupuesto'), n: dias.length };
+}
+
+function AntesDespues({ c, porDia }) {
+  if (c.estado !== 'aplicado' || !c.aplicado_at || !porDia?.length) return null;
+  const dia = new Date(c.aplicado_at).toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
+  const ms = Date.parse(`${dia}T12:00:00Z`);
+  const desde = new Date(ms - 7 * 864e5).toISOString().slice(0, 10);
+  const hasta = new Date(ms + 7 * 864e5).toISOString().slice(0, 10);
+  const antes = sumar(porDia.filter((d) => d.fecha >= desde && d.fecha < dia));
+  const despues = sumar(porDia.filter((d) => d.fecha > dia && d.fecha <= hasta));
+  const pocos = despues.n < 3 || despues.clics < 20;
+  const filas = [
+    ['Impresiones/día', antes.impr / (antes.n || 1), despues.impr / (despues.n || 1), (v) => v.toFixed(1), true],
+    ['Clics/día', antes.clics / (antes.n || 1), despues.clics / (despues.n || 1), (v) => v.toFixed(1), true],
+    ['CTR', antes.ctr, despues.ctr, (v) => pct(v, 1), true],
+    ['Costo por clic', antes.cpc, despues.cpc, clp, false],
+    ['Contactos', antes.conv, despues.conv, (v) => String(v), true],
+    ['Te mostraste en', antes.cuota, despues.cuota, (v) => pct(v), true],
+    ['Perdido por presupuesto', antes.perd, despues.perd, (v) => pct(v), false],
+  ];
+  return (
+    <div className="rounded-lg border border-white/10 p-2.5 mt-1">
+      <div className="text-[11px] text-[#9aafc3] mb-1.5">
+        Antes y después · {antes.n} día(s) con anuncios antes vs {despues.n} después del {fechaCorta(dia)}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-[11px]">
+        {filas.map(([nombre, a, d, f, masEsMejor]) => {
+          const ok = a != null && d != null && despues.n > 0;
+          const color = !ok || a === d ? '#9aafc3' : (d > a) === masEsMejor ? ESTADO.bien : ESTADO.alerta;
+          return (
+            <div key={nombre}>
+              <div className="text-[#5f7891]">{nombre}</div>
+              <div className="tabular-nums text-[#cfe0f0]">{a == null ? '—' : f(a)} → <b style={{ color }}>{ok ? f(d) : '—'}</b></div>
+            </div>
+          );
+        })}
+      </div>
+      {pocos && (
+        <p className="text-[11px] text-[#f5d58a] mt-1.5">
+          Pocos datos para concluir ({despues.n} día(s), {despues.clics} clics después). Míralo de nuevo cerca del {fechaCorta(hasta)}.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function TarjetaCambio({ c, ops, porDia }) {
   const editar = useEditarCambio();
   const [tipo, setTipo] = useState(c.tipo);
   const [datos, setDatos] = useState(c.datos || {});
@@ -74,6 +130,7 @@ function TarjetaCambio({ c, ops }) {
       {c.motivo && <p className="text-xs text-[#9aafc3]">{c.motivo}</p>}
       <CamposCambio tipo={tipo} datos={datos} setDatos={setDatos} ops={ops} bloqueado={!editable} />
       {c.resultado && <p className={`text-xs ${c.estado === 'error' ? 'text-[#f3a3a3]' : 'text-[#9fe39f]'}`}>Google Ads: {c.resultado}</p>}
+      <AntesDespues c={c} porDia={porDia} />
       {c.aprobado_por && <p className="text-[11px] text-[#5f7891]">Aprobado por {c.aprobado_por}{c.aplicado_at ? ` · aplicado ${new Date(c.aplicado_at).toLocaleString('es-CL', { dateStyle: 'short', timeStyle: 'short' })}` : ''}</p>}
       {editable && (
         <div className="flex flex-wrap gap-2 pt-1">
@@ -116,7 +173,8 @@ function NuevoCambio({ ops }) {
 
 export function VistaCambios({ p }) {
   const ops = useMemo(() => opciones(p), [p]);
-  const [filtro, setFiltro] = useState('propuesto');
+  // Abre en "Por revisar"; si no hay nada pendiente, en "Aplicado" (donde está el antes y después).
+  const [filtro, setFiltro] = useState(() => ((p.cambios || []).some((c) => c.estado === 'propuesto') ? 'propuesto' : 'aplicado'));
   const lista = (p.cambios || []).filter((c) => (filtro === 'todos' ? true : c.estado === filtro));
   const cuenta = (e) => (p.cambios || []).filter((c) => c.estado === e).length;
   if (!p.tablas_ok) return <Vacio>Falta correr la migración <b>20261020120000_herramientas_google.sql</b> en el Supabase de NexCommit.</Vacio>;
@@ -134,7 +192,9 @@ export function VistaCambios({ p }) {
         ))}
       </div>
       <div className="space-y-2">
-        {lista.map((c) => <TarjetaCambio key={`--`} c={c} ops={ops} />)}
+        {lista.map((c) => (
+          <TarjetaCambio key={`${c.id}-${c.estado}-${JSON.stringify(c.datos)}`} c={c} ops={ops} porDia={p.ads.error ? [] : p.ads.por_dia} />
+        ))}
         {!lista.length && <Vacio>No hay cambios en este estado.</Vacio>}
       </div>
       <div className="mt-4"><NuevoCambio ops={ops} /></div>
@@ -150,7 +210,80 @@ function Contador({ texto, max }) {
   return <span className={`text-[10px] tabular-nums ${n > max ? 'text-[#f3a3a3]' : 'text-[#5f7891]'}`}>{n}/{max}</span>;
 }
 
-function ResultadoAnalisis({ a, p, irACambios }) {
+const fechaCorta = (iso) => (iso ? `${String(iso).slice(8, 10)}/${String(iso).slice(5, 7)}` : '');
+
+// "Métrica · hoy → meta · evaluar el": lo que convierte una recomendación en algo verificable.
+function Medible({ x }) {
+  if (!x?.metrica) return null;
+  return (
+    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] rounded bg-white/[0.03] px-2 py-1">
+      <span className="text-[#9aafc3]">Métrica: <b className="text-white">{x.metrica}</b></span>
+      {x.hoy && <span className="text-[#9aafc3]">hoy <b className="text-white">{x.hoy}</b></span>}
+      {x.meta && <span className="text-[#9aafc3]">→ meta <b className="text-white">{x.meta}</b></span>}
+      {x.evaluar_el && <span className="text-[#67c8f3]">evaluar el {fechaCorta(x.evaluar_el)}</span>}
+    </div>
+  );
+}
+
+// Nota por área: por qué tiene esa nota y qué la subiría.
+function PuntajeDetalle({ filas }) {
+  if (!filas?.length) return null;
+  return (
+    <Seccion titulo="Nota por área" icon={ClipboardList} extra="el puntaje general es el promedio de estas notas">
+      <div className="space-y-3">
+        {filas.map((f) => (
+          <div key={f.area} className="grid md:grid-cols-[180px_1fr] gap-2 text-xs">
+            <div>
+              <div className="flex items-center justify-between text-white text-sm"><span>{f.area}</span><b className="tabular-nums">{f.nota}/10</b></div>
+              <div className="h-1.5 rounded bg-white/5 mt-1"><div className="h-1.5 rounded" style={{ width: `${(Number(f.nota) || 0) * 10}%`, background: Number(f.nota) >= 7 ? ESTADO.bien : Number(f.nota) >= 5 ? ESTADO.mejorar : ESTADO.alerta }} /></div>
+            </div>
+            <div>
+              <div className="text-[#cfe0f0]">{f.por_que}</div>
+              {f.que_la_subiria && <div className="text-[#67c8f3] mt-0.5">Para subirla: <span className="text-[#cfe0f0]">{f.que_la_subiria}</span></div>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Seccion>
+  );
+}
+
+// Este análisis contra el anterior: ¿mejoró la cuenta entre una revisión y otra?
+function ComparaAnterior({ a, anterior }) {
+  if (!anterior?.metricas || !a?.metricas) return null;
+  const m = a.metricas, n = anterior.metricas;
+  const filas = [
+    ['Puntaje', a.resumen?.puntaje, anterior.resumen?.puntaje, (v) => `${v ?? '—'}/10`, true],
+    ['Clics (Ads)', m.clics, n.clics, (v) => Math.round(v ?? 0).toLocaleString('es-CL'), true],
+    ['CTR', m.ctr, n.ctr, (v) => pct(v, 1), true],
+    ['Costo por clic', m.cpc, n.cpc, clp, false],
+    ['Contactos (Ads)', m.conv, n.conv, (v) => (v ?? 0).toLocaleString('es-CL'), true],
+    ['Te mostraste en', m.cuota, n.cuota, (v) => pct(v), true],
+    ['Perdido por presupuesto', m.perd_presupuesto, n.perd_presupuesto, (v) => pct(v), false],
+    ['Visitas a la web', m.ga4?.sesiones, n.ga4?.sesiones, (v) => (v ?? 0).toLocaleString('es-CL'), true],
+    ['Contactos en la web', m.ga4?.contactos, n.ga4?.contactos, (v) => (v ?? 0).toLocaleString('es-CL'), true],
+    ['Apariciones gratis (SEO)', m.sc?.impr, n.sc?.impr, (v) => (v ?? 0).toLocaleString('es-CL'), true],
+  ];
+  return (
+    <Seccion titulo={`Comparado con el análisis del ${new Date(anterior.created_at).toLocaleDateString('es-CL')}`} icon={History} extra={`cada análisis mide sus últimos ${a.dias} días · verde = mejoró`}>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-2 text-xs">
+        {filas.map(([nombre, hoy, antes, f, masEsMejor]) => {
+          const d = (Number(hoy) || 0) - (Number(antes) || 0);
+          const color = !d ? '#9aafc3' : (d > 0) === masEsMejor ? ESTADO.bien : ESTADO.alerta;
+          return (
+            <div key={nombre} className="rounded-lg border border-white/10 px-3 py-2">
+              <div className="text-[#9aafc3]">{nombre}</div>
+              <div className="text-white tabular-nums">{f(antes)} → <b>{f(hoy)}</b></div>
+              <div className="tabular-nums" style={{ color }}>{!d ? 'sin cambio' : d > 0 ? '▲ subió' : '▼ bajó'}</div>
+            </div>
+          );
+        })}
+      </div>
+    </Seccion>
+  );
+}
+
+function ResultadoAnalisis({ a, p, irACambios, anterior }) {
   const r = a.resumen || {};
   const crear = useCrearCambio();
   const ops = opciones(p);
@@ -163,6 +296,8 @@ function ResultadoAnalisis({ a, p, irACambios }) {
         <Kpi titulo="Costo del análisis" valor={`US$ ${Number(a.costo_usd || 0).toFixed(3)}`} detalle={a.modelo} />
       </div>
       <Seccion titulo="Resumen" icon={Bot}><p className="text-sm text-[#cfe0f0] leading-relaxed">{r.resumen}</p></Seccion>
+      <ComparaAnterior a={a} anterior={anterior} />
+      <PuntajeDetalle filas={r.puntaje_detalle} />
       <div className="grid lg:grid-cols-3 gap-4">
         <Seccion titulo="Qué mejorar" icon={Sparkles} className="lg:col-span-2">
           <div className="space-y-2">
@@ -178,13 +313,14 @@ function ResultadoAnalisis({ a, p, irACambios }) {
                   {m.por_que && <div><dt className="text-[#67c8f3] inline">Por qué: </dt><dd className="inline text-[#cfe0f0]">{m.por_que}</dd></div>}
                   {m.esperar && <div><dt className="text-[#67c8f3] inline">Qué esperar: </dt><dd className="inline text-[#cfe0f0]">{m.esperar}</dd></div>}
                 </dl>
+                <Medible x={m} />
               </div>
             ))}
           </div>
         </Seccion>
         <Seccion titulo="Lo que va bien" icon={Check}>
           <ul className="space-y-2 text-xs">
-            {(r.va_bien || []).map((b) => <li key={b.titulo}><b className="text-white">{b.titulo}</b><div className="text-[#9aafc3]">{b.detalle}</div></li>)}
+            {(r.va_bien || []).map((b) => <li key={b.titulo}><b className="text-white">{b.titulo}</b><div className="text-[#9aafc3]">{b.detalle}</div><Medible x={b} /></li>)}
           </ul>
         </Seccion>
       </div>
@@ -220,6 +356,8 @@ export function VistaAnalisis({ p, dias, irACambios }) {
   const [elegido, setElegido] = useState(null);
   const lista = historial.data || [];
   const actual = lista.find((x) => x.id === elegido) || analizar.data || lista[0] || p.ultimo_analisis;
+  // El anterior = el análisis más reciente hecho antes del que se está viendo.
+  const anterior = actual ? lista.find((x) => x.created_at < actual.created_at) : null;
   if (!p.tablas_ok) return <Vacio>Falta correr la migración <b>20261020120000_herramientas_google.sql</b> en el Supabase de NexCommit.</Vacio>;
   return (
     <div className="space-y-4">
@@ -237,7 +375,17 @@ export function VistaAnalisis({ p, dias, irACambios }) {
         </div>
         {analizar.error && <div className="mt-2"><ErrorBox error={analizar.error} /></div>}
       </Seccion>
-      {actual ? <ResultadoAnalisis a={actual} p={p} irACambios={irACambios} /> : <Vacio>Aún no hay análisis. Pulsa el botón: cada análisis queda guardado para comparar semana a semana.</Vacio>}
+      <Seccion titulo="Cómo usarlo para mejorar semana a semana" icon={History}>
+        <ol className="text-xs text-[#cfe0f0] space-y-1 list-decimal pl-5">
+          <li><b className="text-white">Analizar</b> y leer la nota por área: dice qué está más débil y qué la subiría.</li>
+          <li>Elegir <b className="text-white">1 o 2 cambios</b> (no cinco: si no, no sabrás cuál funcionó), ajustarlos en <b className="text-white">Cambios</b> y aprobarlos.</li>
+          <li>Aplicarlos: el script corre solo a las 7:00, o lo ejecutas a mano en Google Ads.</li>
+          <li><b className="text-white">Esperar 7 días</b> (14 si hay menos de ~50 clics por semana). Analizar antes da lo mismo: Google no tiene datos nuevos.</li>
+          <li>Mirar <b className="text-white">Antes y después</b> de cada cambio en <b className="text-white">Cambios → Aplicado</b>, y volver a analizar: compara solo con el análisis anterior.</li>
+        </ol>
+        <p className="text-[11px] text-[#5f7891] mt-2">Lo que cambies en la web (páginas, textos, diseño) anótalo con la fecha en Configuración → Notas para la IA: Google Ads no lo registra.</p>
+      </Seccion>
+      {actual ? <ResultadoAnalisis a={actual} p={p} irACambios={irACambios} anterior={anterior} /> : <Vacio>Aún no hay análisis. Pulsa el botón: cada análisis queda guardado para comparar semana a semana.</Vacio>}
     </div>
   );
 }
