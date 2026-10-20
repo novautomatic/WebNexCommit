@@ -9,6 +9,20 @@ import { clp, dec1, entero, pct, serieDiaria, textos, tr } from './formato';
 
 const DIA_ADS = { MONDAY: 0, TUESDAY: 1, WEDNESDAY: 2, THURSDAY: 3, FRIDAY: 4, SATURDAY: 5, SUNDAY: 6 };
 
+// Suma las palabras de cada grupo de anuncios (las pausadas cuentan lo que gastaron).
+function porGrupo(palabras = []) {
+  const m = new Map();
+  for (const p of palabras) {
+    const k = p.grupo || '—';
+    const g = m.get(k) || { grupo: k, palabras: 0, impr: 0, clics: 0, costo: 0, conv: 0 };
+    g.palabras += 1; g.impr += p.impr; g.clics += p.clics; g.costo += p.costo; g.conv += p.conv;
+    m.set(k, g);
+  }
+  return [...m.values()].map((g) => ({
+    ...g, ctr: g.impr ? g.clics / g.impr : null, cpc: g.clics ? g.costo / g.clics : null, cpa: g.conv ? g.costo / g.conv : null,
+  })).sort((a, b) => b.impr - a.impr);
+}
+
 const errorDe = (x) => (x && !Array.isArray(x) && x.error ? x.error : null);
 const arr = (x) => (Array.isArray(x) ? x : []);
 
@@ -238,6 +252,25 @@ export function VistaPalabras({ p, irACambios }) {
   const btn = 'text-[11px] rounded border border-white/15 px-2 py-0.5 text-[#9aafc3] hover:text-white hover:border-white/30 whitespace-nowrap';
   return (
     <div className="space-y-4">
+      <Seccion titulo="Comparación por grupo de anuncios" icon={BarChart3} extra="30 días · para saber qué grupo trae clientes más baratos">
+        <Tabla
+          minWidth={640}
+          filas={porGrupo(a.palabras)}
+          columnas={[
+            { titulo: 'Grupo', valor: (g) => g.grupo },
+            { titulo: 'Palabras', num: true, valor: (g) => g.palabras },
+            { titulo: 'Impr.', num: true, valor: (g) => g.impr, render: (g) => entero(g.impr) },
+            { titulo: 'Clics', num: true, valor: (g) => g.clics, render: (g) => entero(g.clics) },
+            { titulo: 'CTR', num: true, valor: (g) => g.ctr ?? -1, render: (g) => pct(g.ctr, 1) },
+            { titulo: 'CPC', num: true, valor: (g) => g.cpc ?? -1, render: (g) => clp(g.cpc) },
+            { titulo: 'Gasto', num: true, valor: (g) => g.costo, render: (g) => clp(g.costo) },
+            { titulo: 'Contactos', num: true, valor: (g) => g.conv, render: (g) => dec1(g.conv) },
+            { titulo: 'Costo/contacto', num: true, valor: (g) => g.cpa ?? Infinity, render: (g) => (g.cpa ? clp(g.cpa) : '—') },
+          ]}
+        />
+        <p className="text-[11px] text-[#5f7891] mt-2">Con menos de ~100 impresiones por grupo, las diferencias todavía pueden ser azar.</p>
+      </Seccion>
+
       <Seccion titulo="Palabras clave" icon={Target} extra="30 días · el nivel de calidad aparece con suficientes impresiones">
         <Tabla
           buscar={(x) => x.texto}
@@ -245,6 +278,7 @@ export function VistaPalabras({ p, irACambios }) {
           filas={a.palabras}
           columnas={[
             { titulo: 'Palabra', valor: (x) => x.texto },
+            { titulo: 'Grupo', valor: (x) => x.grupo || '—' },
             { titulo: 'Concord.', valor: (x) => tr(x.concordancia) },
             { titulo: 'Estado', valor: (x) => `${tr(x.estado)}${x.servicio && x.servicio !== 'ELIGIBLE' ? ` · ${tr(x.servicio)}` : ''}` },
             { titulo: 'QS', num: true, valor: (x) => x.qs ?? -1, render: (x) => x.qs ?? '—' },
