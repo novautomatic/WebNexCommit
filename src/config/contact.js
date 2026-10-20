@@ -7,11 +7,13 @@ export const PHONE_E164 = '+56929237511';
 export const PHONE_DISPLAY = '+56 9 2923 7511';
 
 // Google Ads conversion tracking.
-// Fill these with the values from Google Ads → Objetivos → Conversiones
-// (conversion ID looks like 'AW-123456789', each label like 'AbCdEfGhIjKl').
-// While empty, only GA4 events are sent (nothing breaks).
+// conversionId = the Ads Google tag (Ads → Herramientas → Administrador de datos →
+// Etiqueta de Google). Loading it is enough: the Ads conversion
+// "NexCommit Web (web) generate_lead" is event-based, so the generate_lead event
+// sent by trackContact() counts on its own. Labels are only for legacy
+// 'AW-…/label' conversions; leave them empty unless one is created.
 export const GOOGLE_ADS = {
-  conversionId: '',
+  conversionId: 'AW-18466256733',
   labels: {
     whatsapp: '',
     call: '',
