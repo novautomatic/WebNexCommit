@@ -11,6 +11,7 @@ import {
   Contact,
   FileText,
   FolderKanban,
+  Handshake,
   KeyRound,
   LayoutGrid,
   Link2,
@@ -30,6 +31,7 @@ import CreadorAdmin from './creador/CreadorAdmin';
 import OpenAIAdmin from './openai/OpenAIAdmin';
 import BovedaAdmin from './boveda/BovedaAdmin';
 import TareasAdmin from './tareas/TareasAdmin';
+import TareasClienteAdmin from './tareasCliente/TareasClienteAdmin';
 import { ClientesPagina, EquipoPagina, ProyectosPagina } from './tareas/GestionPaginas';
 import ConfiguracionAdmin from './configuracion/ConfiguracionAdmin';
 import AccesosMenu from './configuracion/AccesosMenu';
@@ -56,6 +58,7 @@ const GRUPOS = [
       { id: 'lista', label: 'Lista', icon: List },
       { id: 'calendario', label: 'Calendario', icon: CalendarDays },
       { id: 'areas', label: 'Por área', icon: Briefcase },
+      { id: 'clientes-tareas', label: 'De clientes', icon: Handshake },
     ],
   },
   {
@@ -288,6 +291,7 @@ export default function Admin() {
 
           <main className="flex-1 min-w-0 overflow-y-auto p-4 md:p-6">
             {VISTAS_TAREAS.includes(seccion) && <TareasAdmin vista={seccion} irA={irA} />}
+            {seccion === 'clientes-tareas' && <TareasClienteAdmin />}
             {seccion === 'proyectos' && <ProyectosPagina irA={irA} />}
             {seccion === 'clientes' && <ClientesPagina irA={irA} />}
             {seccion === 'equipo' && <EquipoPagina />}

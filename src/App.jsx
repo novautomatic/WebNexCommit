@@ -9,6 +9,7 @@ import { BlogPost } from './pages/blog/BlogPost';
 const Admin = lazy(() => import('./pages/Admin'));
 const MiTienda = lazy(() => import('./pages/creador/tienda/MiTienda'));
 const ConfirmarDatos = lazy(() => import('./pages/ConfirmarDatos'));
+const MiEspacio = lazy(() => import('./pages/portal/MiEspacio'));
 import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import Privacy from './pages/Privacy';
@@ -46,12 +47,16 @@ function ScrollToTop() {
 // Run before the first render so every WhatsApp link already carries the [Google] tag.
 captureAdClick();
 const GA_MEASUREMENT_ID = 'G-FBHZGW2YB7';
+// Pages whose query string carries personal tokens (portal links, consent links):
+// GA only gets the path, never the token.
+const RUTAS_CON_TOKEN = new Set(['/mi-espacio', '/confirmar-datos']);
 
 function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  // /mi-tienda (panel de las tiendas del Creador) también va sin el menú del sitio.
-  const isAdmin = location.pathname.startsWith('/admin') || location.pathname === '/mi-tienda';
+  // /mi-tienda (panel de las tiendas del Creador) y /mi-espacio (portal de clientes)
+  // también van sin el menú del sitio.
+  const isAdmin = location.pathname.startsWith('/admin') || ['/mi-tienda', '/mi-espacio'].includes(location.pathname);
   const hideDock = isAdmin || location.pathname === '/login';
   const lpMatch = location.pathname.match(/^\/lp\/([^/]+)/);
   const dockTopic = lpMatch ? getAdLanding(lpMatch[1])?.topic : undefined;
@@ -66,7 +71,7 @@ function App() {
   useEffect(() => {
     if (typeof window.gtag !== 'function') return;
     window.gtag('config', GA_MEASUREMENT_ID, {
-      page_path: location.pathname + location.search,
+      page_path: location.pathname + (RUTAS_CON_TOKEN.has(location.pathname) ? '' : location.search),
     });
   }, [location.pathname, location.search]);
 
@@ -190,6 +195,7 @@ function App() {
           <Route path="/crea-tu-web" element={<CreaTuWeb />} />
           <Route path="/mi-tienda" element={<Suspense fallback={null}><MiTienda /></Suspense>} />
           <Route path="/confirmar-datos" element={<Suspense fallback={null}><ConfirmarDatos /></Suspense>} />
+          <Route path="/mi-espacio" element={<Suspense fallback={null}><MiEspacio /></Suspense>} />
         </Routes>
 
         {!isAdmin && (<>

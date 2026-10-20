@@ -41,8 +41,10 @@ export default function ProtectedRoute({ children }) {
     return <Navigate to="/login" replace />;
   }
 
+  // Logged in but not on the team: a client from /mi-espacio (or someone else). The
+  // portal shows their space, or tells them they have none.
   if (!esAdmin && !equipo.ok) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/mi-espacio" replace />;
   }
 
   return children;
