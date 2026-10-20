@@ -3,7 +3,7 @@
 import {
   Activity, BarChart3, Clock, Globe2, Megaphone, MousePointerClick, Search, Smartphone, Target, Users,
 } from 'lucide-react';
-import { useCrearCambio } from '../../hooks/google';
+import { useCrearCambio, useOcultarAviso } from '../../hooks/google';
 import { BarrasH, BarrasTiempo, Hallazgo, Kpi, MapaCalor, Seccion, Tabla, Vacio } from './graficos';
 import { clp, dec1, entero, pct, serieDiaria, textos, tr } from './formato';
 
@@ -14,6 +14,7 @@ const arr = (x) => (Array.isArray(x) ? x : []);
 
 // ── Resumen ──────────────────────────────────────────────────────────────────
 export function VistaResumen({ p }) {
+  const ocultar = useOcultarAviso();
   const a = p.ads.error ? null : p.ads;
   const g = p.ga4?.error ? null : p.ga4;
   const s = p.search_console?.error ? null : p.search_console;
@@ -48,9 +49,20 @@ export function VistaResumen({ p }) {
       <div className="grid lg:grid-cols-3 gap-4">
         <Seccion titulo="Qué hacer ahora" icon={Target} className="lg:col-span-2" extra="Toca cada punto para ver cómo, por qué y qué esperar">
           <div className="space-y-2">
-            {[...grupos.alerta, ...grupos.mejorar].map((h) => <Hallazgo key={h.titulo} h={h} />)}
+            {[...grupos.alerta, ...grupos.mejorar].map((h) => (
+              <Hallazgo key={h.clave || h.titulo} h={h} onOcultar={(clave, dias) => ocultar.mutate({ clave, dias })} />
+            ))}
             {!grupos.alerta.length && !grupos.mejorar.length && <Vacio>Nada urgente. 👌</Vacio>}
           </div>
+          {ocultar.error && <div className="text-xs text-[#f3a3a3] mt-2">{ocultar.error.message}</div>}
+          {(p.ocultos || []).length > 0 && (
+            <details className="mt-3">
+              <summary className="cursor-pointer text-xs text-[#9aafc3] hover:text-white">Avisos ocultos ({p.ocultos.length}): vuelven solos al vencer si el problema sigue</summary>
+              <div className="space-y-2 mt-2">
+                {p.ocultos.map((h) => <Hallazgo key={h.clave} h={h} onMostrar={(clave) => ocultar.mutate({ clave, dias: 0 })} />)}
+              </div>
+            </details>
+          )}
         </Seccion>
         <Seccion titulo="Lo que va bien" icon={Activity}>
           <div className="space-y-2">

@@ -43,6 +43,12 @@ export function useGuardarConfig() {
   return useMutation({ mutationFn: (cuerpo) => llamar('/config', { metodo: 'PUT', cuerpo }), onSuccess: invalidar(qc) });
 }
 
+// "Ya lo hice": oculta un aviso del diagnóstico N días (0 = volver a mostrarlo).
+export function useOcultarAviso() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (cuerpo) => llamar('/ocultar', { metodo: 'POST', cuerpo }), onSuccess: invalidar(qc) });
+}
+
 export function useCrearCambio() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (cuerpo) => llamar('/cambios', { metodo: 'POST', cuerpo }), onSuccess: invalidar(qc) });

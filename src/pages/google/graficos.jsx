@@ -208,7 +208,7 @@ export function Tabla({ columnas, filas, buscar, minWidth = 640, limite = 100, v
 
 const ICONO = { bien: CheckCircle2, mejorar: AlertTriangle, alerta: XCircle };
 const NIVEL = { bien: 'Va bien', mejorar: 'Mejorar', alerta: 'Urgente' };
-export function Hallazgo({ h }) {
+export function Hallazgo({ h, onOcultar, onMostrar }) {
   const [abierto, setAbierto] = useState(false);
   const Icon = ICONO[h.nivel] || AlertTriangle;
   return (
@@ -230,6 +230,22 @@ export function Hallazgo({ h }) {
           {h.por_que && <div><dt className="text-[#67c8f3]">Por qué</dt><dd className="text-[#cfe0f0]">{h.por_que}</dd></div>}
           {h.esperar && <div><dt className="text-[#67c8f3]">Qué esperar</dt><dd className="text-[#cfe0f0]">{h.esperar}</dd></div>}
         </dl>
+      )}
+      {(onOcultar || onMostrar) && h.clave && h.nivel !== 'bien' && (
+        <div className="px-10 pb-2.5 flex flex-wrap gap-2 text-[11px]">
+          {onOcultar && (
+            <>
+              <button type="button" className="rounded border border-white/15 px-2 py-0.5 text-[#9aafc3] hover:text-white" onClick={() => onOcultar(h.clave, 7)}>Ya lo hice · ocultar 7 días</button>
+              <button type="button" className="rounded border border-white/15 px-2 py-0.5 text-[#9aafc3] hover:text-white" onClick={() => onOcultar(h.clave, 30)}>Ocultar 30 días</button>
+            </>
+          )}
+          {onMostrar && (
+            <>
+              <span className="text-[#5f7891] py-0.5">Oculto hasta el {new Date(h.oculto_hasta).toLocaleDateString('es-CL')}</span>
+              <button type="button" className="rounded border border-white/15 px-2 py-0.5 text-[#9aafc3] hover:text-white" onClick={() => onMostrar(h.clave)}>Volver a mostrar</button>
+            </>
+          )}
+        </div>
       )}
     </div>
   );
