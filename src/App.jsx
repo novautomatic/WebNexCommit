@@ -71,8 +71,10 @@ function App() {
 
   useEffect(() => {
     if (typeof window.gtag !== 'function') return;
+    // page_location completo (no page_path): con page_path + query, gtag volvía a pegar la query
+    // y GA4 registraba "/lp/x?a=1?a=1", partiendo una misma página en varias filas.
     window.gtag('config', GA_MEASUREMENT_ID, {
-      page_path: location.pathname + (RUTAS_CON_TOKEN.has(location.pathname) ? '' : location.search),
+      page_location: window.location.origin + location.pathname + (RUTAS_CON_TOKEN.has(location.pathname) ? '' : location.search),
     });
   }, [location.pathname, location.search]);
 

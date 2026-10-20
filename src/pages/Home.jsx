@@ -112,6 +112,7 @@ export default function Home() {
           <h2>Elige lo que necesitas. Sabrás cuándo está listo.</h2>
           <p className="nh-sub">
             Plazos habituales desde que apruebas la propuesta. El precio y la fecha exacta van por escrito antes de empezar.
+            {' '}<Link to="/precios" className="text-[#67c8f3] underline underline-offset-2">Ver precios de cada plan</Link>.
           </p>
           <PlazosChart prefix="home" />
         </div>
@@ -214,6 +215,7 @@ export default function Home() {
             <WhatsAppLink topic="una página web" placement="home_final" className="nh-btn nh-btn-wa">
               <MessageCircle aria-hidden="true" /> Escribir por WhatsApp
             </WhatsAppLink>
+            <Link to="/precios" className="nh-btn nh-btn-ghost">Ver precios</Link>
           </div>
           <div className="nh-phone">
             o llama al <CallLink placement="home_final">{PHONE_DISPLAY}</CallLink>

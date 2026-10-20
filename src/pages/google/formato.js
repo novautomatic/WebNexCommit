@@ -48,6 +48,17 @@ const T = {
 };
 export const tr = (v) => T[v] ?? v ?? '—';
 
+// Estados de indexación de Search Console (URL Inspection API).
+export const INDEXACION = {
+  'Submitted and indexed': { texto: 'En Google', nivel: 'bien' },
+  'Indexed, not submitted in sitemap': { texto: 'En Google (fuera del sitemap)', nivel: 'bien' },
+  'Discovered - currently not indexed': { texto: 'Descubierta: en la fila de Google', nivel: 'mejorar' },
+  'Crawled - currently not indexed': { texto: 'Rastreada pero NO indexada: mejorar contenido', nivel: 'alerta' },
+  'URL is unknown to Google': { texto: 'Google no la conoce', nivel: 'alerta' },
+  'Page with redirect': { texto: 'Redirige a otra', nivel: 'mejorar' },
+  'Excluded by ‘noindex’ tag': { texto: 'Excluida (noindex)', nivel: 'alerta' },
+};
+
 // Los títulos del anuncio llegan como texto con estructura; sacamos solo los textos.
 export function textos(v) {
   if (!v) return [];

@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { useCrearCambio, useOcultarAviso } from '../../hooks/google';
 import { BarrasH, BarrasTiempo, Hallazgo, Kpi, MapaCalor, Seccion, Tabla, Vacio } from './graficos';
-import { clp, dec1, entero, pct, serieDiaria, textos, tr } from './formato';
+import { ESTADO, INDEXACION, clp, dec1, entero, pct, serieDiaria, textos, tr } from './formato';
 
 const DIA_ADS = { MONDAY: 0, TUESDAY: 1, WEDNESDAY: 2, THURSDAY: 3, FRIDAY: 4, SATURDAY: 5, SUNDAY: 6 };
 
@@ -426,6 +426,22 @@ export function VistaSeo({ p }) {
         <Seccion titulo="Apariciones por día" icon={Search} extra="Search Console tarda 2–3 días"><BarrasTiempo datos={serieDiaria(arr(s.por_dia).map((r) => ({ d: r.keys[0], v: r.impr })), 'd', 'v', p.dias)} etiqueta="Apariciones" alto={140} /></Seccion>
         <Seccion titulo="Clics por día" icon={MousePointerClick}><BarrasTiempo datos={serieDiaria(arr(s.por_dia).map((r) => ({ d: r.keys[0], v: r.clics })), 'd', 'v', p.dias)} etiqueta="Clics" alto={140} /></Seccion>
       </div>
+      {arr(s.indexacion).length > 0 && (
+        <Seccion titulo="¿Está en Google?" icon={Globe2} extra={`${s.total.indexadas ?? 0} de ${s.total.paginas_clave ?? 0} páginas clave indexadas · consultado ahora`}>
+          <Tabla minWidth={560} filas={arr(s.indexacion)} columnas={[
+            { titulo: 'Página', valor: (x) => corta(x.url) },
+            { titulo: 'Estado', valor: (x) => x.estado || x.error || '—', render: (x) => {
+              const e = INDEXACION[x.estado];
+              return <span style={{ color: e ? ESTADO[e.nivel] : '#9aafc3' }}>{e ? e.texto : (x.estado || x.error || '—')}</span>;
+            } },
+            { titulo: 'Último rastreo', num: true, valor: (x) => x.ultimo_rastreo || '', render: (x) => (x.ultimo_rastreo ? new Date(x.ultimo_rastreo).toLocaleDateString('es-CL') : 'nunca') },
+          ]} />
+          <p className="text-[11px] text-[#5f7891] mt-2">
+            "En la fila" = Google la conoce y la va a visitar: solo esperar (o pedir indexación, 3 por día). "Rastreada pero NO indexada" = Google la vio y no la quiso: hay que mejorar su contenido.
+          </p>
+        </Seccion>
+      )}
+
       <Seccion titulo="Con qué búsquedas apareces gratis" icon={Search}>
         <Tabla buscar={(x) => x.keys[0]} minWidth={560} filas={arr(s.consultas)} vacio="Google aún no muestra consultas (pocas apariciones o anonimizadas)." columnas={[
           { titulo: 'Búsqueda', valor: (x) => x.keys[0] },

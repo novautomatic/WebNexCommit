@@ -8,7 +8,7 @@ import {
 } from '../../hooks/google';
 import { ErrorBox, btnGhost, btnPrimary, inputClass, labelClass } from '../tareas/ui';
 import { Kpi, Seccion, Vacio } from './graficos';
-import { ESTADO, clp, pct } from './formato';
+import { ESTADO, clp, pct, tr } from './formato';
 
 const ESTADOS = {
   propuesto: { label: 'Por revisar', color: ESTADO.mejorar },
@@ -111,7 +111,15 @@ function AntesDespues({ c, porDia }) {
   );
 }
 
-function TarjetaCambio({ c, ops, porDia }) {
+// ¿La palabra que se quiere agregar ya está activa en OTRO grupo? Competirían entre sí y
+// contaminan cualquier comparación entre grupos (pasó con "pagina web precios").
+const normal = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[[\]"]/g, '').trim();
+function duplicadaEnOtroGrupo(tipo, datos, palabras = []) {
+  if (tipo !== 'palabra_nueva' || !datos?.texto) return [];
+  return palabras.filter((p) => p.estado === 'ENABLED' && normal(p.texto) === normal(datos.texto) && p.grupo !== datos.grupo);
+}
+
+function TarjetaCambio({ c, ops, porDia, palabras }) {
   const editar = useEditarCambio();
   const [tipo, setTipo] = useState(c.tipo);
   const [datos, setDatos] = useState(c.datos || {});
@@ -129,6 +137,11 @@ function TarjetaCambio({ c, ops, porDia }) {
       </div>
       {c.motivo && <p className="text-xs text-[#9aafc3]">{c.motivo}</p>}
       <CamposCambio tipo={tipo} datos={datos} setDatos={setDatos} ops={ops} bloqueado={!editable} />
+      {c.estado !== 'aplicado' && duplicadaEnOtroGrupo(tipo, datos, palabras).map((p) => (
+        <p key={p.id} className="text-xs text-[#f5d58a]">
+          ⚠ "{p.texto}" ya está activa en el grupo <b>{p.grupo}</b> ({tr(p.concordancia)}). Si la agregas aquí competirán entre sí: elige un solo grupo.
+        </p>
+      ))}
       {c.resultado && <p className={`text-xs ${c.estado === 'error' ? 'text-[#f3a3a3]' : 'text-[#9fe39f]'}`}>Google Ads: {c.resultado}</p>}
       <AntesDespues c={c} porDia={porDia} />
       {c.aprobado_por && <p className="text-[11px] text-[#5f7891]">Aprobado por {c.aprobado_por}{c.aplicado_at ? ` · aplicado ${new Date(c.aplicado_at).toLocaleString('es-CL', { dateStyle: 'short', timeStyle: 'short' })}` : ''}</p>}
@@ -193,7 +206,7 @@ export function VistaCambios({ p }) {
       </div>
       <div className="space-y-2">
         {lista.map((c) => (
-          <TarjetaCambio key={`${c.id}-${c.estado}-${JSON.stringify(c.datos)}`} c={c} ops={ops} porDia={p.ads.error ? [] : p.ads.por_dia} />
+          <TarjetaCambio key={`${c.id}-${c.estado}-${JSON.stringify(c.datos)}`} c={c} ops={ops} porDia={p.ads.error ? [] : p.ads.por_dia} palabras={p.ads.error ? [] : p.ads.palabras} />
         ))}
         {!lista.length && <Vacio>No hay cambios en este estado.</Vacio>}
       </div>
