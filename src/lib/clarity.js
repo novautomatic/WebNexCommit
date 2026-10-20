@@ -1,9 +1,9 @@
 // Microsoft Clarity (mapas de calor y grabaciones de sesión). Solo se carga si el
 // visitante ACEPTÓ las cookies (Ley 21.719: consentimiento previo y revocable) y
 // nunca en el panel interno. Los textos y formularios van enmascarados: configúralo
-// también en clarity.microsoft.com → Configuración → Enmascaramiento → "Estricto".
-// Mientras CLARITY_ID esté vacío no hace nada.
-export const CLARITY_ID = '';
+// también en clarity.microsoft.com → Configuración → Enmascaramiento → "Estricto" (hecho).
+// Proyecto "NexCommit" en Clarity (cuenta de Google de NexCommit). Con CLARITY_ID vacío no hace nada.
+export const CLARITY_ID = 'z0slg0b8z6';
 
 const CLAVE_CONSENTIMIENTO = 'nc_cookie_consent';
 const INTERNAS = /^\/(admin|login|reset-password|mi-tienda)(\/|$)/;
