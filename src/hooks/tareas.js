@@ -293,6 +293,15 @@ export function useEnviarInvitacion() {
   });
 }
 
+// "Correo permiso en página web" (migration 20261019150000_clientes_permiso_web.sql).
+export function useEnviarPermisoWeb() {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: (ids) => unwrap(supabase.rpc('cliente_enviar_permiso_web', { p_clientes: ids })),
+    onSettled: () => invalidar('clientes', 'cliente_correos'),
+  });
+}
+
 export function useEnviarCampana() {
   const invalidar = useInvalidar();
   return useMutation({

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Mail, Megaphone, Pencil, Phone, Plus, Send, Trash2 } from 'lucide-react';
+import { Globe, Mail, Megaphone, Pencil, Phone, Plus, Send, Trash2 } from 'lucide-react';
 import {
   estaAbierta, estaVencida, formatearFecha, useBorrarCliente, useCorreosClientes, useEnviarCampana,
-  useEnviarInvitacion, useGuardarCliente, useVincularClientes,
+  useEnviarInvitacion, useEnviarPermisoWeb, useGuardarCliente, useVincularClientes,
 } from '../../hooks/tareas';
 import { ErrorBox, Modal, Pill, btnGhost, btnPrimary, card, inputClass, labelClass } from './ui';
 
@@ -18,6 +18,15 @@ function consentimiento(c) {
 }
 
 const ESTADO_CORREO = { pendiente: 'enviando…', enviado: 'enviado', error: 'falló' };
+const TIPO_CORREO = { invitacion: 'Primer correo', permiso_web: 'Correo permiso web', campana: 'Último correo' };
+
+// Answer to the "Correo permiso en página web" (Powered by NexCommit in their footer).
+// The client replies by email and the team writes it down here.
+const PERMISO_WEB = {
+  si: { label: 'Web: autorizó', color: '#34d399' },
+  no: { label: 'Web: no autorizó', color: '#94a3b8' },
+};
+const puedePedirPermisoWeb = (c) => consentimiento(c).id === 'promociones' || consentimiento(c).id === 'politicas';
 
 export default function ClientesVista({ clientes, vinculos, proyectos, tareas, onVerProyecto }) {
   const [editando, setEditando] = useState(null);
@@ -25,6 +34,7 @@ export default function ClientesVista({ clientes, vinculos, proyectos, tareas, o
   const [aviso, setAviso] = useState('');
   const correos = useCorreosClientes();
   const invitar = useEnviarInvitacion();
+  const permisoWeb = useEnviarPermisoWeb();
   const proyecto = Object.fromEntries(proyectos.map((p) => [p.id, p]));
   const proyectosDe = (clienteId) =>
     vinculos.filter((v) => v.cliente_id === clienteId).map((v) => proyecto[v.proyecto_id]).filter(Boolean);
@@ -33,6 +43,7 @@ export default function ClientesVista({ clientes, vinculos, proyectos, tareas, o
   const activos = clientes.filter((c) => c.activo);
   const aceptan = activos.filter((c) => consentimiento(c).id === 'promociones');
   const porInvitar = activos.filter((c) => consentimiento(c).id === 'pendiente');
+  const porPedirPermiso = activos.filter((c) => puedePedirPermisoWeb(c) && !c.permiso_web);
 
   const enviarInvitacion = (lista) => {
     const n = lista.length;
@@ -43,6 +54,18 @@ export default function ClientesVista({ clientes, vinculos, proyectos, tareas, o
     setAviso('');
     invitar.mutate(lista.map((c) => c.id), {
       onSuccess: (r) => setAviso(`Primer correo: ${r.enviados} enviado${r.enviados === 1 ? '' : 's'}${r.omitidos ? `, ${r.omitidos} omitido${r.omitidos === 1 ? '' : 's'} (ya enviado en las últimas 24 h o tope diario)` : ''}.`),
+    });
+  };
+
+  const enviarPermisoWeb = (lista) => {
+    const n = lista.length;
+    const texto = n === 1
+      ? `¿Enviar el correo de permiso en página web a ${lista[0].nombre} (${lista[0].email})?\n\nLe pide autorizar «© ${new Date().getFullYear()} ${lista[0].empresa || lista[0].nombre}. Powered by NexCommit» en el pie de su sitio.`
+      : `¿Enviar el correo de permiso en página web a los ${n} clientes que aún no responden? (máximo uno cada 7 días por cliente)`;
+    if (!window.confirm(texto)) return;
+    setAviso('');
+    permisoWeb.mutate(lista.map((c) => c.id), {
+      onSuccess: (r) => setAviso(`Correo permiso en página web: ${r.enviados} enviado${r.enviados === 1 ? '' : 's'}${r.omitidos ? `, ${r.omitidos} omitido${r.omitidos === 1 ? '' : 's'} (ya enviado en los últimos 7 días o tope diario)` : ''}.`),
     });
   };
 
@@ -66,6 +89,15 @@ export default function ClientesVista({ clientes, vinculos, proyectos, tareas, o
           <button
             type="button"
             className={btnGhost}
+            onClick={() => enviarPermisoWeb(porPedirPermiso)}
+            disabled={!porPedirPermiso.length || permisoWeb.isPending}
+            title="Pide autorización (opcional) para agregar «Powered by NexCommit» al pie de su web. Solo a quienes aceptaron las políticas y aún no responden."
+          >
+            <Globe className="w-4 h-4" /> Correo permiso en página web ({porPedirPermiso.length})
+          </button>
+          <button
+            type="button"
+            className={btnGhost}
             onClick={() => setCampana(true)}
             disabled={!aceptan.length}
             title="Solo a quienes aceptaron recibir correos"
@@ -83,9 +115,10 @@ export default function ClientesVista({ clientes, vinculos, proyectos, tareas, o
         <span><b className="text-white">{activos.filter((c) => consentimiento(c).id === 'politicas').length}</b> solo aceptaron políticas</span>
         <span><b className="text-white">{porInvitar.length}</b> sin aceptar</span>
         <span><b className="text-white">{activos.filter((c) => consentimiento(c).id === 'sin_correo').length}</b> sin correo</span>
+        <span><b className="text-white">{activos.filter((c) => c.permiso_web === 'si').length}</b> autorizaron «Powered by» en su web</span>
       </div>
       {aviso && <p className="text-sm text-emerald-300 mb-4">{aviso}</p>}
-      <ErrorBox error={invitar.error} />
+      <ErrorBox error={invitar.error || permisoWeb.error} />
 
       {!clientes.length && <p className="text-sm text-[#9aafc3]">Todavía no hay clientes.</p>}
 
@@ -120,7 +153,8 @@ export default function ClientesVista({ clientes, vinculos, proyectos, tareas, o
                 cliente={c}
                 ultimo={ultimoCorreo(c.id)}
                 onInvitar={() => enviarInvitacion([c])}
-                ocupado={invitar.isPending}
+                onPermisoWeb={() => enviarPermisoWeb([c])}
+                ocupado={invitar.isPending || permisoWeb.isPending}
               />
               <div className="flex flex-wrap gap-1.5">
                 {suyos.length
@@ -153,7 +187,7 @@ export default function ClientesVista({ clientes, vinculos, proyectos, tareas, o
   );
 }
 
-function ConsentimientoFila({ cliente: c, ultimo, onInvitar, ocupado }) {
+function ConsentimientoFila({ cliente: c, ultimo, onInvitar, onPermisoWeb, ocupado }) {
   const estado = consentimiento(c);
   const origen = c.consentimiento_origen === 'web' ? 'por la web' : c.consentimiento_origen === 'correo' ? 'por correo' : '';
   const titulo = c.acepta_politicas_at
@@ -167,9 +201,25 @@ function ConsentimientoFila({ cliente: c, ultimo, onInvitar, ocupado }) {
           <Send className="w-3.5 h-3.5" /> {c.invitacion_enviada_at ? 'Reenviar primer correo' : 'Enviar primer correo'}
         </button>
       )}
+      {c.permiso_web && (
+        <Pill color={PERMISO_WEB[c.permiso_web].color} title={`Anotado el ${formatearFecha(c.permiso_web_at)}`}>
+          {PERMISO_WEB[c.permiso_web].label}
+        </Pill>
+      )}
+      {!c.permiso_web && puedePedirPermisoWeb(c) && c.activo && (
+        <button
+          type="button"
+          onClick={onPermisoWeb}
+          disabled={ocupado}
+          className="flex items-center gap-1 hover:text-white disabled:opacity-50"
+          title={c.permiso_web_enviado_at ? `Enviado el ${formatearFecha(c.permiso_web_enviado_at)}; esperando su respuesta` : 'Pedir permiso para «Powered by NexCommit» en su web'}
+        >
+          <Globe className="w-3.5 h-3.5" /> {c.permiso_web_enviado_at ? 'Reenviar permiso web' : 'Pedir permiso web'}
+        </button>
+      )}
       {ultimo && (
         <span className={ultimo.estado === 'error' ? 'text-red-300' : ''} title={ultimo.detalle || ''}>
-          {ultimo.tipo === 'invitacion' ? 'Primer correo' : 'Último correo'} {ESTADO_CORREO[ultimo.estado]} · {formatearFecha(ultimo.created_at)}
+          {TIPO_CORREO[ultimo.tipo] ?? 'Último correo'} {ESTADO_CORREO[ultimo.estado]} · {formatearFecha(ultimo.created_at)}
         </span>
       )}
     </div>
@@ -285,6 +335,7 @@ function ClienteForm({ cliente, proyectos, vinculados, onClose }) {
     notas: cliente.notas || '',
     color: cliente.color || '#e0a64b',
     activo: cliente.activo ?? true,
+    permiso_web: cliente.permiso_web || '',
   });
   const [retirar, setRetirar] = useState(false);
   const [seleccion, setSeleccion] = useState(new Set(vinculados));
@@ -308,6 +359,8 @@ function ClienteForm({ cliente, proyectos, vinculados, onClose }) {
       activo: f.activo,
       // The panel can only withdraw promotions; granting them is the client's call.
       ...(retirar ? { acepta_marketing: false } : {}),
+      // Only sent when it changed: the database stamps the date and logs it as proof.
+      ...(cliente.id && f.permiso_web !== (cliente.permiso_web || '') ? { permiso_web: f.permiso_web || null } : {}),
     });
     const antes = new Set(vinculados);
     await vincular.mutateAsync({
@@ -400,6 +453,23 @@ function ClienteForm({ cliente, proyectos, vinculados, onClose }) {
                 Retirar las promociones (el cliente lo pidió). No se puede deshacer desde el panel.
               </label>
             )}
+          </div>
+        )}
+        {cliente.id && (
+          <div className="rounded-lg border border-white/10 p-3 text-xs text-[#9aafc3] space-y-2">
+            <span className="text-white font-medium">Permiso en página web</span>
+            <p>
+              {cliente.permiso_web_enviado_at
+                ? `Correo de permiso enviado el ${formatearFecha(cliente.permiso_web_enviado_at)}.`
+                : 'Aún no se le envía el correo de permiso.'}{' '}
+              Anota aquí lo que respondió: solo con un «sí» se agrega «Powered by NexCommit» a su web.
+            </p>
+            <select className={inputClass} value={f.permiso_web} onChange={set('permiso_web')} aria-label="Respuesta al permiso en página web">
+              <option value="">Sin respuesta</option>
+              <option value="si">Autorizó (respondió «Sí, autorizo»)</option>
+              <option value="no">No autorizó</option>
+            </select>
+            {cliente.permiso_web_at && <p>Anotado el {formatearFecha(cliente.permiso_web_at)}.</p>}
           </div>
         )}
         <ErrorBox error={guardar.error || vincular.error || borrar.error} />
