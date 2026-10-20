@@ -7,8 +7,13 @@
 //   dist/servicios.html                  → "/servicios"
 //   dist/servicios/<slug>.html           → "/servicios/<slug>"
 //   dist/lp/<slug>.html                  → "/lp/<slug>" (Ads landings: faster LCP)
+//   dist/blog/<slug>.html                → "/blog/<slug>" (published posts at build time)
 //   dist/spa.html                        → untouched shell, fallback for every other
-//                                          route (blog posts, admin…), see vercel.json
+//                                          route (new posts, admin…), see vercel.json
+//
+// Blog data comes from Supabase and is seeded into the TanStack Query cache
+// (same query keys as src/hooks/blog) so /blog lists the posts and each post
+// renders its text. If Supabase fails, the blog falls back to the SPA shell.
 //
 // The browser still boots the normal SPA: main.jsx removes the head tags marked
 // data-pr and createRoot replaces the prerendered markup.
@@ -17,6 +22,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { SERVICE_PAGES } from '../src/data/SERVICE_PAGES.js';
 import { ADS_LANDINGS } from '../src/data/ADS_LANDINGS.js';
+import { supabase } from './publicSupabase.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = resolve(root, 'dist');
@@ -45,7 +51,25 @@ const shell = template
   .replace(/<title data-pr>[\s\S]*?<\/title>\s*/, '')
   .replace(/<meta data-pr name="description"[^>]*>\s*/, '');
 
-const { render } = await import(pathToFileURL(ssrEntry).href);
+const { render, seedQuery } = await import(pathToFileURL(ssrEntry).href);
+
+// Same select as useGetPosts / useGetPostBySlug.
+const { data: posts, error } = await supabase
+  .from('posts')
+  .select('*, profiles:author_id ( id, username, email, avatar_url )')
+  .eq('published', true)
+  .order('created_at', { ascending: false });
+
+if (error) {
+  console.error('Blog posts not prerendered (Supabase):', error.message);
+} else {
+  seedQuery(['posts'], posts);
+  for (const post of posts) {
+    if (!/^[a-z0-9-]+$/i.test(post.slug || '')) continue;
+    seedQuery(['post', post.slug], post);
+    routes.push(`/blog/${post.slug}`);
+  }
+}
 
 for (const route of routes) {
   const html = render(route);

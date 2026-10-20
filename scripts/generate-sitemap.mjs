@@ -1,21 +1,14 @@
 // Generates public/sitemap.xml from static routes + published blog posts.
 // Runs automatically before `npm run build` via the `prebuild` script.
-import { createClient } from '@supabase/supabase-js';
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { SERVICE_PAGES } from '../src/data/SERVICE_PAGES.js';
+import { supabase } from './publicSupabase.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SITEMAP_PATH = resolve(__dirname, '../public/sitemap.xml');
 const SITE_URL = 'https://www.nexcommit.com';
-
-// Same public/anon Supabase credentials already bundled client-side in
-// src/lib/supabaseClient.ts (safe to reuse — anon key, RLS-protected).
-const supabase = createClient(
-  'https://rhifvtrzetamrfhflfzw.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoaWZ2dHJ6ZXRhbXJmaGZsZnp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNDIzOTEsImV4cCI6MjA5MTkxODM5MX0.BDmWZeePQyIqTPquqwNbRmAMYvLu5-DEPL7feIamA-k'
-);
 
 function formatDate(value) {
   const date = value ? new Date(value) : new Date();
