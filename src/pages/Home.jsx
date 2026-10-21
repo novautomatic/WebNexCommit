@@ -124,6 +124,25 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Cierre (después de plazos) */}
+      <section className="nh-final">
+        <div className="nh-wrap">
+          <h2>¿Cuánto cuesta tu página web? Te respondemos hoy.</h2>
+          <p>Cuéntanos qué necesitas en un mensaje. En una conversación corta definimos alcance, plazo y precio.</p>
+          <div className="nh-ctas">
+            <WhatsAppLink topic="una página web" placement="home_final" className="nh-btn nh-btn-wa">
+              <MessageCircle aria-hidden="true" /> Escribir por WhatsApp
+            </WhatsAppLink>
+            <IrACotizar placement="home_final" className="nh-btn nh-btn-ghost">
+              <ClipboardList aria-hidden="true" /> Cotizar por formulario
+            </IrACotizar>
+          </div>
+          <div className="nh-phone">
+            o llama al <CallLink placement="home_final">{PHONE_DISPLAY}</CallLink>
+          </div>
+        </div>
+      </section>
+
       {/* Todo lo que hacemos */}
       <section id="servicios" className="nh-block">
         <div className="nh-wrap">
@@ -211,25 +230,6 @@ export default function Home() {
                 <p>{faq.answer}</p>
               </details>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Cierre */}
-      <section className="nh-final">
-        <div className="nh-wrap">
-          <h2>¿Cuánto cuesta tu página web? Te respondemos hoy.</h2>
-          <p>Cuéntanos qué necesitas en un mensaje. En una conversación corta definimos alcance, plazo y precio.</p>
-          <div className="nh-ctas">
-            <WhatsAppLink topic="una página web" placement="home_final" className="nh-btn nh-btn-wa">
-              <MessageCircle aria-hidden="true" /> Escribir por WhatsApp
-            </WhatsAppLink>
-            <IrACotizar placement="home_final" className="nh-btn nh-btn-ghost">
-              <ClipboardList aria-hidden="true" /> Cotizar por formulario
-            </IrACotizar>
-          </div>
-          <div className="nh-phone">
-            o llama al <CallLink placement="home_final">{PHONE_DISPLAY}</CallLink>
           </div>
         </div>
       </section>
