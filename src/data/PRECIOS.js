@@ -68,7 +68,8 @@ export const PLANES = [
   },
 ];
 
-// Producto base (definido por el dueño el 2026-10-21): la persona arma su
+// Producto base (definido por el dueño el 2026-10-21; renovación anual =
+// mismo valor + IPC): la persona arma su
 // página gratis con el Creador (/crea-tu-web) y la publicamos con 1 año
 // incluido. En el panel: Creador → «Habilitar plan base» (RPC creador_habilitar).
 // El mismo valor está en el back (src/creador/plantilla.js → PRECIO_BASE).
@@ -82,7 +83,7 @@ export const PLAN_BASE = {
   incluye: [
     'Creas tu página gratis con la IA, en 2 minutos y sin tarjeta',
     'La publicamos tal como la dejaste, sin la barra de prueba ni fecha de vencimiento',
-    '1 año de publicación incluido',
+    '1 año de publicación incluido; desde el segundo año se renueva por el mismo valor reajustado por IPC',
     'En tu link nexcommit.com/tu-negocio o en tu propio dominio',
     'Editor visual libre para cambiar textos, fotos y secciones cuando quieras',
     'Botón de WhatsApp y formulario de contacto que llega a tu correo',
@@ -123,7 +124,7 @@ export const FAQ_PRECIOS = [
   {
     question: '¿Puedo hacer mi página yo mismo?',
     answer:
-      'Sí. Créala gratis con nuestra IA en nexcommit.com/crea-tu-web y, si te gusta, la publicamos por $150.000 + IVA con 1 año incluido, en tu link de NexCommit o en tu propio dominio. Después la sigues editando tú con el editor visual.',
+      'Sí. Créala gratis con nuestra IA en nexcommit.com/crea-tu-web y, si te gusta, la publicamos por $150.000 + IVA con 1 año incluido, en tu link de NexCommit o en tu propio dominio. Después la sigues editando tú con el editor visual. Desde el segundo año se renueva por el mismo valor reajustado por IPC.',
   },
   {
     question: '¿Trabajan con empresas de regiones?',

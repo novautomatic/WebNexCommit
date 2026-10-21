@@ -18,7 +18,7 @@ const FAQS = [
   },
   {
     q: '¿Qué incluye publicarla por $150.000 + IVA?',
-    a: 'La dejamos publicada 1 año, sin la barra de prueba ni fecha de vencimiento, en tu link nexcommit.com/tu-empresa o en tu propio dominio si ya tienes uno. Puedes seguir cambiando textos, fotos y secciones con el editor visual cuando quieras, y el formulario de contacto te llega al correo. Desde el segundo año se renueva.',
+    a: 'La dejamos publicada 1 año, sin la barra de prueba ni fecha de vencimiento, en tu link nexcommit.com/tu-empresa o en tu propio dominio si ya tienes uno. Puedes seguir cambiando textos, fotos y secciones con el editor visual cuando quieras, y el formulario de contacto te llega al correo. Desde el segundo año se renueva por $150.000 + IVA reajustado según el IPC.',
   },
   {
     q: '¿Puedo hacerle cambios?',
