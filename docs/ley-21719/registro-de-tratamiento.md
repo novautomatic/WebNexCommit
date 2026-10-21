@@ -23,12 +23,18 @@ equipo accede con `es_equipo()` y los clientes solo mediante funciones `portal_*
 | `portal_enlaces`, `portal_claves` | Contactos | hash del enlace; clave inicial cifrada | Acceso al portal | Contrato | 7 días después de vencer; la clave, al verla o a las 72 h |
 | `auth.users` (Supabase Auth) | Equipo y contactos | correo, hash de la contraseña, último login | Autenticación | Contrato | Se borra al eliminar los datos del contacto |
 
+## Formulario de cotización del sitio
+
+| Tabla | Personas | Datos | Finalidad | Base | Plazo |
+|---|---|---|---|---|---|
+| `contactos_web` | Quienes piden una cotización en el formulario «Cotiza en 1 minuto» | nombre, correo, WhatsApp (opcional), servicio, mensaje libre, página de origen, si vino de Google Ads, hash de IP | Responder y preparar la cotización; acuse de recibo por correo | Medidas precontractuales a pedido del titular (sin casilla; se informa junto al formulario). Sin marketing | 12 meses salvo estado `ganado` (cron `contactos-web-retencion`). El mensaje libre puede traer datos sensibles: el formulario pide no incluirlos |
+
 ## Creador de páginas (crea-tu-web)
 
 | Tabla | Personas | Datos | Finalidad | Base | Plazo |
 |---|---|---|---|---|---|
 | `creador_leads` | Quienes crean una página | nombre, correo, teléfono, hashes, hash de IP, advertencias o bloqueo | Crear y publicar la página; evitar abuso | Ejecución del servicio | Anonimización a los 12 meses salvo conversión (cron `creador-retencion`) |
-| `creador_paginas`, `creador_mensajes` | Ídem | contenido de la página y pedidos de edición | Ídem | Ídem | Página: 30 días después de vencer |
+| `creador_paginas`, `creador_mensajes` | Ídem | contenido de la página y pedidos de edición | Ídem | Ídem | Página: 30 días después de vencer (plan base pagado: 90 días, para renovar) |
 | `creador_contactos` | **Visitas** de las páginas de nuestros clientes | nombre, correo, teléfono, mensaje, hash de IP | Reenviar el mensaje al dueño de la página | NexCommit es **encargado** | 30 días |
 | `creador_pedidos` | **Compradores** de las tiendas | nombre (opcional), nota, productos, hash de IP | Avisar el pedido a la tienda | NexCommit es **encargado** | 90 días |
 | `creador_infracciones` | Quienes crean páginas | infracciones detectadas | Moderación (**decisión automatizada**, art. 14 ter l) | Interés legítimo | 12 meses |

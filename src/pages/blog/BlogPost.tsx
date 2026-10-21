@@ -3,6 +3,7 @@ import { useGetPostBySlug } from '../../hooks/blog';
 import ReactMarkdown from 'react-markdown';
 import SEO from '../../components/SEO';
 import Breadcrumbs from '../../components/Breadcrumbs';
+import { ContactoSeccion, CtaFranja } from '../../components/Conversion';
 
 export function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -160,6 +161,12 @@ export function BlogPost() {
               </div>
             </div>
 
+            <CtaFranja
+              placement={`blog_${post.slug}`}
+              titulo="¿Quieres tu página sin enredos?"
+              texto="Planes desde $150.000 + IVA. Te enviamos precio y plazo el mismo día hábil."
+            />
+
             {/* Share section */}
             <div className="mt-12 p-6 rounded-2xl glass-dark border border-white/10">
               <h3 className="text-lg font-bold text-white mb-4">📢 Compartir este post</h3>
@@ -196,6 +203,7 @@ export function BlogPost() {
           </article>
         </div>
       </div>
+      <ContactoSeccion placement={`blog_${post.slug}`} />
     </>
   );
 }

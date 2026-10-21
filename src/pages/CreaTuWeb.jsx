@@ -1,8 +1,9 @@
 import React from 'react';
-import { Check, Gift } from 'lucide-react';
+import { Check, Gift, Rocket } from 'lucide-react';
 import SEO from '../components/SEO';
 import Creador from './creador/Creador';
 import { WhatsAppLink } from '../components/ContactButtons';
+import { PLAN_BASE } from '../data/PRECIOS';
 import './home.css';
 import './creador/creador.css';
 
@@ -13,7 +14,11 @@ const FAQS = [
   },
   {
     q: '¿Qué pasa después de crear mi maqueta?',
-    a: 'Queda publicada 5 días en tu link nexcommit.com/tu-empresa para que la veas y la compartas. Si quieres seguir, nuestro equipo toma esa maqueta como base y la convierte en tu página definitiva: diseño a medida, tu propio dominio y todo lo que necesites.',
+    a: 'Queda publicada 5 días en tu link nexcommit.com/tu-empresa para que la veas y la compartas. Si te gusta tal como está, la publicamos por $150.000 + IVA con 1 año incluido. Si quieres algo más completo, nuestro equipo la toma como base para tu página a medida.',
+  },
+  {
+    q: '¿Qué incluye publicarla por $150.000 + IVA?',
+    a: 'La dejamos publicada 1 año, sin la barra de prueba ni fecha de vencimiento, en tu link nexcommit.com/tu-empresa o en tu propio dominio si ya tienes uno. Puedes seguir cambiando textos, fotos y secciones con el editor visual cuando quieras, y el formulario de contacto te llega al correo. Desde el segundo año se renueva.',
   },
   {
     q: '¿Puedo hacerle cambios?',
@@ -45,7 +50,7 @@ const appJsonLd = {
   operatingSystem: 'Web',
   inLanguage: 'es-CL',
   description:
-    'Crea gratis la página web de tu negocio con inteligencia artificial y ajústala conversando con un asistente por chat. Se publica en nexcommit.com/tu-empresa.',
+    'Crea gratis la página web de tu negocio con inteligencia artificial y ajústala conversando con un asistente por chat. Se publica en nexcommit.com/tu-empresa; para dejarla publicada 1 año: $150.000 + IVA.',
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'CLP' },
   provider: { '@id': 'https://www.nexcommit.com/#organization' },
 };
@@ -77,6 +82,13 @@ export default function CreaTuWeb() {
               <li><Check aria-hidden="true" /> Ajústala por chat y mira los cambios al instante</li>
               <li><Check aria-hidden="true" /> Si quieres seguir, nuestro equipo avanza contigo desde ahí</li>
             </ul>
+            <div className="ctw-base">
+              <Rocket aria-hidden="true" />
+              <span>
+                <b>¿Te gustó? La publicamos por ${PLAN_BASE.precio.toLocaleString('es-CL')} + IVA</b>
+                1 año incluido, en tu link o en tu propio dominio, y la sigues editando tú.
+              </span>
+            </div>
           </div>
           <Creador />
         </div>
@@ -99,8 +111,8 @@ export default function CreaTuWeb() {
             </div>
             <div className="ctw-paso">
               <b>PASO 03</b>
-              <h3>Publícala y compártela</h3>
-              <p>La IA arma tu página en segundos. Ajústala por chat y compártela por WhatsApp o redes.</p>
+              <h3>Pruébala y publícala</h3>
+              <p>La IA arma tu página en segundos. Ajústala, compártela 5 días gratis y, si te convence, la dejamos publicada por {`$${PLAN_BASE.precio.toLocaleString('es-CL')}`} + IVA al año.</p>
             </div>
           </div>
         </div>

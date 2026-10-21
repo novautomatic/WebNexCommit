@@ -26,6 +26,13 @@ const TRATAMIENTOS = [
     plazo: 'Mientras dure la conversación comercial; puedes pedir que la borremos cuando quieras',
   },
   {
+    quien: 'Personas que piden una cotización en el formulario del sitio',
+    datos: 'Nombre, correo, WhatsApp (opcional), el servicio que te interesa, lo que nos cuentas y la página desde la que escribiste',
+    para: 'Responderte, preparar tu cotización y enviarte una copia de tu solicitud. Nunca para publicidad',
+    base: 'Medidas precontractuales pedidas por ti',
+    plazo: '12 meses desde la solicitud; si pasas a ser cliente, se conserva como parte de la relación comercial',
+  },
+  {
     quien: 'Clientes y personas de contacto de nuestros clientes',
     datos: 'Nombre, correo, teléfono, cargo, empresa; tareas, archivos y notas del portal «Mi espacio»',
     para: 'Ejecutar el servicio contratado: coordinar tareas y entregas, soporte y facturación',

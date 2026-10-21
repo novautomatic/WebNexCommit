@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../../config/creador';
 import { WHATSAPP_NUMBER } from '../../../config/contact';
+import { PLAN_BASE } from '../../../data/PRECIOS';
 import { cargarModulos, getRuta, setRuta } from './modulos';
 import { Campo, Estructura, PanelDiseno, PanelSeccion, Paleta } from './Inspector';
 import SelectorFoto from './SelectorFoto';
@@ -101,6 +102,8 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
   const verRef = useRef(null);
 
   const activa = !pagina.vencida && pagina.estado === 'activa';
+  // Plan base (pagado): editor manual sin tope (el back manda el tope en null) y sin IA.
+  const base = pagina.plan === 'base';
   const disponiblesIA = Math.max(0, pagina.ediciones_max - pagina.ediciones_usadas);
   // null = sin tope (la migración de ediciones manuales aún no se corrió).
   const maxManual = pagina.ediciones_manuales_max;
@@ -453,7 +456,10 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
     }
   };
 
-  const avanzar = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hola! Creé la maqueta ${pagina.url.replace('https://www.', '')} con el Creador y quiero avanzar con mi página web.`)}`;
+  const avanzar = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(base
+    ? `Hola! Necesito ayuda con mi página ${pagina.url.replace('https://www.', '')}.`
+    : `Hola! Creé la maqueta ${pagina.url.replace('https://www.', '')} con el Creador y quiero publicarla por $${PLAN_BASE.precio.toLocaleString('es-CL')} + IVA.`)}`;
+  const precioBase = `$${PLAN_BASE.precio.toLocaleString('es-CL')}`;
   const campo = (ruta, label, max, multi = false, placeholder = '', ayudaCampo) => (
     <Campo key={ruta} label={label} max={max} multi={multi} placeholder={placeholder} ayuda={ayudaCampo}
       valor={getRuta(contenido, ruta)} onCambio={(v) => set(ruta, v)} />
@@ -465,9 +471,15 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
     return (
       <div className="ed ed-fin">
         <div className="ed-fin-caja">
-          <h2>Tu maqueta terminó</h2>
-          <p>Ya pasó el plazo de prueba de <b>{pagina.url.replace('https://www.', '')}</b>. Nuestro equipo puede convertirla en tu página definitiva, con tu dominio y todo lo que necesites.</p>
-          <a className="nh-btn nh-btn-wa" data-placement="creador_avanzar_modal" href={avanzar} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" /> Quiero avanzar con NexCommit</a>
+          <h2>{base ? 'Tu página está en pausa' : 'Tu maqueta terminó'}</h2>
+          {base ? (
+            <p>Terminó el año de publicación de <b>{pagina.url.replace('https://www.', '')}</b>. Escríbenos para renovarla y vuelve a estar en línea el mismo día.</p>
+          ) : (
+            <p>Ya pasó el plazo de prueba de <b>{pagina.url.replace('https://www.', '')}</b>. La publicamos tal como la dejaste por <b>{precioBase} + IVA con 1 año incluido</b>, en este link o en tu propio dominio.</p>
+          )}
+          <a className="nh-btn nh-btn-wa" data-placement="creador_avanzar_modal" href={avanzar} target="_blank" rel="noopener noreferrer">
+            <MessageCircle aria-hidden="true" /> {base ? 'Renovar mi página' : `Publicarla por ${precioBase} + IVA`}
+          </a>
           <button type="button" className="ed-link" onClick={onSalir}>Cerrar sesión</button>
         </div>
       </div>
@@ -478,7 +490,7 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
     { id: 'editar', label: 'Editar', icono: LayoutList },
     { id: 'diseno', label: 'Diseño', icono: Paintbrush },
     { id: 'agregar', label: 'Agregar', icono: Plus },
-    { id: 'ia', label: 'IA', icono: Sparkles },
+    ...(base ? [] : [{ id: 'ia', label: 'IA', icono: Sparkles }]),
   ];
 
   return (
@@ -493,7 +505,9 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
             </a>
             <button type="button" onClick={copiar} title="Copiar link" aria-label="Copiar link">{copiado ? <Check /> : <Copy />}</button>
           </div>
-          {quedan && <span className="ed-quedan">Vence en <b>{quedan}</b></span>}
+          {base
+            ? <span className="ed-quedan">Publicada hasta el <b>{new Date(pagina.expira_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</b></span>
+            : quedan && <span className="ed-quedan">Vence en <b>{quedan}</b></span>}
         </div>
         <div className="ed-top-centro">
           {!bloqueado && (
@@ -521,7 +535,9 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
               <Store aria-hidden="true" /> <span>Mi tienda</span>
             </a>
           )}
-          <a className="ed-avanzar" data-placement="creador_avanzar_barra" href={avanzar} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" /> <span>Quiero avanzar con NexCommit</span></a>
+          <a className="ed-avanzar" data-placement="creador_avanzar_barra" href={avanzar} target="_blank" rel="noopener noreferrer">
+            <MessageCircle aria-hidden="true" /> <span>{base ? 'Ayuda' : `Publicarla por ${precioBase} + IVA`}</span>
+          </a>
           <button type="button" className="ed-icono" onClick={onSalir} title="Cerrar sesión" aria-label="Cerrar sesión"><LogOut /></button>
         </div>
       </header>
@@ -594,7 +610,7 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
               />
             ) : (
               <Estructura secciones={secciones} mod={mod} onSeleccionar={(id) => seleccionar(id, true)} onAccion={accion}
-                iaDisponibles={disponiblesIA} onIA={() => setPestana('ia')} />
+                iaDisponibles={base ? 0 : disponiblesIA} onIA={base ? null : () => setPestana('ia')} />
             ))}
             {mod && !bloqueado && pestana === 'diseno' && (
               <PanelDiseno contenido={contenido} mod={mod} campo={campo} set={set} logo={logo} abrirLogo={() => abrirFoto('logo')} />
@@ -608,7 +624,7 @@ export default function Editor({ token, estado, onActualizar, onSalir }) {
                 <Paleta mod={mod} onAgregar={agregar} />
               </div>
             )}
-            {pestana === 'ia' && (
+            {pestana === 'ia' && !base && (
               <ChatIA
                 mensajes={mensajes}
                 disponibles={disponiblesIA}

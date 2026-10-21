@@ -30,6 +30,10 @@
 .nh-btn-ghost { border-color: var(--nh-line); color: var(--nh-text); background: rgba(255,255,255,0.03); }
 .nh-btn-ghost:hover { border-color: var(--nh-sky); }
 .nh-btn svg { width: 18px; height: 18px; flex: none; }
+.nh-hero-mini { margin-top: 14px !important; font-size: 14px; color: var(--nh-muted); }
+.nh-hero-mini a { color: var(--nh-sky); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+.nh-hero-mini a:hover { text-decoration: underline; }
+.nh-hero-mini svg { width: 14px; height: 14px; }
 
 /* Hero */
 .nh-hero { position: relative; padding-block: 28px 88px; }

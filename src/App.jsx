@@ -24,6 +24,7 @@ import AdLanding from './pages/AdLanding';
 import CreaTuWeb from './pages/CreaTuWeb';
 import Precios from './pages/Precios';
 import { ContactDock, WhatsAppLink } from './components/ContactButtons';
+import { IrACotizar } from './components/Conversion';
 import CookieConsent, { resetCookieConsent } from './components/CookieConsent';
 import { captureAdClick, GOOGLE_ADS } from './config/contact';
 import { getAdLanding } from './data/ADS_LANDINGS';
@@ -117,11 +118,24 @@ function App() {
                   placement="nav"
                   className="hover:text-white transition-colors duration-200"
               >
-                Contacto
+                WhatsApp
               </WhatsAppLink>
+              <IrACotizar
+                placement="nav"
+                className="rounded-full px-4 py-2 font-bold text-white bg-[#248bde] hover:bg-[#2f9bf0] transition-colors duration-200"
+              >
+                Cotizar
+              </IrACotizar>
             </div>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile: Cotizar always visible + menu button */}
+            <div className="md:hidden flex items-center gap-3">
+            <IrACotizar
+              placement="nav_mobile"
+              className="rounded-full px-3.5 py-1.5 text-sm font-bold text-white bg-[#248bde]"
+            >
+              Cotizar
+            </IrACotizar>
             <button
               className="md:hidden text-white"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -129,6 +143,7 @@ function App() {
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
+            </div>
           </nav>
 
           {/* Mobile Menu Dropdown */}
@@ -176,7 +191,7 @@ function App() {
                   className="text-white text-sm font-medium py-2 hover:text-brand-light transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Contacto
+                  WhatsApp
                 </WhatsAppLink>
               </div>
             </div>

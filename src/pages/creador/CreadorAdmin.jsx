@@ -207,6 +207,24 @@ function FilaLead({ lead }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['creador'] }),
   });
 
+  // Plan base ($150.000 + IVA, 1 año): después de recibir el pago. Volver a
+  // usarlo renueva (suma 12 meses). RPC creador_habilitar (migración 20261021121000).
+  const habilitar = useMutation({
+    mutationFn: ({ dominio }) => q(supabase.rpc('creador_habilitar', { p_pagina: p.id, p_meses: 12, p_dominio: dominio || null })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['creador'] }),
+  });
+  const pedirHabilitar = () => {
+    const renovar = p.plan === 'base';
+    const dominio = window.prompt(
+      renovar
+        ? `Renovar /${p.slug} por 12 meses más. Dominio propio (opcional, ej. minegocio.cl):`
+        : `Habilitar /${p.slug} en el plan base por 12 meses ($150.000 + IVA ya pagado). Dominio propio (opcional, ej. minegocio.cl):`,
+      p.dominio || '',
+    );
+    if (dominio === null) return;
+    habilitar.mutate({ dominio: dominio.trim() });
+  };
+
   const extender = (dias) => {
     const base = Math.max(Date.now(), new Date(p.expira_at).getTime());
     pagina.mutate({ expira_at: new Date(base + dias * 86_400_000).toISOString() });
@@ -247,6 +265,8 @@ function FilaLead({ lead }) {
             </a>
             <div className="mt-1 flex flex-wrap gap-1">
               <Pill color={v.color}>{v.texto}</Pill>
+              {p.plan === 'base' && <Pill color="#34d399">Plan base · pagado</Pill>}
+              {p.dominio && <Pill color="#c4b5fd">{p.dominio}</Pill>}
               {p.estado === 'suspendida' && <Pill color="#f87171">Suspendida</Pill>}
             </div>
             <div className="text-[#9aafc3] mt-1">
@@ -255,6 +275,15 @@ function FilaLead({ lead }) {
               {' '}· {p.visitas} visitas
             </div>
             <div className="mt-2 flex flex-wrap gap-1">
+              <button
+                type="button"
+                className="text-[11px] px-2 py-1 rounded border border-emerald-400/40 text-emerald-300 hover:text-white"
+                title="Ya pagó $150.000 + IVA: sin barra de prueba, 1 año publicada, editor manual libre y sin IA"
+                onClick={pedirHabilitar}
+                disabled={habilitar.isPending}
+              >
+                {p.plan === 'base' ? 'Renovar 1 año' : 'Habilitar plan base'}
+              </button>
               <button type="button" className="text-[11px] px-2 py-1 rounded border border-white/10 text-[#9aafc3] hover:text-white" onClick={() => extender(3)} disabled={pagina.isPending}>+3 días</button>
               <button
                 type="button"
@@ -299,7 +328,7 @@ function FilaLead({ lead }) {
           rows={2}
           className={`${inputClass} !text-xs mt-2`}
         />
-        <ErrorBox error={actualizar.error || pagina.error} />
+        <ErrorBox error={actualizar.error || pagina.error || habilitar.error} />
       </td>
       <td className="px-3 py-3">
         {wa && (

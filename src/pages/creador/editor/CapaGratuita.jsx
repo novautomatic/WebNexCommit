@@ -4,6 +4,7 @@
 import React, { useEffect } from 'react';
 import { MessageCircle, PartyPopper, X } from 'lucide-react';
 import { WHATSAPP_NUMBER } from '../../../config/contact';
+import { PLAN_BASE } from '../../../data/PRECIOS';
 
 // Neutros a propósito: no sabemos el género de quien edita.
 const TITULOS = ['¡Cuánta creatividad!', '¡Qué buenas ideas!', '¡Se nota que le pusiste cariño!'];
@@ -34,8 +35,9 @@ export default function CapaGratuita({ tipo, slug, url, datos, modal = false, on
     return () => window.removeEventListener('keydown', esc);
   }, [modal, onCerrar]);
 
+  const precio = `$${PLAN_BASE.precio.toLocaleString('es-CL')}`;
   const wa = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    `Hola! Usé las ediciones gratis de mi maqueta ${url.replace('https://www.', '')} y quiero seguir editándola con ustedes.`,
+    `Hola! Usé las ediciones gratis de mi maqueta ${url.replace('https://www.', '')} y quiero publicarla por ${precio} + IVA.`,
   )}`;
 
   const caja = (
@@ -44,8 +46,11 @@ export default function CapaGratuita({ tipo, slug, url, datos, modal = false, on
       <div className="ed-capa-ic"><PartyPopper aria-hidden="true" /></div>
       <h3>{titulo(slug)}</h3>
       <p>{texto(tipo, datos)}</p>
-      <p className="ed-capa-fin"><b>Se acabó la capa gratuita.</b> Escríbenos y seguimos construyendo tu página juntos: más cambios, tu propio dominio y todo lo que necesites.</p>
-      <a className="ed-capa-btn" data-placement="creador_capa_gratuita" href={wa} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" /> Seguir editando con NexCommit</a>
+      <p className="ed-capa-fin">
+        <b>Se acabó la capa gratuita.</b> Publícala por <b>{precio} + IVA con 1 año incluido</b>: sin barra de prueba,
+        en tu link o en tu propio dominio, y con el editor visual libre para cambiarla cuando quieras.
+      </p>
+      <a className="ed-capa-btn" data-placement="creador_capa_gratuita" href={wa} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" /> Publicarla por {precio} + IVA</a>
       {modal && <button type="button" className="ed-link" onClick={onCerrar}>Ahora no</button>}
     </div>
   );

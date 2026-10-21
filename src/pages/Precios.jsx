@@ -1,7 +1,8 @@
-import { Check, MessageCircle, ShieldCheck, Timer, MapPin } from 'lucide-react';
+import { Check, ClipboardList, MessageCircle, ShieldCheck, Timer, MapPin } from 'lucide-react';
 import SEO from '../components/SEO';
 import { WhatsAppLink } from '../components/ContactButtons';
-import { FAQ_PRECIOS, NOTA_PRECIOS, PLANES } from '../data/PRECIOS';
+import { ContactoSeccion, IrACotizar, PlanBaseCard } from '../components/Conversion';
+import { FAQ_PRECIOS, NOTA_PRECIOS, PLAN_BASE, PLANES } from '../data/PRECIOS';
 
 const clp = (n) => '$' + n.toLocaleString('es-CL');
 const URL = 'https://www.nexcommit.com/precios';
@@ -12,7 +13,7 @@ const jsonLd = [
     '@type': 'OfferCatalog',
     name: 'Planes de páginas web NexCommit',
     url: URL,
-    itemListElement: PLANES.map((p) => ({
+    itemListElement: [PLAN_BASE, ...PLANES].map((p) => ({
       '@type': 'Offer',
       name: p.nombre,
       description: p.para,
@@ -34,7 +35,7 @@ export default function Precios() {
     <>
       <SEO
         title="Precios de Páginas Web en Chile 2026 | NexCommit"
-        description="Precios claros: landing page $300.000, e-commerce $800.000, sistema de reservas y citas $1.000.000 y página empresarial a medida $1.200.000 (+ IVA). Cotiza por WhatsApp."
+        description="Precios claros: tu página hecha con IA y publicada $150.000, landing page $300.000, e-commerce $800.000, sistema de reservas y citas $1.000.000 y página empresarial a medida $1.200.000 (+ IVA). Cotiza por WhatsApp."
         keywords="precio página web chile, cuánto cuesta una página web, precio landing page, precio tienda online, sistema de reservas, página web empresa"
         canonicalUrl={URL}
         jsonLd={jsonLd}
@@ -80,17 +81,23 @@ export default function Precios() {
                     </li>
                   ))}
                 </ul>
-                <WhatsAppLink
-                  topic={p.topic}
-                  placement={`precios_${p.slug}`}
-                  className="btn text-white mt-6 justify-center whitespace-nowrap"
-                  style={{ backgroundColor: '#1faa53' }}
-                >
-                  <MessageCircle className="w-5 h-5" /> Cotizar este plan
-                </WhatsAppLink>
+                <div className="mt-6 flex flex-col gap-2">
+                  <IrACotizar servicio={p.slug} placement={`precios_${p.slug}`} className="btn btn-brand justify-center whitespace-nowrap">
+                    <ClipboardList className="w-5 h-5" /> Cotizar este plan
+                  </IrACotizar>
+                  <WhatsAppLink
+                    topic={p.topic}
+                    placement={`precios_${p.slug}`}
+                    className="btn text-white justify-center whitespace-nowrap"
+                    style={{ backgroundColor: '#1faa53' }}
+                  >
+                    <MessageCircle className="w-5 h-5" /> Por WhatsApp
+                  </WhatsAppLink>
+                </div>
               </article>
             ))}
           </div>
+          <PlanBaseCard placement="precios" />
           <p className="text-xs text-brand-muted text-center max-w-3xl mx-auto mt-8 leading-relaxed">{NOTA_PRECIOS}</p>
         </div>
       </section>
@@ -114,25 +121,7 @@ export default function Precios() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none cta-glow" />
-        <div className="container relative z-10 text-center">
-          <div className="max-w-3xl mx-auto p-10 md:p-12 rounded-[32px] glass-dark">
-            <h2 className="text-3xl md:text-5xl font-semibold text-white mb-5">
-              ¿No sabes cuál <span className="text-gradient">elegir</span>?
-            </h2>
-            <p className="text-lg text-brand-muted mb-8">Cuéntanos qué necesitas y te recomendamos el plan justo, sin pagar de más.</p>
-            <WhatsAppLink
-              topic="una página web"
-              placement="precios_final"
-              className="btn text-white px-8 py-4 inline-flex"
-              style={{ backgroundColor: '#1faa53' }}
-            >
-              <MessageCircle className="w-5 h-5" /> Escríbenos por WhatsApp
-            </WhatsAppLink>
-          </div>
-        </div>
-      </section>
+      <ContactoSeccion placement="precios" titulo="¿No sabes cuál elegir? Te recomendamos el plan justo." />
     </>
   );
 }

@@ -1,0 +1,134 @@
+/* Piezas de conversión compartidas por todas las páginas públicas: formulario
+   «Cotiza en 1 minuto», franjas de CTA, tarjetas de precios y plan base.
+   Prefijo cx- y variables propias: se ven igual dentro de .nh (home, landings)
+   y en las páginas con Tailwind (servicios, precios, blog). */
+.cx {
+  --cx-panel: #0b2540;
+  --cx-panel-2: #0d2b4a;
+  --cx-line: rgba(124, 170, 214, 0.18);
+  --cx-text: #f2f8fe;
+  --cx-muted: #92a9c0;
+  --cx-brand: #248bde;
+  --cx-sky: #67c8f3;
+  --cx-wa: #25d366;
+  --cx-wa-ink: #04260f;
+  --cx-err: #fca5a5;
+  color: var(--cx-text);
+  font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+.cx *, .cx *::before, .cx *::after { box-sizing: border-box; }
+.cx h2, .cx h3 { margin: 0; font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; color: #fff; }
+.cx p { margin: 0; }
+.cx-wrap { max-width: 1180px; margin-inline: auto; padding-inline: 20px; }
+.cx-kicker { font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--cx-sky); margin-bottom: 12px; }
+.cx .cx-sub { color: var(--cx-muted); font-size: 16px; line-height: 1.6; margin-top: 12px; max-width: 46em; }
+
+/* Botones */
+.cx-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  border-radius: 999px; font-weight: 700; font-size: 15px; text-decoration: none; line-height: 1.2;
+  padding: 13px 22px; border: 1px solid transparent; cursor: pointer; font-family: inherit;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, opacity .2s;
+}
+.cx-btn:hover { transform: translateY(-2px); }
+.cx-btn:disabled { opacity: .6; cursor: default; transform: none; }
+.cx-btn svg { width: 18px; height: 18px; flex: none; }
+.cx-btn-brand { background: var(--cx-brand); color: #fff; box-shadow: 0 14px 34px rgba(36, 139, 222, .28); }
+.cx-btn-wa { background: var(--cx-wa); color: var(--cx-wa-ink); box-shadow: 0 14px 34px rgba(37, 211, 102, .22); }
+.cx-btn-ghost { border-color: var(--cx-line); color: var(--cx-text); background: rgba(255,255,255,.03); }
+.cx-btn-ghost:hover { border-color: var(--cx-sky); }
+.cx-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* Sección de contacto */
+.cx-seccion { padding-block: 72px; scroll-margin-top: 90px; }
+.cx-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 48px; align-items: start; }
+.cx-lista { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 12px; }
+.cx-lista li { display: flex; gap: 10px; color: #dbe9f6; font-size: 15px; line-height: 1.5; }
+.cx-lista svg { width: 18px; height: 18px; color: var(--cx-sky); flex: none; margin-top: 2px; }
+.cx-alt { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--cx-line); }
+.cx .cx-alt p { color: var(--cx-muted); font-size: 14px; margin-bottom: 12px; }
+
+/* Formulario */
+.cx-form { background: var(--cx-panel); border: 1px solid var(--cx-line); border-radius: 22px; padding: 26px; display: grid; gap: 14px; }
+.cx-form h3 { font-size: 20px; }
+.cx .cx-form .cx-mini { color: var(--cx-muted); font-size: 13.5px; margin-top: -6px; }
+.cx-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cx-form label { display: grid; gap: 6px; font-size: 13.5px; font-weight: 600; color: #dbe9f6; }
+.cx-form label em { font-style: normal; font-weight: 500; color: var(--cx-muted); }
+.cx-form input, .cx-form select, .cx-form textarea {
+  width: 100%; font: inherit; font-size: 15px; font-weight: 500; color: var(--cx-text);
+  background: #071b31; border: 1px solid var(--cx-line); border-radius: 12px; padding: 11px 13px;
+  outline: none; transition: border-color .15s;
+}
+.cx-form textarea { resize: vertical; min-height: 84px; }
+.cx-form input:focus, .cx-form select:focus, .cx-form textarea:focus { border-color: var(--cx-sky); }
+.cx-form select option { background: #071b31; }
+.cx-check { display: flex !important; grid-template-columns: none; align-items: flex-start; gap: 10px !important; font-weight: 500 !important; color: var(--cx-muted) !important; line-height: 1.5; }
+.cx-check input { width: 18px; height: 18px; margin-top: 2px; flex: none; accent-color: var(--cx-brand); }
+.cx-info { font-size: 12.5px; line-height: 1.55; color: var(--cx-muted); }
+.cx-info a, .cx-check a { color: var(--cx-sky); text-decoration: underline; text-underline-offset: 2px; }
+.cx-error { color: var(--cx-err); font-size: 14px; font-weight: 600; }
+.cx-trampa { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.cx-ok { text-align: center; padding: 26px 8px; display: grid; gap: 12px; justify-items: center; }
+.cx-ok-ic { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: rgba(37, 211, 102, .15); color: var(--cx-wa); }
+.cx-ok-ic svg { width: 28px; height: 28px; }
+.cx-ok p { color: var(--cx-muted); }
+.cx-gira { animation: cx-gira 1s linear infinite; }
+@keyframes cx-gira { to { transform: rotate(360deg); } }
+
+/* Franja de CTA a mitad de página */
+.cx-franja {
+  margin-block: 48px; border-radius: 22px; padding: 26px 28px;
+  background: linear-gradient(120deg, rgba(36, 139, 222, .22), rgba(103, 200, 243, .08)), var(--cx-panel);
+  border: 1px solid rgba(103, 200, 243, .28);
+  display: flex; align-items: center; justify-content: space-between; gap: 20px 28px; flex-wrap: wrap;
+}
+.cx-franja h3 { font-size: 21px; }
+.cx .cx-franja p { color: #cfe0f0; font-size: 15px; margin-top: 6px; }
+
+/* Tarjetas de precios */
+.cx-planes { margin-top: 36px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.cx-plan { background: var(--cx-panel); border: 1px solid var(--cx-line); border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 10px; transition: border-color .2s, transform .2s; }
+.cx-plan:hover { border-color: rgba(103, 200, 243, .5); transform: translateY(-3px); }
+.cx-plan h3 { font-size: 18px; }
+.cx-plan .cx-para { color: var(--cx-muted); font-size: 14px; line-height: 1.5; }
+.cx-precio { margin-top: 4px; }
+.cx-precio b { font-size: 30px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+.cx-precio span { color: var(--cx-muted); font-size: 13.5px; }
+.cx-plazo { color: var(--cx-muted); font-size: 12.5px; }
+.cx-plan ul { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 8px; flex: 1; }
+.cx-plan li { display: flex; gap: 8px; font-size: 13.5px; color: #dbe9f6; line-height: 1.45; }
+.cx-plan li svg { width: 15px; height: 15px; color: var(--cx-sky); flex: none; margin-top: 2px; }
+.cx-plan .cx-btns { margin-top: 10px; gap: 8px; }
+.cx-plan .cx-btn { flex: 1 1 auto; padding: 11px 14px; font-size: 14px; }
+
+/* Plan base (página con IA) */
+.cx-base {
+  margin-top: 18px; border-radius: 22px; padding: 26px 28px;
+  border: 1px solid rgba(37, 211, 102, .35);
+  background: radial-gradient(520px 240px at 92% 0%, rgba(37, 211, 102, .16), transparent 70%), var(--cx-panel);
+  display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px 36px; align-items: center;
+}
+.cx-base-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--cx-wa); background: rgba(37, 211, 102, .12); border-radius: 999px; padding: 5px 11px; margin-bottom: 12px; }
+.cx-base-tag svg { width: 14px; height: 14px; }
+.cx-base h3 { font-size: 23px; }
+.cx .cx-base .cx-para { color: #cfe0f0; font-size: 15px; line-height: 1.55; margin-top: 8px; }
+.cx-base ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.cx-base li { display: flex; gap: 8px; font-size: 14px; color: #dbe9f6; line-height: 1.45; }
+.cx-base li svg { width: 16px; height: 16px; color: var(--cx-wa); flex: none; margin-top: 2px; }
+.cx-base .cx-btns { margin-top: 18px; }
+
+@media (max-width: 1080px) {
+  .cx-planes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .cx-grid, .cx-base { grid-template-columns: 1fr; }
+  .cx-grid { gap: 28px; }
+}
+@media (max-width: 560px) {
+  .cx-seccion { padding-block: 52px; }
+  .cx-planes, .cx-campos { grid-template-columns: 1fr; }
+  .cx-form { padding: 20px; }
+  .cx-franja, .cx-base { padding: 22px 20px; }
+  .cx-franja .cx-btns, .cx-franja .cx-btn { width: 100%; }
+}

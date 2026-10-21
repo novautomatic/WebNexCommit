@@ -10,4 +10,4 @@ export const RESPONSABLE = {
 };
 
 // Bump the version and date every time the policy text changes (art. 14 ter a).
-export const POLITICA = { version: '2.0', vigenteDesde: '19 de octubre de 2026' };
+export const POLITICA = { version: '2.1', vigenteDesde: '21 de octubre de 2026' };

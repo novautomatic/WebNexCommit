@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Bot,
   Check,
+  ClipboardList,
   CreditCard,
   Globe,
   GraduationCap,
@@ -11,7 +12,6 @@ import {
   MessageCircle,
   Plug,
   ShoppingBag,
-  Sparkles,
   UtensilsCrossed,
   Workflow,
 } from 'lucide-react';
@@ -21,6 +21,7 @@ import { WhatsAppLink, CallLink } from '../components/ContactButtons';
 import { PHONE_DISPLAY } from '../config/contact';
 import { STEPS, SERVICE_GRID, HOME_FAQS } from '../data/HOME';
 import { BuildingBrowser, PlazosChart, SearchTyper, ShowcaseMarquee } from '../components/NhPiezas';
+import { ContactoSeccion, CtaFranja, IrACotizar, PlanBaseCard, PlanesGrid } from '../components/Conversion';
 import './home.css';
 
 const ICONS = { Globe, ShoppingBag, UtensilsCrossed, Bot, CreditCard, Plug, GraduationCap, Workflow, LayoutDashboard };
@@ -65,10 +66,13 @@ export default function Home() {
               <WhatsAppLink topic="una página web" placement="home_hero" className="nh-btn nh-btn-wa">
                 <MessageCircle aria-hidden="true" /> Cotizar por WhatsApp
               </WhatsAppLink>
-              <Link className="nh-btn nh-btn-ghost" to="/crea-tu-web">
-                <Sparkles aria-hidden="true" /> Crea tu página gratis con IA
-              </Link>
+              <IrACotizar placement="home_hero" className="nh-btn nh-btn-ghost">
+                <ClipboardList aria-hidden="true" /> Cotizar en 1 minuto
+              </IrACotizar>
             </div>
+            <p className="nh-hero-mini">
+              Planes desde $150.000 + IVA · <Link to="/crea-tu-web">o crea tu página gratis con IA <ArrowRight aria-hidden="true" /></Link>
+            </p>
             <div className="nh-trust">
               <span><i />Respondemos el mismo día hábil</span>
               <span><i />Precio cerrado antes de partir</span>
@@ -93,17 +97,19 @@ export default function Home() {
         <ShowcaseMarquee />
       </section>
 
-      {/* Creador de páginas con IA */}
-      <div className="nh-wrap">
-        <Link to="/crea-tu-web" className="nh-creador">
-          <span className="nh-creador-ic"><Sparkles aria-hidden="true" /></span>
-          <span className="nh-creador-txt">
-            <b>Prueba gratis: crea la página de tu negocio con IA</b>
-            <span>Lista en 2 minutos, con tu propio link nexcommit.com/tu-empresa. Sin tarjeta.</span>
-          </span>
-          <span className="nh-btn nh-creador-btn">Probar <ArrowRight aria-hidden="true" /></span>
-        </Link>
-      </div>
+      {/* Precios (src/data/PRECIOS.js) + producto base con IA */}
+      <section id="precios" className="nh-block">
+        <div className="nh-wrap">
+          <div className="nh-kicker">Precios</div>
+          <h2>Precios claros desde el primer mensaje.</h2>
+          <p className="nh-sub">
+            Valores + IVA del plan base. Si necesitas algo adicional, la propuesta llega con alcance, plazo y precio cerrado antes de partir.
+            {' '}<Link to="/precios" className="text-[#67c8f3] underline underline-offset-2">Ver todo lo que incluye cada plan</Link>.
+          </p>
+          <PlanesGrid placement="home" />
+          <PlanBaseCard placement="home" />
+        </div>
+      </section>
 
       {/* Servicios y plazos */}
       <section id="plazos" className="nh-block">
@@ -139,6 +145,7 @@ export default function Home() {
               );
             })}
           </div>
+          <CtaFranja placement="home_servicios" titulo="¿No sabes qué necesitas? Te ayudamos a elegir." />
         </div>
       </section>
 
@@ -190,6 +197,8 @@ export default function Home() {
         </div>
       </section>
 
+      <ContactoSeccion placement="home" />
+
       {/* Preguntas frecuentes (also feeds the FAQPage structured data) */}
       <section id="faq" className="nh-block">
         <div className="nh-wrap">
@@ -215,7 +224,9 @@ export default function Home() {
             <WhatsAppLink topic="una página web" placement="home_final" className="nh-btn nh-btn-wa">
               <MessageCircle aria-hidden="true" /> Escribir por WhatsApp
             </WhatsAppLink>
-            <Link to="/precios" className="nh-btn nh-btn-ghost">Ver precios</Link>
+            <IrACotizar placement="home_final" className="nh-btn nh-btn-ghost">
+              <ClipboardList aria-hidden="true" /> Cotizar por formulario
+            </IrACotizar>
           </div>
           <div className="nh-phone">
             o llama al <CallLink placement="home_final">{PHONE_DISPLAY}</CallLink>

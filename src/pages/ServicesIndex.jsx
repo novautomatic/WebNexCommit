@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import SEO from '../components/SEO';
 import { SERVICE_PAGES } from '../data/SERVICE_PAGES';
+import { ContactoSeccion, CtaFranja } from '../components/Conversion';
 
 export default function ServicesIndex() {
   return (
@@ -40,8 +41,12 @@ export default function ServicesIndex() {
               </Link>
             ))}
           </div>
+          <div className="max-w-5xl mx-auto">
+            <CtaFranja placement="servicios_index" titulo="¿No sabes por dónde partir?" texto="Cuéntanos tu negocio y te recomendamos lo justo, con precio y plazo el mismo día hábil." />
+          </div>
         </div>
       </div>
+      <ContactoSeccion placement="servicios_index" />
     </>
   );
 }

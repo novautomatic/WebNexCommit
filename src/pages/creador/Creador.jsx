@@ -11,6 +11,7 @@ import {
   api, ESTILOS, guardarToken, leerToken, TURNSTILE_SITE_KEY, SITIO,
 } from '../../config/creador';
 
+import Captcha from '../../components/Turnstile';
 import GuardiaModeracion from './GuardiaModeracion';
 
 // El editor pesa: se carga recién cuando hay una página que editar.
@@ -35,60 +36,6 @@ function evento(nombre, params = {}) {
   if (typeof window !== 'undefined' && typeof window.gtag === 'function') window.gtag('event', nombre, params);
 }
 
-
-// ─── Captcha (Cloudflare Turnstile) ─────────────────────────────────────────
-let cargaTurnstile;
-function cargarTurnstile() {
-  if (!cargaTurnstile) {
-    cargaTurnstile = new Promise((resolve, reject) => {
-      if (window.turnstile) return resolve(window.turnstile);
-      const s = document.createElement('script');
-      s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-      s.async = true;
-      s.onload = () => resolve(window.turnstile);
-      s.onerror = () => {
-        cargaTurnstile = null;
-        reject(new Error('captcha'));
-      };
-      document.head.appendChild(s);
-    });
-  }
-  return cargaTurnstile;
-}
-
-function Captcha({ onToken, version }) {
-  const ref = useRef(null);
-  const cb = useRef(onToken);
-  useEffect(() => {
-    cb.current = onToken;
-  });
-
-  useEffect(() => {
-    if (!TURNSTILE_SITE_KEY) return undefined;
-    let id;
-    let vivo = true;
-    cargarTurnstile()
-      .then((ts) => {
-        if (!vivo || !ref.current) return;
-        id = ts.render(ref.current, {
-          sitekey: TURNSTILE_SITE_KEY,
-          theme: 'dark',
-          language: 'es',
-          callback: (t) => cb.current(t),
-          'expired-callback': () => cb.current(''),
-          'error-callback': () => cb.current(''),
-        });
-      })
-      .catch(() => cb.current(''));
-    return () => {
-      vivo = false;
-      if (id !== undefined && window.turnstile) window.turnstile.remove(id);
-    };
-  }, [version]);
-
-  if (!TURNSTILE_SITE_KEY) return null;
-  return <div ref={ref} className="cr-captcha" />;
-}
 
 function Aviso({ error, tipo = 'error' }) {
   if (!error) return null;

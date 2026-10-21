@@ -52,12 +52,12 @@ export const HOME_FAQS = [
   {
     question: '¿Puedo crear mi página web gratis con NexCommit?',
     answer:
-      'Sí. En nexcommit.com/crea-tu-web nuestro creador con inteligencia artificial arma gratis y sin tarjeta una página para tu negocio en unos 2 minutos: le cuentas qué haces, eliges tu link nexcommit.com/tu-empresa y la ajustas conversando con el asistente por chat. Queda publicada 5 días como prueba; si te gusta, nuestro equipo la convierte en tu página definitiva con tu propio dominio.',
+      'Sí. En nexcommit.com/crea-tu-web nuestro creador con inteligencia artificial arma gratis y sin tarjeta una página para tu negocio en unos 2 minutos: le cuentas qué haces, eliges tu link nexcommit.com/tu-empresa y la ajustas conversando con el asistente por chat. Queda publicada 5 días como prueba; si te gusta, la publicamos por $150.000 + IVA con 1 año incluido, en tu link o en tu propio dominio, y la sigues editando tú con el editor visual.',
   },
   {
     question: '¿Cuánto cuesta una página web?',
     answer:
-      'Depende del alcance: no cuesta lo mismo una landing page para una campaña que una tienda online con pagos y despacho. Tras una conversación corta por WhatsApp te enviamos una propuesta por escrito con alcance, plazo y precio cerrado, sin letra chica y antes de empezar.',
+      'Nuestros planes base (+ IVA): página hecha por ti con IA y publicada por nosotros $150.000 con 1 año incluido, landing page $300.000, tienda online $800.000, sistema de reservas y citas $1.000.000 y página empresarial a medida $1.200.000. Si necesitas algo adicional, te enviamos una propuesta por escrito con alcance, plazo y precio cerrado antes de empezar.',
   },
   {
     question: '¿Cuánto tiempo toma un proyecto?',

@@ -2,22 +2,22 @@
 // (clases nh-* de home.css y piezas de components/NhPiezas). El buscador del hero
 // escribe las búsquedas reales del anuncio (`queries` en ADS_LANDINGS).
 import { useParams, Navigate, Link } from 'react-router-dom';
-import { ArrowRight, Check, MessageCircle, Phone } from 'lucide-react';
+import { ArrowRight, Check, ClipboardList, MessageCircle, Phone } from 'lucide-react';
 import SEO from '../components/SEO';
 import { WhatsAppLink, CallLink } from '../components/ContactButtons';
 import { BuildingBrowser, PlazosChart, SearchTyper, ShowcaseMarquee } from '../components/NhPiezas';
+import { ContactoSeccion, CtaFranja, IrACotizar, PlanBaseCard, PlanesGrid } from '../components/Conversion';
 import { PHONE_DISPLAY } from '../config/contact';
 import { getAdLanding, PROCESS_STEPS, LANDING_FAQS } from '../data/ADS_LANDINGS';
-import { PLANES } from '../data/PRECIOS';
 import './home.css';
-
-const clp = (n) => '$' + n.toLocaleString('es-CL');
 
 export default function AdLanding() {
   const { slug } = useParams();
   const landing = getAdLanding(slug);
   if (!landing) return <Navigate to="/" replace />;
-  const planes = (landing.planes || []).map((s) => PLANES.find((p) => p.slug === s)).filter(Boolean);
+  const planes = landing.planes || [];
+  // El producto base (página con IA) solo compite con las páginas simples.
+  const conBase = planes.includes('landing-page');
   const faqs = landing.faqs || LANDING_FAQS;
 
   return (
@@ -43,10 +43,13 @@ export default function AdLanding() {
               <WhatsAppLink topic={landing.topic} placement={`lp_hero_${landing.slug}`} className="nh-btn nh-btn-wa">
                 <MessageCircle aria-hidden="true" /> Cotizar por WhatsApp
               </WhatsAppLink>
-              <CallLink placement={`lp_hero_${landing.slug}`} className="nh-btn nh-btn-ghost">
-                <Phone aria-hidden="true" /> Llamar {PHONE_DISPLAY}
-              </CallLink>
+              <IrACotizar servicio={planes[0]} placement={`lp_hero_${landing.slug}`} className="nh-btn nh-btn-ghost">
+                <ClipboardList aria-hidden="true" /> Cotizar en 1 minuto
+              </IrACotizar>
             </div>
+            <p className="nh-hero-mini">
+              o llama al <CallLink placement={`lp_hero_${landing.slug}`}><Phone aria-hidden="true" style={{ display: 'inline', width: 14, height: 14 }} /> {PHONE_DISPLAY}</CallLink>
+            </p>
             <div className="nh-trust">
               <span><i />Respondemos el mismo día hábil</span>
               <span><i />Precio cerrado antes de partir</span>
@@ -78,18 +81,8 @@ export default function AdLanding() {
             <div className="nh-kicker">Precios</div>
             <h2>Precios claros desde el primer mensaje.</h2>
             <p className="nh-sub">Valores + IVA del plan base. Te enviamos la propuesta con alcance, plazo y precio cerrado antes de partir.</p>
-            <div className="nh-services">
-              {planes.map((p) => (
-                <div key={p.slug} className="nh-service">
-                  <h3>{p.nombre}</h3>
-                  <p>{p.para}</p>
-                  <div><b className="text-white text-3xl font-bold">{clp(p.precio)}</b> <span className="text-sm" style={{ color: 'var(--nh-muted)' }}>+ IVA · {p.plazo}</span></div>
-                  <WhatsAppLink topic={p.topic} placement={`lp_precio_${landing.slug}_${p.slug}`} className="nh-service-more">
-                    Cotizar este plan <ArrowRight aria-hidden="true" />
-                  </WhatsAppLink>
-                </div>
-              ))}
-            </div>
+            <PlanesGrid slugs={planes} placement={`lp_${landing.slug}`} />
+            {conBase && <PlanBaseCard placement={`lp_${landing.slug}`} />}
             <p className="nh-sub" style={{ marginTop: 18 }}>
               <Link to="/precios" className="nh-service-more">Ver qué incluye cada plan <ArrowRight aria-hidden="true" /></Link>
             </p>
@@ -111,6 +104,7 @@ export default function AdLanding() {
               </div>
             ))}
           </div>
+          <CtaFranja placement={`lp_${landing.slug}`} topic={landing.topic} servicio={planes[0]} />
         </div>
       </section>
 
@@ -141,6 +135,8 @@ export default function AdLanding() {
         </div>
       </section>
 
+      <ContactoSeccion placement={`lp_${landing.slug}`} topic={landing.topic} servicio={planes[0]} titulo={`Cotiza ${landing.topic} hoy.`} />
+
       {/* Preguntas frecuentes */}
       <section id="faq" className="nh-block">
         <div className="nh-wrap">
@@ -166,6 +162,9 @@ export default function AdLanding() {
             <WhatsAppLink topic={landing.topic} placement={`lp_final_${landing.slug}`} className="nh-btn nh-btn-wa">
               <MessageCircle aria-hidden="true" /> Escribir por WhatsApp
             </WhatsAppLink>
+            <IrACotizar servicio={planes[0]} placement={`lp_final_${landing.slug}`} className="nh-btn nh-btn-ghost">
+              <ClipboardList aria-hidden="true" /> Cotizar por formulario
+            </IrACotizar>
           </div>
           <div className="nh-phone">
             o llama al <CallLink placement={`lp_final_${landing.slug}`}>{PHONE_DISPLAY}</CallLink>

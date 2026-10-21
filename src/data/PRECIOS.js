@@ -68,6 +68,40 @@ export const PLANES = [
   },
 ];
 
+// Producto base (definido por el dueño el 2026-10-21): la persona arma su
+// página gratis con el Creador (/crea-tu-web) y la publicamos con 1 año
+// incluido. En el panel: Creador → «Habilitar plan base» (RPC creador_habilitar).
+// El mismo valor está en el back (src/creador/plantilla.js → PRECIO_BASE).
+export const PLAN_BASE = {
+  slug: 'pagina-ia',
+  nombre: 'Tu página hecha con IA',
+  precio: 150000,
+  para: 'Para quien prefiere hacerla por su cuenta: la creas gratis con nuestra IA y nosotros la publicamos.',
+  plazo: 'el mismo día hábil',
+  topic: 'publicar mi página hecha con IA',
+  incluye: [
+    'Creas tu página gratis con la IA, en 2 minutos y sin tarjeta',
+    'La publicamos tal como la dejaste, sin la barra de prueba ni fecha de vencimiento',
+    '1 año de publicación incluido',
+    'En tu link nexcommit.com/tu-negocio o en tu propio dominio',
+    'Editor visual libre para cambiar textos, fotos y secciones cuando quieras',
+    'Botón de WhatsApp y formulario de contacto que llega a tu correo',
+  ],
+};
+
+// Opciones del formulario «Cotiza en 1 minuto» (mismas claves que acepta el back
+// en POST /nexcommit/contacto).
+export const SERVICIOS_FORM = [
+  { id: 'landing-page', label: 'Landing page' },
+  { id: 'web-empresarial', label: 'Página empresarial' },
+  { id: 'ecommerce', label: 'Tienda online' },
+  { id: 'reservas-y-citas', label: 'Reservas y citas' },
+  { id: 'pagina-ia', label: 'Publicar mi página hecha con IA' },
+  { id: 'chatbot', label: 'Chatbot con IA / WhatsApp' },
+  { id: 'sistema', label: 'Sistema a medida o automatización' },
+  { id: 'otro', label: 'Otro / no estoy seguro' },
+];
+
 export const NOTA_PRECIOS =
   'Valores en pesos chilenos + IVA, por el plan base. Si necesitas algo adicional (más páginas, otro medio de pago, integraciones), te lo cotizamos antes de partir: la propuesta llega con alcance, plazo y precio cerrado. Hosting, dominio y mantención se contratan aparte en un plan mensual.';
 
@@ -85,6 +119,11 @@ export const FAQ_PRECIOS = [
     question: '¿El hosting y el dominio están incluidos?',
     answer:
       'Se contratan aparte en un plan mensual de hosting, mantención y soporte, para que tu sitio siga funcionando y actualizado después del lanzamiento.',
+  },
+  {
+    question: '¿Puedo hacer mi página yo mismo?',
+    answer:
+      'Sí. Créala gratis con nuestra IA en nexcommit.com/crea-tu-web y, si te gusta, la publicamos por $150.000 + IVA con 1 año incluido, en tu link de NexCommit o en tu propio dominio. Después la sigues editando tú con el editor visual.',
   },
   {
     question: '¿Trabajan con empresas de regiones?',

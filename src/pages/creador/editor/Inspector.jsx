@@ -280,10 +280,13 @@ export function PanelSeccion({ seccion, indice, contenido, mod, campo, set, abri
 export function Estructura({ secciones, mod, onSeleccionar, onAccion, iaDisponibles, onIA }) {
   return (
     <div className="ed-panel-cuerpo">
-      <button type="button" className="ed-ir-ia" onClick={onIA}>
-        <Sparkles aria-hidden="true" />
-        <span><b>Pedir cambios a la IA</b><small>{iaDisponibles > 0 ? `Te quedan ${iaDisponibles} pedidos` : 'Ya usaste tus pedidos'}</small></span>
-      </button>
+      {/* Sin onIA (plan base) no hay chat con la IA. */}
+      {onIA && (
+        <button type="button" className="ed-ir-ia" onClick={onIA}>
+          <Sparkles aria-hidden="true" />
+          <span><b>Pedir cambios a la IA</b><small>{iaDisponibles > 0 ? `Te quedan ${iaDisponibles} pedidos` : 'Ya usaste tus pedidos'}</small></span>
+        </button>
+      )}
       <div className="ed-panel-tit"><h3>Secciones de tu página</h3></div>
       <p className="ed-nota">Haz clic en una sección para editarla, o directamente sobre la página.</p>
       <ul className="ed-estructura">

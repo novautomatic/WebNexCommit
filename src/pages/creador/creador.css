@@ -24,6 +24,10 @@
 .ctw-lista { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 12px; }
 .ctw-lista li { display: flex; gap: 12px; align-items: flex-start; color: var(--nh-text); font-size: 16px; line-height: 1.45; }
 .ctw-lista svg { width: 20px; height: 20px; flex: none; color: var(--nh-sky); margin-top: 1px; }
+.ctw-base { margin-top: 26px; display: flex; gap: 12px; align-items: flex-start; padding: 16px 18px; border-radius: 16px;
+  border: 1px solid rgba(37, 211, 102, .35); background: rgba(37, 211, 102, .08); color: #cfe0f0; font-size: 14.5px; line-height: 1.5; }
+.ctw-base svg { width: 22px; height: 22px; flex: none; color: var(--nh-wa); margin-top: 1px; }
+.ctw-base b { display: block; color: #fff; font-size: 15.5px; }
 .ctw-pasos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 44px; }
 .ctw-paso { border: 1px solid var(--nh-line); border-radius: 18px; padding: 24px; background: linear-gradient(180deg, rgba(11,37,64,0.6), rgba(11,37,64,0.2)); }
 .ctw-paso b { font: 500 12px/1 var(--nh-mono); color: var(--nh-sky); letter-spacing: .12em; }

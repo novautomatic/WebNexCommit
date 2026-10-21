@@ -1,10 +1,24 @@
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { ArrowRight, Check, MessageCircle } from 'lucide-react';
+import { Check, ClipboardList, MessageCircle } from 'lucide-react';
 import SEO from '../components/SEO';
 import { WhatsAppLink } from '../components/ContactButtons';
 import Breadcrumbs from '../components/Breadcrumbs';
 import ServiceVisual from '../components/ServiceVisual';
 import { getServicePage } from '../data/SERVICE_PAGES';
+import { ContactoSeccion, CtaFranja, IrACotizar } from '../components/Conversion';
+
+// Servicio que queda elegido en el formulario según la página.
+const SERVICIO_FORM = {
+  'desarrollo-web': 'web-empresarial',
+  'tiendas-online': 'ecommerce',
+  pagos: 'ecommerce',
+  'inteligencia-artificial': 'chatbot',
+  restaurantes: 'sistema',
+  integraciones: 'sistema',
+  'aulas-virtuales': 'sistema',
+  automatizacion: 'sistema',
+  dashboards: 'sistema',
+};
 
 export default function Services() {
   const { slug } = useParams();
@@ -16,6 +30,7 @@ export default function Services() {
 
   const url = `https://www.nexcommit.com/servicios/${record.slug}`;
   const topic = record.topic || record.title.toLowerCase();
+  const servicio = SERVICIO_FORM[record.slug] || '';
 
   const serviceJsonLd = {
     '@context': 'https://schema.org',
@@ -81,7 +96,14 @@ export default function Services() {
                 >
                   <MessageCircle className="w-5 h-5" /> Cotizar por WhatsApp
                 </WhatsAppLink>
-                <a href="#detalle" className="inline-flex items-center rounded-full px-6 py-3.5 font-bold text-white border border-white/15 hover:border-[#67c8f3] transition-colors">
+                <IrACotizar
+                  servicio={servicio}
+                  placement={`servicio_hero_${record.slug}`}
+                  className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 font-bold text-white border border-white/15 hover:border-[#67c8f3] transition-colors"
+                >
+                  <ClipboardList className="w-5 h-5" /> Cotizar en 1 minuto
+                </IrACotizar>
+                <a href="#detalle" className="inline-flex items-center rounded-full px-4 py-3.5 font-semibold text-brand-muted hover:text-white transition-colors">
                   Ver qué incluye
                 </a>
               </div>
@@ -107,6 +129,8 @@ export default function Services() {
                 ))}
               </div>
             )}
+
+            <CtaFranja placement={`servicio_${record.slug}`} topic={topic} servicio={servicio} />
 
             {record.sections?.length > 0 && (
               <div className="flex flex-col gap-6 mb-12">
@@ -153,19 +177,10 @@ export default function Services() {
               </div>
             )}
 
-            <div className="glass-dark rounded-3xl p-8 md:p-10 text-center">
-              <h2 className="text-2xl md:text-3xl font-semibold text-white mb-4">¿Hablamos de tu proyecto?</h2>
-              <p className="text-brand-muted mb-8 max-w-xl mx-auto leading-relaxed">
-                Cuéntanos qué necesitas y te ayudamos a definir el alcance, el plazo y la mejor forma de resolverlo.
-              </p>
-              <WhatsAppLink topic={topic} placement={`servicio_${record.slug}`} className="btn btn-brand group px-10 py-4">
-                Hablar con un experto
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </WhatsAppLink>
-            </div>
           </article>
         </div>
       </div>
+      <ContactoSeccion placement={`servicio_${record.slug}`} topic={topic} servicio={servicio} titulo="¿Hablamos de tu proyecto? Te respondemos hoy." />
     </>
   );
 }

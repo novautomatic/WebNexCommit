@@ -60,6 +60,21 @@ export function whatsappUrl(topic) {
 
 export const telUrl = `tel:${PHONE_E164}`;
 
+// Formulario «Cotiza en 1 minuto» → back de Agente-Next (src/routes/nexcommitContacto.js).
+export const CONTACTO_API = (import.meta.env.VITE_CONTACTO_API || 'https://back-chat-next.vercel.app/nexcommit/contacto').replace(/\/+$/, '');
+
+/** True when the visitor came from a Google Ads click (gclid kept for the session). */
+export function vinoDeAds() {
+  return typeof window !== 'undefined' && cameFromAds();
+}
+
+/** Conversion for a sent form: same generate_lead the Ads conversion listens to. */
+export function trackForm(servicio, placement = 'unknown') {
+  if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
+  window.gtag('event', 'form_submit_cotizacion', { servicio, placement, page_path: window.location.pathname });
+  window.gtag('event', 'generate_lead', { method: 'form', placement });
+}
+
 /** Fire GA4 + Google Ads conversion events for a contact click. */
 export function trackContact(channel, placement = 'unknown') {
   if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
