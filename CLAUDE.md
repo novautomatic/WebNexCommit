@@ -45,6 +45,12 @@ npm run preview   # Preview production build locally
 - Emails via Agente-Next back `POST /avisos/tareas-cliente` (`src/lib/correosTareasCliente.js`): client daily digest Mon–Fri 10:00, team reminder every 2 days from 5 days before the client date (daily once overdue), owners on the due day. Crons `tareas-cliente-avisos`, `-recurrentes`, `-retencion`, `procesar-avisos-tareas-cliente`. Test: `SELECT public.tcliente_avisos(true);`.
 - Non-team users who log in are sent to `/mi-espacio` by `ProtectedRoute`. GA never receives the query string of `/mi-espacio` or `/confirmar-datos` (tokens).
 
+**Client reviews (`/admin?tab=resenas`, `/resena`):**
+- Migrations `20261021130100`–`20261021130500_resenas_*.sql` (5 parts, run in order). Team sends a request to a client (`clientes.email`) and/or its `cliente_contactos` with `resena_enviar` → pg_net → Agente-Next back `POST /avisos/resena` (template `src/lib/correosResenas.js`). Signed link `/resena?s=<id>&t=<token>` (Vault `resenas_token_secret`), valid 30 days, 1 automatic reminder at 5 days (cron `resenas-diario`), `&baja=1` = opt-out stored as email hash in `resena_bloqueos`.
+- Client writes text + name/cargo/empresa + unchecked consent to publish the name (`publicar_nombre`; without it the review is signed only with the company). Reviews are never edited: the team approves / rejects / unpublishes / deletes via `resena_*` RPCs (tables are read-only for the team).
+- Approved ones come from `resenas_publicas()` (anon) and render in `src/components/Resenas.jsx`: home, `/lp/:slug` (service mapping `LANDING_SERVICIO` in `src/data/RESENAS.js`) and `/servicios/:slug` (only that service). They load in the browser, so they are not in the prerendered HTML.
+- Google button after submitting: `resenas_config.google_url` + `google_activo` (panel → Reseñas → Google); off until the Business Profile is verified. Shown to everyone (no review gating).
+
 **Ley 21.719 (personal data):** `docs/ley-21719/` has the diagnosis, the processing register, processors/DPAs and the breach procedure. The privacy policy (`src/pages/Privacy.jsx`) follows art. 14 ter; legal identity of the controller lives in `src/config/legal.js` (bump `POLITICA.version` on every change). Rights requests must get an acknowledgment and a written answer within 30 calendar days (art. 11).
 
 **OpenAI costs (`/admin?tab=openai`, owners only):**

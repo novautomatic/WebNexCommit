@@ -1,0 +1,80 @@
+/* Reseñas de clientes (src/components/Resenas.jsx). Fondo oscuro del sitio. */
+.rs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 16px;
+  margin-top: 26px;
+}
+.rs-card {
+  position: relative;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px 22px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(124, 170, 214, 0.18);
+  background: linear-gradient(160deg, rgba(103, 200, 243, 0.08), rgba(36, 139, 222, 0.03) 60%), rgba(11, 37, 64, 0.7);
+}
+.rs-comillas { width: 26px; height: 26px; color: #67c8f3; opacity: 0.8; }
+.rs-texto {
+  margin: 0;
+  color: #e6f1fb;
+  font-size: 15.5px;
+  line-height: 1.65;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.rs-corta {
+  display: -webkit-box;
+  -webkit-line-clamp: 7;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rs-mas {
+  align-self: flex-start;
+  margin-top: -6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #67c8f3;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.rs-mas:hover { text-decoration: underline; }
+.rs-autor {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(124, 170, 214, 0.14);
+  font-size: 14px;
+  color: #f2f8fe;
+  line-height: 1.35;
+}
+.rs-autor > span:last-child { display: flex; flex-direction: column; min-width: 0; }
+.rs-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #67c8f3, #248bde);
+  color: #fff;
+  font-weight: 800;
+}
+.rs-empresa { color: #92a9c0; font-size: 13px; }
+.rs-servicio {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(103, 200, 243, 0.35);
+  color: #67c8f3;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}

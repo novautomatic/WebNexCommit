@@ -10,6 +10,7 @@ const Admin = lazy(() => import('./pages/Admin'));
 const MiTienda = lazy(() => import('./pages/creador/tienda/MiTienda'));
 const ConfirmarDatos = lazy(() => import('./pages/ConfirmarDatos'));
 const MiEspacio = lazy(() => import('./pages/portal/MiEspacio'));
+const Resena = lazy(() => import('./pages/Resena'));
 import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import Privacy from './pages/Privacy';
@@ -51,7 +52,7 @@ captureAdClick();
 const GA_MEASUREMENT_ID = 'G-FBHZGW2YB7';
 // Pages whose query string carries personal tokens (portal links, consent links):
 // GA only gets the path, never the token.
-const RUTAS_CON_TOKEN = new Set(['/mi-espacio', '/confirmar-datos']);
+const RUTAS_CON_TOKEN = new Set(['/mi-espacio', '/confirmar-datos', '/resena']);
 
 function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -225,6 +226,7 @@ function App() {
           <Route path="/mi-tienda" element={<Suspense fallback={null}><MiTienda /></Suspense>} />
           <Route path="/confirmar-datos" element={<Suspense fallback={null}><ConfirmarDatos /></Suspense>} />
           <Route path="/mi-espacio" element={<Suspense fallback={null}><MiEspacio /></Suspense>} />
+          <Route path="/resena" element={<Suspense fallback={null}><Resena /></Suspense>} />
         </Routes>
 
         {!isAdmin && (<>

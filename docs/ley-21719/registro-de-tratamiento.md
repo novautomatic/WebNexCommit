@@ -23,6 +23,16 @@ equipo accede con `es_equipo()` y los clientes solo mediante funciones `portal_*
 | `portal_enlaces`, `portal_claves` | Contactos | hash del enlace; clave inicial cifrada | Acceso al portal | Contrato | 7 días después de vencer; la clave, al verla o a las 72 h |
 | `auth.users` (Supabase Auth) | Equipo y contactos | correo, hash de la contraseña, último login | Autenticación | Contrato | Se borra al eliminar los datos del contacto |
 
+## Reseñas de clientes
+
+Migraciones `20261021130100`–`20261021130500_resenas_*.sql`. Panel → Reseñas; formulario público `/resena`.
+
+| Tabla | Personas | Datos | Finalidad | Base | Plazo |
+|---|---|---|---|---|---|
+| `resena_solicitudes` | Clientes y contactos | nombre, correo, cargo, servicio, fechas y estado del envío | Pedir la reseña por correo (1 recordatorio) | Contrato (relación vigente) | Vence a los 30 días; se borra 90 días después de cerrada (cron `resenas-diario`) |
+| `resenas` | Ídem | texto, nombre, cargo, empresa, `publicar_nombre` | Publicar la opinión en nexcommit.com tras revisión del equipo | Publicar el nombre: **consentimiento** (casilla sin marcar); sin él firma solo la empresa | Publicada: hasta que el autor pida retirarla (botón «Borrar»); rechazada: 90 días |
+| `resena_bloqueos` | Quienes pidieron no recibir más solicitudes | solo `sha256(lower(email))` | Respetar la oposición | Obligación legal | Indefinido (no identifica sin el correo) |
+
 ## Formulario de cotización del sitio
 
 | Tabla | Personas | Datos | Finalidad | Base | Plazo |

@@ -9,6 +9,8 @@ import { BuildingBrowser, PlazosChart, SearchTyper, ShowcaseMarquee } from '../c
 import { ContactoSeccion, CtaFranja, IrACotizar, PlanBaseCard, PlanesGrid } from '../components/Conversion';
 import { PHONE_DISPLAY } from '../config/contact';
 import { getAdLanding, PROCESS_STEPS, LANDING_FAQS } from '../data/ADS_LANDINGS';
+import ResenasSeccion from '../components/Resenas';
+import { LANDING_SERVICIO } from '../data/RESENAS';
 import './home.css';
 
 export default function AdLanding() {
@@ -73,6 +75,8 @@ export default function AdLanding() {
         </div>
         <ShowcaseMarquee />
       </section>
+
+      <ResenasSeccion servicio={LANDING_SERVICIO[landing.slug]} limite={3} />
 
       {/* Precios */}
       {planes.length > 0 && (

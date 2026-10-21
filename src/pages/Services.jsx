@@ -6,6 +6,7 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import ServiceVisual from '../components/ServiceVisual';
 import { getServicePage } from '../data/SERVICE_PAGES';
 import { ContactoSeccion, CtaFranja, IrACotizar } from '../components/Conversion';
+import ResenasSeccion from '../components/Resenas';
 
 // Servicio que queda elegido en el formulario según la página.
 const SERVICIO_FORM = {
@@ -131,6 +132,8 @@ export default function Services() {
             )}
 
             <CtaFranja placement={`servicio_${record.slug}`} topic={topic} servicio={servicio} />
+
+            <ResenasSeccion servicio={record.slug} soloServicio variante="servicio" />
 
             {record.sections?.length > 0 && (
               <div className="flex flex-col gap-6 mb-12">

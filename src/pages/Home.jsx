@@ -22,6 +22,7 @@ import { PHONE_DISPLAY } from '../config/contact';
 import { STEPS, SERVICE_GRID, HOME_FAQS } from '../data/HOME';
 import { BuildingBrowser, PlazosChart, SearchTyper, ShowcaseMarquee } from '../components/NhPiezas';
 import { ContactoSeccion, CtaFranja, IrACotizar, PlanBaseCard, PlanesGrid } from '../components/Conversion';
+import ResenasSeccion from '../components/Resenas';
 import './home.css';
 
 const ICONS = { Globe, ShoppingBag, UtensilsCrossed, Bot, CreditCard, Plug, GraduationCap, Workflow, LayoutDashboard };
@@ -96,6 +97,8 @@ export default function Home() {
         </div>
         <ShowcaseMarquee />
       </section>
+
+      <ResenasSeccion />
 
       {/* Precios (src/data/PRECIOS.js) + producto base con IA */}
       <section id="precios" className="nh-block">

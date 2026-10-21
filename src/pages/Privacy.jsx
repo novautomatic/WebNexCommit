@@ -47,6 +47,13 @@ const TRATAMIENTOS = [
     plazo: 'Hasta que retires el consentimiento; el registro de envíos se borra a los 180 días',
   },
   {
+    quien: 'Clientes que dejan una reseña',
+    datos: 'Nombre y correo (para pedírtela); lo que escribes, tu nombre, cargo y empresa',
+    para: 'Pedirte tu opinión sobre el proyecto y, una vez revisada, publicarla en nexcommit.com',
+    base: 'Pedirla: ejecución del contrato. Publicar tu nombre y cargo: consentimiento (casilla opcional); sin él se publica solo con la empresa',
+    plazo: 'Solicitud: 90 días después de cerrada · reseña publicada: hasta que pidas retirarla · reseña rechazada: 90 días',
+  },
+  {
     quien: 'Personas que crean una página en «Crea tu web»',
     datos: 'Nombre, empresa, correo, celular y la descripción de tu negocio',
     para: 'Crear, publicar y administrar tu página de prueba y contactarte sobre ella',
@@ -264,6 +271,11 @@ export default function Privacy() {
                   <li>Cada correo promocional trae un enlace para darte de baja, y el mismo enlace personal te deja corregir tus datos o cambiar tu decisión.</li>
                   <li>Guardamos la fecha en que aceptaste o retiraste tu consentimiento como respaldo; la dirección IP solo como una huella cifrada (hash).</li>
                   <li>El registro de correos enviados se borra a los 180 días, salvo las respuestas a solicitudes de derechos, que guardamos como constancia.</li>
+                  <li>
+                    Cuando terminamos un proyecto podemos pedirte una reseña por correo, con un enlace personal que vence en 30 días y
+                    a lo más un recordatorio. Cada correo trae un enlace para no recibir más solicitudes. Tu reseña la revisa el equipo
+                    antes de publicarla, no la editamos, y la retiramos cuando nos lo pidas.
+                  </li>
                 </ul>
               </section>
 

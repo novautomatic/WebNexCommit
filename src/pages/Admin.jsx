@@ -19,6 +19,7 @@ import {
   List,
   LogOut,
   Menu,
+  MessageSquareQuote,
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
@@ -31,6 +32,7 @@ import { BlogAdmin } from './blog/BlogAdmin';
 import Cotizador from './Cotizador';
 import CreadorAdmin from './creador/CreadorAdmin';
 import ContactosWebAdmin from './contactos/ContactosWebAdmin';
+import ResenasAdmin from './resenas/ResenasAdmin';
 import OpenAIAdmin from './openai/OpenAIAdmin';
 import GoogleAdmin from './google/GoogleAdmin';
 import BovedaAdmin from './boveda/BovedaAdmin';
@@ -81,6 +83,7 @@ const GRUPOS = [
     nacion: 'fuego',
     items: [
       { id: 'contactos', label: 'Contactos web', icon: Inbox },
+      { id: 'resenas', label: 'Reseñas', icon: MessageSquareQuote },
       { id: 'blog', label: 'Blog', icon: FileText },
       { id: 'cotizador', label: 'Cotizador', icon: Calculator },
       { id: 'creador', label: 'Creador', icon: Wand2 },
@@ -313,6 +316,7 @@ export default function Admin() {
             {seccion === 'cotizador' && <Cotizador />}
             {seccion === 'creador' && <CreadorAdmin />}
             {seccion === 'contactos' && <ContactosWebAdmin />}
+            {seccion === 'resenas' && <ResenasAdmin />}
             {seccion === 'openai' && <OpenAIAdmin />}
             {seccion === 'google' && <GoogleAdmin />}
           </main>
