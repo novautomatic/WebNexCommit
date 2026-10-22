@@ -7,6 +7,7 @@ import {
   Bot,
   Briefcase,
   CalendarDays,
+  ClipboardCheck,
   Calculator,
   Contact,
   FileText,
@@ -35,6 +36,7 @@ import ContactosWebAdmin from './contactos/ContactosWebAdmin';
 import ResenasAdmin from './resenas/ResenasAdmin';
 import OpenAIAdmin from './openai/OpenAIAdmin';
 import GoogleAdmin from './google/GoogleAdmin';
+import AuditoriaAdmin from './auditoria/AuditoriaAdmin';
 import BovedaAdmin from './boveda/BovedaAdmin';
 import TareasAdmin from './tareas/TareasAdmin';
 import TareasClienteAdmin from './tareasCliente/TareasClienteAdmin';
@@ -94,6 +96,13 @@ const GRUPOS = [
     nacion: 'fuego',
     items: [
       { id: 'google', label: 'Herramientas Google', icon: TrendingUp },
+    ],
+  },
+  {
+    titulo: 'Chatbots',
+    nacion: 'agua',
+    items: [
+      { id: 'auditoria-chatbots', label: 'Auditoría SofIA', icon: ClipboardCheck },
     ],
   },
   {
@@ -319,6 +328,7 @@ export default function Admin() {
             {seccion === 'resenas' && <ResenasAdmin />}
             {seccion === 'openai' && <OpenAIAdmin />}
             {seccion === 'google' && <GoogleAdmin />}
+            {seccion === 'auditoria-chatbots' && <AuditoriaAdmin />}
           </main>
         </div>
       </div>
