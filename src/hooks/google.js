@@ -1,15 +1,21 @@
 // Herramientas Google (/admin?tab=google): todo pasa por el back de Agente-Next
-// (/nexcommit/google), que valida la sesión y que seas dueño. Ver
+// (/nexcommit/google/:cliente), que valida la sesión y que seas dueño. Ver
 // back/src/routes/nexcommitGoogle.js en novautomatic/back_chat_next.
+// Multi-cliente: el cliente activo llega por contexto (lo fija GoogleAdmin).
+import { createContext, useContext } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
 import { CREADOR_API } from '../config/creador';
 
 const API = `${CREADOR_API.replace(/\/creador$/, '')}/nexcommit/google`;
 
-async function llamar(ruta, { metodo = 'GET', cuerpo } = {}) {
+export const CLIENTE_DEFECTO = 'nexcommit';
+export const ClienteGoogle = createContext(CLIENTE_DEFECTO);
+const useCliente = () => useContext(ClienteGoogle);
+
+async function llamar(cliente, ruta, { metodo = 'GET', cuerpo } = {}) {
   const { data: { session } } = await supabase.auth.getSession();
-  const res = await fetch(`${API}${ruta}`, {
+  const res = await fetch(`${API}/${encodeURIComponent(cliente)}${ruta}`, {
     method: metodo,
     headers: { Authorization: `Bearer ${session?.access_token || ''}`, 'Content-Type': 'application/json' },
     body: cuerpo ? JSON.stringify(cuerpo) : undefined,
@@ -20,59 +26,67 @@ async function llamar(ruta, { metodo = 'GET', cuerpo } = {}) {
 }
 
 export function useGooglePanel(dias) {
+  const cliente = useCliente();
   return useQuery({
-    queryKey: ['google-panel', dias],
-    queryFn: () => llamar(`/panel?dias=${dias}`),
+    queryKey: ['google-panel', cliente, dias],
+    queryFn: () => llamar(cliente, `/panel?dias=${dias}`),
     staleTime: 4 * 60_000,
     refetchOnWindowFocus: false,
   });
 }
 
 export function useRecargarPanel(dias) {
+  const cliente = useCliente();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => llamar(`/panel?dias=${dias}&fresco=1`),
-    onSuccess: (data) => qc.setQueryData(['google-panel', dias], data),
+    mutationFn: () => llamar(cliente, `/panel?dias=${dias}&fresco=1`),
+    onSuccess: (data) => qc.setQueryData(['google-panel', cliente, dias], data),
   });
 }
 
-const invalidar = (qc) => () => qc.invalidateQueries({ queryKey: ['google-panel'] });
+const invalidar = (qc, cliente) => () => qc.invalidateQueries({ queryKey: ['google-panel', cliente] });
 
 export function useGuardarConfig() {
+  const cliente = useCliente();
   const qc = useQueryClient();
-  return useMutation({ mutationFn: (cuerpo) => llamar('/config', { metodo: 'PUT', cuerpo }), onSuccess: invalidar(qc) });
+  return useMutation({ mutationFn: (cuerpo) => llamar(cliente, '/config', { metodo: 'PUT', cuerpo }), onSuccess: invalidar(qc, cliente) });
 }
 
 // "Ya lo hice": oculta un aviso del diagnóstico N días (0 = volver a mostrarlo).
 export function useOcultarAviso() {
+  const cliente = useCliente();
   const qc = useQueryClient();
-  return useMutation({ mutationFn: (cuerpo) => llamar('/ocultar', { metodo: 'POST', cuerpo }), onSuccess: invalidar(qc) });
+  return useMutation({ mutationFn: (cuerpo) => llamar(cliente, '/ocultar', { metodo: 'POST', cuerpo }), onSuccess: invalidar(qc, cliente) });
 }
 
 export function useCrearCambio() {
+  const cliente = useCliente();
   const qc = useQueryClient();
-  return useMutation({ mutationFn: (cuerpo) => llamar('/cambios', { metodo: 'POST', cuerpo }), onSuccess: invalidar(qc) });
+  return useMutation({ mutationFn: (cuerpo) => llamar(cliente, '/cambios', { metodo: 'POST', cuerpo }), onSuccess: invalidar(qc, cliente) });
 }
 
 export function useEditarCambio() {
+  const cliente = useCliente();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...cuerpo }) => llamar(`/cambios/${id}`, { metodo: 'PATCH', cuerpo }),
-    onSuccess: invalidar(qc),
+    mutationFn: ({ id, ...cuerpo }) => llamar(cliente, `/cambios/${id}`, { metodo: 'PATCH', cuerpo }),
+    onSuccess: invalidar(qc, cliente),
   });
 }
 
 export function useHistorialAnalisis() {
-  return useQuery({ queryKey: ['google-analisis'], queryFn: () => llamar('/analisis'), staleTime: 60_000 });
+  const cliente = useCliente();
+  return useQuery({ queryKey: ['google-analisis', cliente], queryFn: () => llamar(cliente, '/analisis'), staleTime: 60_000 });
 }
 
 export function useAnalizar() {
+  const cliente = useCliente();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (dias) => llamar('/analisis', { metodo: 'POST', cuerpo: { dias } }),
+    mutationFn: (dias) => llamar(cliente, '/analisis', { metodo: 'POST', cuerpo: { dias } }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['google-analisis'] });
-      qc.invalidateQueries({ queryKey: ['google-panel'] });
+      qc.invalidateQueries({ queryKey: ['google-analisis', cliente] });
+      qc.invalidateQueries({ queryKey: ['google-panel', cliente] });
     },
   });
 }
@@ -86,5 +100,8 @@ export const TIPOS_CAMBIO = {
   activar_palabra: { label: 'Activar palabra clave', campos: ['campana', 'texto', 'concordancia', 'grupo'] },
   presupuesto_diario: { label: 'Cambiar presupuesto diario', campos: ['campana', 'monto_clp'] },
   cpc_maximo: { label: 'Cambiar tope de CPC', campos: ['campana', 'monto_clp'] },
+  pausar_grupo: { label: 'Pausar grupo de anuncios', campos: ['campana', 'grupo'] },
+  activar_grupo: { label: 'Activar grupo de anuncios', campos: ['campana', 'grupo'] },
+  sufijo_url: { label: 'Texto de seguimiento de las URL', campos: ['campana', 'sufijo'] },
 };
 export const CONCORDANCIAS = { BROAD: 'Amplia', PHRASE: 'Frase', EXACT: 'Exacta' };

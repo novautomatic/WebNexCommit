@@ -202,7 +202,7 @@ export function VistaAds({ p }) {
         </Seccion>
         <Seccion titulo="Páginas de destino" icon={Globe2}>
           <Tabla minWidth={420} filas={a.paginas_destino} columnas={[
-            { titulo: 'URL', valor: (x) => String(x.url || '').replace('https://www.nexcommit.com', '') || '/' },
+            { titulo: 'URL', valor: (x) => String(x.url || '').replace(/^https?:\/\/[^/]+/, '') || '/' },
             { titulo: 'Clics', num: true, valor: (x) => x.clics, render: (x) => entero(x.clics) },
             { titulo: 'Contactos', num: true, valor: (x) => x.conv, render: (x) => dec1(x.conv) },
             { titulo: 'Apta celular', num: true, valor: (x) => x.movil_ok ?? -1, render: (x) => pct(x.movil_ok) },
@@ -413,7 +413,7 @@ export function VistaWeb({ p }) {
 export function VistaSeo({ p }) {
   const s = p.search_console;
   if (s?.error) return <Vacio>Search Console: {s.error}</Vacio>;
-  const corta = (u) => String(u).replace(/^https?:\/\/(www\.)?nexcommit\.com/, '') || '/';
+  const corta = (u) => String(u).replace(/^https?:\/\/[^/]+/, '') || '/';
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

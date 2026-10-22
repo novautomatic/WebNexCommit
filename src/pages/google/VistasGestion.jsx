@@ -19,6 +19,7 @@ const ESTADOS = {
 };
 const CAMPO = {
   campana: 'Campaña', grupo: 'Grupo de anuncios', texto: 'Palabra / término', concordancia: 'Concordancia', monto_clp: 'Monto (CLP)',
+  sufijo: 'Sufijo de URL (vacío = quitarlo)',
 };
 
 function opciones(p) {

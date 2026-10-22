@@ -1,9 +1,11 @@
 // /admin?tab=google — Herramientas Google (solo dueños): Google Ads, Analytics 4 y
 // Search Console con diagnóstico, cambios con aprobación y análisis con IA.
-// Datos: back de Agente-Next /nexcommit/google (ver src/hooks/google.js).
+// Multi-cliente: el cliente activo va en la URL (&cliente=…; sin él, NexCommit).
+// Datos: back de Agente-Next /nexcommit/google/:cliente (ver src/hooks/google.js).
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { RefreshCw } from 'lucide-react';
-import { useGooglePanel, useRecargarPanel } from '../../hooks/google';
+import { CLIENTE_DEFECTO, ClienteGoogle, useGooglePanel, useRecargarPanel } from '../../hooks/google';
 import { ErrorBox, btnGhost } from '../tareas/ui';
 import { VistaAds, VistaPalabras, VistaResumen, VistaSeo, VistaWeb } from './VistasDatos';
 import { VistaAnalisis, VistaCambios, VistaConfig } from './VistasGestion';
@@ -21,24 +23,58 @@ const PESTANAS = [
 const RANGOS = [7, 14, 30, 90];
 
 export default function GoogleAdmin() {
+  const [params, setParams] = useSearchParams();
+  const cliente = params.get('cliente') || CLIENTE_DEFECTO;
+  const elegir = (id) => {
+    const n = new URLSearchParams(params);
+    if (id === CLIENTE_DEFECTO) n.delete('cliente');
+    else n.set('cliente', id);
+    setParams(n, { replace: true });
+  };
+  return (
+    <ClienteGoogle.Provider value={cliente}>
+      <Panel cliente={cliente} elegir={elegir} />
+    </ClienteGoogle.Provider>
+  );
+}
+
+function Panel({ cliente, elegir }) {
   const [pestana, setPestana] = useState('resumen');
   const [dias, setDias] = useState(30);
   const { data: p, isLoading, error } = useGooglePanel(dias);
   const recargar = useRecargarPanel(dias);
+  // La lista de clientes la entrega el back; se recuerda para que el selector no
+  // desaparezca mientras carga el cliente siguiente.
+  const [clientes, setClientes] = useState([]);
+  if (p?.clientes?.length && p.clientes !== clientes) setClientes(p.clientes);
   const porRevisar = (p?.cambios || []).filter((c) => c.estado === 'propuesto').length;
   const irACambios = () => setPestana('cambios');
+  const nombre = clientes.find((c) => c.id === cliente)?.nombre;
 
   return (
     <div className="space-y-4 max-w-7xl">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-white text-xl font-semibold">Herramientas Google</h2>
+          <h2 className="text-white text-xl font-semibold">Herramientas Google{nombre ? ` · ${nombre}` : ''}</h2>
           <p className="text-xs text-[#9aafc3]">
             Google Ads (se actualiza cada mañana, últimos 30 días) · Analytics y Search Console (rango elegido)
             {p?.generado && ` · leído ${new Date(p.generado).toLocaleTimeString('es-CL', { timeStyle: 'short' })}`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {clientes.length > 1 && (
+            <label className="flex items-center gap-2 text-xs text-[#9aafc3]">
+              Cliente
+              <select
+                id="google-cliente"
+                value={cliente}
+                onChange={(e) => elegir(e.target.value)}
+                className="rounded-lg border border-white/10 bg-[#0d1e30] px-2 py-1.5 text-sm text-white"
+              >
+                {clientes.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+              </select>
+            </label>
+          )}
           <div className="flex rounded-lg border border-white/10 overflow-hidden" role="group" aria-label="Rango de días">
             {RANGOS.map((r) => (
               <button key={r} type="button" onClick={() => setDias(r)} className={`px-3 py-1.5 text-xs ${dias === r ? 'bg-[#1a3050] text-white' : 'text-[#9aafc3] hover:text-white'}`}>{r} días</button>
@@ -71,7 +107,7 @@ export default function GoogleAdmin() {
           {pestana === 'seo' && <VistaSeo p={p} />}
           {pestana === 'cambios' && <VistaCambios p={p} />}
           {pestana === 'ia' && <VistaAnalisis p={p} dias={dias} irACambios={irACambios} />}
-          {pestana === 'config' && <VistaConfig key={JSON.stringify(p.config)} p={p} />}
+          {pestana === 'config' && <VistaConfig key={`${cliente}:${JSON.stringify(p.config)}`} p={p} />}
         </>
       )}
     </div>
