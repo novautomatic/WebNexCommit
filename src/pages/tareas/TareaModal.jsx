@@ -57,7 +57,7 @@ const CAMPOS = {
   descripcion: 'descripción',
 };
 
-export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose }) {
+export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose, onCreada }) {
   const [form, setForm] = useState(() => aFormulario(tarea, defaults));
   const guardar = useGuardarTarea();
   const resincronizar = useResincronizar();
@@ -88,7 +88,7 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
       etiquetas: form.etiquetas.split(',').map((s) => s.trim()).filter(Boolean),
     };
     if (esNueva) {
-      guardar.mutate(campos, { onSuccess: onClose });
+      guardar.mutate(campos, { onSuccess: () => { onCreada?.(); onClose(); } });
       return;
     }
     // Send only what changed so GitHub doesn't get labels nobody touched.

@@ -12,6 +12,7 @@ import {
   formatearFecha,
   hoyISO,
   refGithub,
+  useBorrarIdea,
   useEquipo,
   useGuardarTarea,
   useMiEquipoId,
@@ -25,6 +26,7 @@ import { emojiEstado, useTema, useTextos } from '../../hooks/tema';
 import { Mascota, Vacio } from './Mascota';
 import ResumenVista from './ResumenVista';
 import CalendarioVista from './CalendarioVista';
+import { ColumnaIdeas } from './IdeasFuturas';
 import { Avatar, EstadoPill, ErrorBox, Pill, PrioridadPill, btnPrimary, card, inputClass } from './ui';
 
 // Task views only; projects, clients, team and shortcuts live in the panel sidebar.
@@ -54,10 +56,13 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
     q: '', proyecto: params.get('proyecto') || '', responsable: '', prioridad: '', estado: '', soloVencidas: false,
   }));
   const [nuevaLocal, setNuevaLocal] = useState(null); // defaults for a new task, or null
+  const [ideaOrigen, setIdeaOrigen] = useState(null); // «Proyectos futuros» idea being turned into a task
+  const borrarIdea = useBorrarIdea();
   const nuevaParam = params.get('nueva');
   const nueva = nuevaLocal || (nuevaParam ? { proyecto_id: nuevaParam } : null);
   const cerrarNueva = () => {
     setNuevaLocal(null);
+    setIdeaOrigen(null);
     if (nuevaParam) setParams((p) => { p.delete('nueva'); return p; }, { replace: true });
   };
   const [areaSel, setAreaSel] = useState(null);
@@ -223,7 +228,19 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
       )}
 
       {vista === 'tablero' && (
-        <Tablero tareas={filtradas} miembro={miembro} proyecto={proyecto} onAbrir={abrir} onNueva={nuevaTarea} />
+        <Tablero
+          tareas={filtradas}
+          miembro={miembro}
+          proyecto={proyecto}
+          onAbrir={abrir}
+          onNueva={nuevaTarea}
+          ideas={
+            <ColumnaIdeas
+              miembro={miembro}
+              onConvertir={(idea) => { setIdeaOrigen(idea.id); nuevaTarea({ titulo: idea.tema, descripcion: idea.notas || '' }); }}
+            />
+          }
+        />
       )}
       {vista === 'lista' && <Lista tareas={filtradas} miembro={miembro} proyecto={proyecto} onAbrir={abrir} />}
       {vista === 'resumen' && (
@@ -282,7 +299,13 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
       )}
 
       {nueva && (
-        <TareaModal defaults={nueva} equipo={equipo} proyectos={proyectos} onClose={cerrarNueva} />
+        <TareaModal
+          defaults={nueva}
+          equipo={equipo}
+          proyectos={proyectos}
+          onClose={cerrarNueva}
+          onCreada={ideaOrigen ? () => borrarIdea.mutate(ideaOrigen) : undefined}
+        />
       )}
       {tareaAbierta && (
         <TareaModal key={tareaAbierta.id} tarea={tareaAbierta} equipo={equipo} proyectos={proyectos} onClose={cerrar} />
@@ -324,7 +347,7 @@ function Kpi({ label, valor, color, onClick }) {
   );
 }
 
-function Tablero({ tareas, miembro, proyecto, onAbrir, onNueva }) {
+function Tablero({ tareas, miembro, proyecto, onAbrir, onNueva, ideas = null }) {
   const tema = useTema();
   const guardar = useGuardarTarea();
   const [sobre, setSobre] = useState(null);
@@ -349,6 +372,7 @@ function Tablero({ tareas, miembro, proyecto, onAbrir, onNueva }) {
     <>
       <ErrorBox error={guardar.error} />
       <div className="flex gap-4 overflow-x-auto pb-4 -mx-1 px-1 snap-x">
+        {ideas}
         {COLUMNAS.map((col) => {
           const lista = porColumna(col.id);
           return (

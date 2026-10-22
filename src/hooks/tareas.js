@@ -340,6 +340,48 @@ export function useGuardarMiembro() {
   });
 }
 
+// ── Proyectos futuros (migration 20261022150000_ideas_futuras.sql) ───────────
+// Ideas without project/owner/date; they become a real task with «Convertir en tarea».
+export function useIdeasFuturas() {
+  const qc = useQueryClient();
+  useEffect(() => {
+    const canal = supabase
+      .channel('ideas-futuras')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas_futuras' }, () =>
+        qc.invalidateQueries({ queryKey: ['tareas', 'ideas'] }))
+      .subscribe();
+    return () => {
+      supabase.removeChannel(canal);
+    };
+  }, [qc]);
+  return useQuery({
+    queryKey: ['tareas', 'ideas'],
+    queryFn: () => unwrap(supabase.from('ideas_futuras').select('*').order('created_at', { ascending: false })),
+  });
+}
+
+export function useGuardarIdea() {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: async ({ id, ...campos }) => {
+      const filas = id
+        ? await unwrap(supabase.from('ideas_futuras').update(campos).eq('id', id).select())
+        : await unwrap(supabase.from('ideas_futuras').insert(campos).select());
+      if (!filas?.length) throw new Error('No se pudo guardar la idea.');
+      return filas[0];
+    },
+    onSettled: () => invalidar('ideas'),
+  });
+}
+
+export function useBorrarIdea() {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: (id) => unwrap(supabase.from('ideas_futuras').delete().eq('id', id)),
+    onSettled: () => invalidar('ideas'),
+  });
+}
+
 // ── Accesos directos (Configuración) ─────────────────────────────────────────
 export function useAccesosDirectos() {
   return useQuery({
