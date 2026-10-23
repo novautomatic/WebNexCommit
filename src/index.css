@@ -626,82 +626,160 @@ select optgroup {
   [data-tema='elemental'] .elemental-flota { animation: none; }
 }
 
+
 /* ───────────────────────────────────────────────────────────────────────────
-   Panel theme "Cielo 🌤️": calm and easy to read. Soft navy base, the light
-   sky-blue highlight with navy text for "where you are", and lively colors that
-   always MEAN something: coral = needs attention, sun = energy/soon, mint =
-   done, lilac = yours/ideas, peach = unassigned, sky = open. Atkinson
-   Hyperlegible for reading comfort, a little more line height and contrast,
-   gentle motion (and none with prefers-reduced-motion).
+   Panel theme "Cielo 🌤️": LIGHT, calm and easy to read. Almost-white base with
+   a hint of sky, navy ink text, the light sky-blue highlight for "where you
+   are", and lively colors that always MEAN something: coral = needs attention,
+   sun = soon / in progress, mint = done, lilac = yours / in review, peach =
+   unassigned, sky = open. Vivid tones for bars and edges; darker versions of
+   the same hues for text so it stays readable on white. Atkinson Hyperlegible,
+   gentle motion (none with prefers-reduced-motion).
+   The rest of the panel is written for a dark surface, so this block remaps
+   the dark utility classes it uses to their light equivalents.
    ─────────────────────────────────────────────────────────────────────────── */
 [data-tema='cielo'] {
-  --c-fondo: #0e1c30;
-  --c-barra: #10233b;
-  --c-tarjeta: #142a45;
-  --c-campo: #1a3354;
-  --c-texto: #f2f7fd;
-  --c-texto-2: #c9d9eb;
-  --c-texto-3: #9db3cc;
-  --c-cielo: #8ecbff;
-  --c-cielo-claro: #a9d6ff;
-  --c-tinta: #0b1a2e;
-  --c-coral: #ff8a80;
-  --c-sol: #ffd166;
-  --c-menta: #5ee0b0;
-  --c-lila: #b9a7ff;
-  --c-durazno: #ffb38a;
-  --c-borde: rgba(142, 203, 255, 0.16);
+  --c-fondo: #f5f8fc;
+  --c-tarjeta: #ffffff;
+  --c-barra: #eef4fa;
+  --c-campo: #f1f6fb;
+  --c-activo: #dcefff;
+  --c-tinta: #13263f;
+  --c-texto-1: #2a3f57;
+  --c-texto-2: #4b6079;
+  --c-texto-3: #6f8399;
+  --c-borde: #e1e9f2;
+  --c-borde-fuerte: #c8d6e6;
+  --c-hover: rgba(19, 38, 63, 0.05);
+  /* Vivid (bars, edges, fills) */
+  --c-cielo: #5bb4ff;
+  --c-coral: #ff6b6b;
+  --c-sol: #ffc531;
+  --c-menta: #2ecc8f;
+  --c-lila: #8b74ff;
+  --c-durazno: #ff9a5a;
+  /* Same hues, dark enough for text on white */
+  --c-cielo-t: #1f6fbf;
+  --c-coral-t: #cf3a3a;
+  --c-sol-t: #a06a00;
+  --c-menta-t: #0f8357;
+  --c-lila-t: #5a43d4;
+  --c-durazno-t: #bb5a1c;
+  --grafico-tinta: var(--c-tinta);
+  --grafico-tinta-2: var(--c-texto-2);
+  color-scheme: light;
+  color: var(--c-tinta);
   font-family: 'Atkinson Hyperlegible', 'Inter', system-ui, sans-serif;
   line-height: 1.55;
   background-color: var(--c-fondo);
   background-image:
-    radial-gradient(circle at 8% 0%, rgba(142, 203, 255, 0.10), transparent 38%),
-    radial-gradient(circle at 92% 6%, rgba(255, 209, 102, 0.07), transparent 34%),
-    radial-gradient(circle at 50% 100%, rgba(94, 224, 176, 0.06), transparent 40%);
+    radial-gradient(circle at 6% 0%, rgba(91, 180, 255, 0.12), transparent 36%),
+    radial-gradient(circle at 94% 4%, rgba(255, 197, 49, 0.10), transparent 32%),
+    radial-gradient(circle at 50% 100%, rgba(46, 204, 143, 0.07), transparent 40%);
   background-attachment: fixed;
 }
 
+/* ─── Surfaces ─── */
 [data-tema='cielo'].bg-\[\#0a1628\],
-[data-tema='cielo'] .bg-\[\#0a1628\] { background-color: var(--c-fondo) !important; }
+[data-tema='cielo'] .bg-\[\#0a1628\],
+[data-tema='cielo'] .bg-\[\#0a1628\]\/95 { background-color: var(--c-fondo) !important; }
 [data-tema='cielo'] .bg-\[\#0d1e30\] { background-color: var(--c-tarjeta) !important; }
 [data-tema='cielo'] .bg-\[\#0c1a2c\] { background-color: var(--c-barra) !important; }
 [data-tema='cielo'] .bg-\[\#151f33\],
-[data-tema='cielo'] .bg-\[\#0f172a\]\/60 { background-color: var(--c-campo) !important; }
-[data-tema='cielo'] .bg-\[\#1a3050\] { background-color: #1f3d63 !important; }
-[data-tema='cielo'] .text-white { color: var(--c-texto) !important; }
-[data-tema='cielo'] .text-\[\#9aafc3\] { color: var(--c-texto-2) !important; }
-[data-tema='cielo'] .text-\[\#5f7891\] { color: var(--c-texto-3) !important; }
+[data-tema='cielo'] .bg-\[\#0f172a\]\/60,
+[data-tema='cielo'] .bg-white\/5 { background-color: var(--c-campo) !important; }
+[data-tema='cielo'] .bg-white\/10,
+[data-tema='cielo'] .bg-white\/20 { background-color: rgba(19, 38, 63, 0.07) !important; }
+[data-tema='cielo'] .hover\:bg-white\/5:hover { background-color: var(--c-hover) !important; }
+[data-tema='cielo'] .bg-\[\#1a3050\] { background-color: var(--c-activo) !important; }
+[data-tema='cielo'] .bg-black\/60 { background-color: rgba(19, 38, 63, 0.35) !important; }
+[data-tema='cielo'] > header { background-color: rgba(255, 255, 255, 0.92) !important; backdrop-filter: blur(6px); }
+[data-tema='cielo'] aside { background-color: var(--c-tarjeta) !important; }
+
+/* ─── Text ─── */
+[data-tema='cielo'] .text-white,
+[data-tema='cielo'] .hover\:text-white:hover { color: var(--c-tinta) !important; }
+[data-tema='cielo'] .text-\[\#cfe0f0\],
+[data-tema='cielo'] .text-\[\#c4d3e2\],
+[data-tema='cielo'] .text-\[\#d6e2ee\],
+[data-tema='cielo'] .text-\[\#c6d4e1\],
+[data-tema='cielo'] .text-\[\#c5d3e0\],
+[data-tema='cielo'] .text-\[\#e6eef7\] { color: var(--c-texto-1) !important; }
+[data-tema='cielo'] .text-\[\#9aafc3\],
+[data-tema='cielo'] .text-white\/70 { color: var(--c-texto-2) !important; }
+[data-tema='cielo'] .text-\[\#5f7891\],
+[data-tema='cielo'] .text-\[\#7f95aa\] { color: var(--c-texto-3) !important; }
+[data-tema='cielo'] .placeholder-\[\#9aafc3\]::placeholder,
+[data-tema='cielo'] input::placeholder,
+[data-tema='cielo'] textarea::placeholder { color: var(--c-texto-3) !important; }
 [data-tema='cielo'] .text-\[\#67c8f3\],
-[data-tema='cielo'] .hover\:text-\[\#67c8f3\]:hover { color: var(--c-cielo) !important; }
+[data-tema='cielo'] .hover\:text-\[\#67c8f3\]:hover,
+[data-tema='cielo'] .text-\[\#8fc0f5\],
+[data-tema='cielo'] .text-blue-400 { color: var(--c-cielo-t) !important; }
+[data-tema='cielo'] .text-red-200,
+[data-tema='cielo'] .text-red-300,
+[data-tema='cielo'] .text-red-400,
+[data-tema='cielo'] .hover\:text-red-200:hover,
+[data-tema='cielo'] .hover\:text-red-400:hover,
+[data-tema='cielo'] .text-\[\#f3a3a3\],
+[data-tema='cielo'] .text-\[\#f2b8b8\] { color: var(--c-coral-t) !important; }
+[data-tema='cielo'] .text-amber-200,
+[data-tema='cielo'] .text-amber-300,
+[data-tema='cielo'] .text-yellow-400,
+[data-tema='cielo'] .text-\[\#f5d58a\],
+[data-tema='cielo'] .text-\[\#fab219\] { color: var(--c-sol-t) !important; }
+[data-tema='cielo'] .text-emerald-300,
+[data-tema='cielo'] .text-emerald-400,
+[data-tema='cielo'] .text-green-400,
+[data-tema='cielo'] .text-\[\#6fd3ad\],
+[data-tema='cielo'] .text-\[\#9fe39f\] { color: var(--c-menta-t) !important; }
+
+/* ─── Borders ─── */
+[data-tema='cielo'] .border-white\/5,
+[data-tema='cielo'] .border-white\/10,
+[data-tema='cielo'] .border-white\/15,
+[data-tema='cielo'] .divide-white\/5 > * + *,
+[data-tema='cielo'] .divide-white\/5 { border-color: var(--c-borde) !important; }
+[data-tema='cielo'] .border-white\/20,
+[data-tema='cielo'] .border-white\/40,
+[data-tema='cielo'] .hover\:border-white\/10:hover,
+[data-tema='cielo'] .hover\:border-white\/20:hover,
+[data-tema='cielo'] .hover\:border-white\/25:hover { border-color: var(--c-borde-fuerte) !important; }
 [data-tema='cielo'] .border-\[\#67c8f3\],
 [data-tema='cielo'] .focus\:border-\[\#67c8f3\]:focus { border-color: var(--c-cielo) !important; }
-[data-tema='cielo'] .border-white\/10,
-[data-tema='cielo'] .border-white\/5 { border-color: var(--c-borde) !important; }
 [data-tema='cielo'] .rounded-xl { border-radius: 1rem; }
+
+/* Fields: white with a visible edge. */
+[data-tema='cielo'] input:not([type='checkbox']):not([type='radio']):not([type='color']),
+[data-tema='cielo'] select,
+[data-tema='cielo'] textarea { color: var(--c-tinta); }
 [data-tema='cielo'] input:focus-visible,
 [data-tema='cielo'] select:focus-visible,
 [data-tema='cielo'] textarea:focus-visible,
 [data-tema='cielo'] button:focus-visible {
-  outline: 2px solid var(--c-cielo-claro);
+  outline: 2px solid var(--c-cielo);
   outline-offset: 2px;
 }
+[data-tema='cielo'] select option,
+[data-tema='cielo'] select optgroup { background-color: #ffffff; color: var(--c-tinta); }
 
-/* "Where you are": light sky with navy text (sidebar and view tabs). */
+/* Pills carry their color inline (designed for dark): deepen them for white. */
+[data-tema='cielo'] span.rounded-full[style*='color'] { filter: brightness(0.66) saturate(1.5); font-size: 12px; }
+
+/* ─── "Where you are": light sky, navy text, sky edge ─── */
 [data-tema='cielo'] aside .bg-\[\#1a3050\],
 [data-tema='cielo'] [role='tablist'] .bg-\[\#1a3050\] {
-  background-color: var(--c-cielo-claro) !important;
+  background-color: var(--c-activo) !important;
   color: var(--c-tinta) !important;
   font-weight: 700;
-  box-shadow: 0 6px 16px -10px rgba(169, 214, 255, 0.9);
+  box-shadow: inset 3px 0 0 var(--c-cielo);
 }
 [data-tema='cielo'] aside .bg-\[\#1a3050\] *,
 [data-tema='cielo'] [role='tablist'] .bg-\[\#1a3050\] * { color: var(--c-tinta) !important; }
+[data-tema='cielo'] aside .bg-\[\#1a3050\] svg { color: var(--c-cielo-t) !important; }
 
 /* Header: a slow, soft rainbow underline that drifts. */
-[data-tema='cielo'] > header {
-  position: relative;
-  border-bottom-color: transparent !important;
-}
+[data-tema='cielo'] > header { position: relative; border-bottom-color: transparent !important; }
 [data-tema='cielo'] > header::after {
   content: '';
   position: absolute;
@@ -712,31 +790,31 @@ select optgroup {
   background: linear-gradient(90deg, var(--c-coral), var(--c-sol), var(--c-menta), var(--c-cielo), var(--c-lila), var(--c-coral));
   background-size: 200% 100%;
   animation: cielo-deriva 18s linear infinite;
-  opacity: 0.9;
 }
 @keyframes cielo-deriva {
   from { background-position: 0% 0; }
   to { background-position: 200% 0; }
 }
 
-/* Primary buttons and brand gradients: sky → mint, navy text. */
+/* ─── Buttons ─── */
 [data-tema='cielo'] .bg-\[\#248bde\] {
-  background-image: linear-gradient(135deg, var(--c-cielo), var(--c-menta)) !important;
-  background-color: var(--c-cielo) !important;
+  background-image: linear-gradient(135deg, #8ecbff, #7be3c0) !important;
+  background-color: #8ecbff !important;
   color: var(--c-tinta) !important;
   font-weight: 700;
-  box-shadow: 0 8px 20px -10px rgba(142, 203, 255, 0.85);
+  box-shadow: 0 6px 16px -8px rgba(31, 111, 191, 0.45);
 }
 [data-tema='cielo'] .bg-\[\#248bde\] * { color: var(--c-tinta) !important; }
-[data-tema='cielo'] .hover\:bg-\[\#2f9bf0\]:hover { filter: brightness(1.06); }
+[data-tema='cielo'] .hover\:bg-\[\#2f9bf0\]:hover,
+[data-tema='cielo'] .hover\:bg-\[\#1f78c2\]:hover { filter: brightness(1.04) saturate(1.1); }
 [data-tema='cielo'] .bg-gradient-to-br.from-\[\#248bde\] {
-  background-image: linear-gradient(135deg, var(--c-lila), var(--c-cielo)) !important;
+  background-image: linear-gradient(135deg, #cbbfff, #a9d6ff) !important;
   color: var(--c-tinta) !important;
 }
 
-/* Cards: soft depth and a gentle lift on hover. */
+/* ─── Cards: white, soft shadow, gentle lift ─── */
 [data-tema='cielo'] main .rounded-xl.border {
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 24px -18px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 1px 2px rgba(19, 38, 63, 0.05), 0 10px 26px -18px rgba(19, 38, 63, 0.22);
 }
 [data-tema='cielo'] .tarjeta-tarea {
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
@@ -744,9 +822,9 @@ select optgroup {
 }
 [data-tema='cielo'] .tarjeta-tarea:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 26px -16px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 14px 26px -16px rgba(19, 38, 63, 0.35);
 }
-/* Card edge = its state, with the same meaning colors. */
+/* Card edge = its state. */
 [data-tema='cielo'] .tarjeta-tarea[data-estado='pendiente'] { border-left-color: var(--c-cielo) !important; }
 [data-tema='cielo'] .tarjeta-tarea[data-estado='en_progreso'] { border-left-color: var(--c-sol) !important; }
 [data-tema='cielo'] .tarjeta-tarea[data-estado='en_revision'] { border-left-color: var(--c-lila) !important; }
@@ -755,22 +833,24 @@ select optgroup {
 /* Overdue: a calm coral glow that breathes, not a siren. */
 [data-tema='cielo'] .tarjeta-tarea[data-vencida] {
   border-left-color: var(--c-coral) !important;
+  background-image: linear-gradient(90deg, rgba(255, 107, 107, 0.07), transparent 60%);
   animation: cielo-respira 3.2s ease-in-out infinite;
 }
 @keyframes cielo-respira {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 138, 128, 0); }
-  50% { box-shadow: 0 0 0 3px rgba(255, 138, 128, 0.28); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+  50% { box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.22); }
 }
 
-/* Board columns: a colored cap per state. */
+/* Board columns: tinted lane with a colored cap per state. */
 [data-tema='cielo'] .columna-tablero { border-top: 3px solid transparent; }
-[data-tema='cielo'] .columna-tablero[data-estado='pendiente'] { border-top-color: var(--c-cielo); }
-[data-tema='cielo'] .columna-tablero[data-estado='en_progreso'] { border-top-color: var(--c-sol); }
-[data-tema='cielo'] .columna-tablero[data-estado='en_revision'] { border-top-color: var(--c-lila); }
-[data-tema='cielo'] .columna-tablero[data-estado='bloqueada'] { border-top-color: var(--c-coral); }
-[data-tema='cielo'] .columna-tablero[data-estado='completada'] { border-top-color: var(--c-menta); }
+[data-tema='cielo'] .columna-tablero[data-estado='pendiente'] { border-top-color: var(--c-cielo); background-color: #eef6ff !important; }
+[data-tema='cielo'] .columna-tablero[data-estado='en_progreso'] { border-top-color: var(--c-sol); background-color: #fff8e6 !important; }
+[data-tema='cielo'] .columna-tablero[data-estado='en_revision'] { border-top-color: var(--c-lila); background-color: #f3f0ff !important; }
+[data-tema='cielo'] .columna-tablero[data-estado='bloqueada'] { border-top-color: var(--c-coral); background-color: #fff0f0 !important; }
+[data-tema='cielo'] .columna-tablero[data-estado='completada'] { border-top-color: var(--c-menta); background-color: #ebfaf3 !important; }
+[data-tema='cielo'] .columna-tablero.bg-\[\#1a3050\] { filter: brightness(0.97); }
 
-/* KPI tiles: tinted by meaning, number in the same color. */
+/* ─── KPI tiles: tinted by meaning, number in the readable tone ─── */
 [data-tema='cielo'] .kpi-tile { position: relative; overflow: hidden; transition: transform 0.18s ease; }
 [data-tema='cielo'] button.kpi-tile:hover { transform: translateY(-2px); }
 [data-tema='cielo'] .kpi-tile::before {
@@ -781,38 +861,34 @@ select optgroup {
   background: var(--tono, var(--c-cielo));
 }
 [data-tema='cielo'] .kpi-tile[data-tono] {
-  background-image: linear-gradient(135deg, color-mix(in srgb, var(--tono) 16%, transparent), transparent 70%) !important;
+  background-image: linear-gradient(135deg, color-mix(in srgb, var(--tono) 14%, #ffffff), #ffffff 75%) !important;
 }
-[data-tema='cielo'] .kpi-tile[data-tono] > div:first-child { color: var(--tono) !important; }
-[data-tema='cielo'] .kpi-tile[data-tono='cielo'] { --tono: var(--c-cielo); }
-[data-tema='cielo'] .kpi-tile[data-tono='lila'] { --tono: var(--c-lila); }
-[data-tema='cielo'] .kpi-tile[data-tono='coral'] { --tono: var(--c-coral); }
-[data-tema='cielo'] .kpi-tile[data-tono='sol'] { --tono: var(--c-sol); }
-[data-tema='cielo'] .kpi-tile[data-tono='durazno'] { --tono: var(--c-durazno); }
-[data-tema='cielo'] .kpi-tile[data-tono='menta'] { --tono: var(--c-menta); }
-
-/* Pills read a bit bigger. */
-[data-tema='cielo'] .rounded-full.text-\[11px\] { font-size: 12px; }
+[data-tema='cielo'] .kpi-tile[data-tono] > div:first-child { color: var(--tono-t) !important; }
+[data-tema='cielo'] .kpi-tile[data-tono='cielo'] { --tono: var(--c-cielo); --tono-t: var(--c-cielo-t); }
+[data-tema='cielo'] .kpi-tile[data-tono='lila'] { --tono: var(--c-lila); --tono-t: var(--c-lila-t); }
+[data-tema='cielo'] .kpi-tile[data-tono='coral'] { --tono: var(--c-coral); --tono-t: var(--c-coral-t); }
+[data-tema='cielo'] .kpi-tile[data-tono='sol'] { --tono: var(--c-sol); --tono-t: var(--c-sol-t); }
+[data-tema='cielo'] .kpi-tile[data-tono='durazno'] { --tono: var(--c-durazno); --tono-t: var(--c-durazno-t); }
+[data-tema='cielo'] .kpi-tile[data-tono='menta'] { --tono: var(--c-menta); --tono-t: var(--c-menta-t); }
 
 /* "La pandilla del cielo" banner in the summary. */
 [data-tema='cielo'] .cielo-banda {
   background:
-    linear-gradient(90deg, var(--c-coral), var(--c-sol), var(--c-menta), var(--c-cielo), var(--c-lila)) top / 100% 3px no-repeat,
-    linear-gradient(180deg, #1b3658, var(--c-tarjeta));
+    linear-gradient(90deg, var(--c-coral), var(--c-sol), var(--c-menta), var(--c-cielo), var(--c-lila)) top / 100% 4px no-repeat,
+    linear-gradient(180deg, #f0f7ff, #ffffff);
   border: 1px solid var(--c-borde);
+  box-shadow: 0 10px 26px -18px rgba(19, 38, 63, 0.22);
 }
+[data-tema='cielo'] .cielo-banda li span:nth-child(2) { filter: brightness(0.72) saturate(1.4); }
 
-[data-tema='cielo'] select option,
-[data-tema='cielo'] select optgroup { background-color: var(--c-tarjeta); color: var(--c-texto); }
-
-/* The gang floats softly. */
+/* The gang floats softly; a sky shadow keeps the white cloud visible on white. */
 @keyframes cielo-flota {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50% { transform: translateY(-3px) rotate(-2deg); }
 }
 [data-tema='cielo'] .cielo-flota {
   animation: cielo-flota 4s ease-in-out infinite;
-  filter: drop-shadow(0 4px 8px rgba(142, 203, 255, 0.25));
+  filter: drop-shadow(0 3px 6px rgba(31, 111, 191, 0.28));
 }
 @media (prefers-reduced-motion: reduce) {
   [data-tema='cielo'] .cielo-flota,

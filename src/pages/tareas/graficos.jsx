@@ -5,8 +5,9 @@
 import React, { useState } from 'react';
 import { ESTADO, ORDEN_GRAFICOS } from '../../hooks/tareas';
 
-const INK = '#e6eef7';
-const INK_2 = '#9aafc3';
+// CSS variables so a light theme (Cielo) can recolor the chart ink.
+const INK = 'var(--grafico-tinta, #e6eef7)';
+const INK_2 = 'var(--grafico-tinta-2, #9aafc3)';
 
 export function Leyenda({ conteos, ids = ORDEN_GRAFICOS }) {
   return (

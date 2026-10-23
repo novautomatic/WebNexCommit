@@ -93,6 +93,8 @@ function Nube({ id, dormido }) {
       <path
         d="M22 80 C8 80 4 62 16 56 C12 40 30 30 42 38 C46 22 70 20 76 38 C92 36 98 56 86 64 C96 72 88 84 76 80 Z"
         fill={`url(#${id}-n)`}
+        stroke="#8fc3ee"
+        strokeWidth="1.6"
       />
       <Cara cx={50} cy={60} dormido={dormido} mejillas="#ffb3c7" />
       {dormido && <text x="80" y="24" fontSize="14" fill="#cfe8ff" fontWeight="700">z</text>}
