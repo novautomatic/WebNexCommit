@@ -8,13 +8,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Copy, Download, FileText, History, Inbox, Loader2, LogOut, Mail, Lock, Send, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
+import { Copy, FileText, History, Inbox, Loader2, LogOut, Mail, Lock, Send, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
 import SEO from '../../components/SEO';
 import { BrandLogo } from '../../components/Brand';
 import { useAuth } from '../../components/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 import { funcionPortal, mensajeError } from '../../hooks/tareasCliente';
-import { abrirDocumento } from '../../hooks/clienteDashboard';
+import { useAccionesPortal, usePortalArchivos } from '../../hooks/archivosCliente';
+import ExploradorArchivos from '../../components/ExploradorArchivos';
 import PortalTarea from './PortalTarea';
 import PortalMisDatos from './PortalMisDatos';
 
@@ -177,40 +178,20 @@ function PedirAlgo({ solicitudes }) {
   );
 }
 
-// Documents the team shared with this client (panel → Clientes → dashboard → Documentos).
+// The client's document container: what NexCommit shares + its own folders and uploads.
 function PortalDocumentos() {
-  const [error, setError] = useState('');
-  const { data, isLoading } = useQuery({
-    queryKey: ['portal', 'documentos'],
-    queryFn: async () => {
-      const { data: d, error: e } = await supabase.rpc('portal_documentos');
-      if (e) throw e;
-      return d ?? [];
-    },
-  });
-  const abrir = async (doc) => {
-    setError('');
-    try {
-      await abrirDocumento(doc.ruta, doc.nombre);
-    } catch {
-      setError('No pudimos abrir el documento. Intenta de nuevo en un rato.');
-    }
-  };
+  const { data, isLoading, error } = usePortalArchivos();
+  const acciones = useAccionesPortal(data?.cliente_id);
   if (isLoading) return <p className="text-center text-sm text-slate-500 py-10">Cargando…</p>;
-  if (!data?.length) return <p className="text-center text-sm text-slate-500 py-10">Aquí verás los documentos que compartamos contigo.</p>;
+  if (error) return <p className="text-center text-sm text-red-600 py-10">{mensajeError(error, 'No pudimos cargar tus documentos. Intenta de nuevo en un rato.')}</p>;
   return (
-    <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 divide-y divide-slate-100">
-      {error && <p className="p-4 text-sm text-red-600">{error}</p>}
-      {data.map((doc) => (
-        <button key={doc.id} type="button" onClick={() => abrir(doc)} className="w-full flex items-center gap-3 p-4 text-left hover:bg-slate-50">
-          <FileText className="w-5 h-5 text-[#248bde] shrink-0" />
-          <span className="flex-1 min-w-0">
-            <span className="block font-semibold text-slate-800 truncate">{doc.nombre}</span>
-            <span className="block text-xs text-slate-500">{new Date(doc.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-          </span>
-          <Download className="w-4 h-4 text-slate-400" />
-        </button>
-      ))}
+    <div className="space-y-3">
+      <p className="text-sm text-slate-600">
+        Tu carpeta para compartir archivos con NexCommit: crea carpetas, sube fotos, logos o documentos y ordénalos como quieras.
+        Solo los ve tu equipo y NexCommit. Lo que te compartimos nosotros aparece marcado «de NexCommit».
+      </p>
+      <ExploradorArchivos tema="claro" modo="cliente" carpetas={data.carpetas} documentos={data.documentos}
+        acciones={acciones} usado={data.usado} cupo={data.cupo} />
     </div>
   );
 }

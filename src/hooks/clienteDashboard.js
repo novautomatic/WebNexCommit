@@ -19,7 +19,7 @@ export function useClienteDashboard(clienteId) {
     queryFn: async () => {
       // Best effort: pull fresh replies / email statuses before reading them.
       await Promise.allSettled([supabase.rpc('procesar_correos_clientes'), supabase.rpc('procesar_avisos_tareas_cliente')]);
-      const [contactos, tareasCliente, correos, consentimientos, respuestas, documentos, resenas] = await Promise.all([
+      const [contactos, tareasCliente, correos, consentimientos, respuestas, documentos, resenas, carpetas] = await Promise.all([
         unwrap(supabase.from('cliente_contactos').select('*').eq('cliente_id', clienteId).order('nombre')),
         unwrap(supabase.from('tareas_cliente')
           .select('*, encargado:equipo!encargado_id(id, nombre), contacto:cliente_contactos!contacto_id(id, nombre)')
@@ -30,6 +30,7 @@ export function useClienteDashboard(clienteId) {
         unwrap(supabase.from('cliente_documentos').select('*').eq('cliente_id', clienteId).order('created_at', { ascending: false })),
         unwrap(supabase.from('resena_solicitudes').select('id, nombre, email, estado, enviada_at, recordatorio_at, respondida_at, created_at')
           .eq('cliente_id', clienteId).order('created_at', { ascending: false })),
+        unwrap(supabase.from('cliente_carpetas').select('*').eq('cliente_id', clienteId).order('nombre')),
       ]);
       const idsTareas = tareasCliente.map((t) => t.id);
       const idsContactos = contactos.map((c) => c.id);
@@ -41,7 +42,7 @@ export function useClienteDashboard(clienteId) {
           ? unwrap(supabase.from('tareas_cliente_avisos').select('*').in('contacto_id', idsContactos).order('created_at', { ascending: false }).limit(100))
           : [],
       ]);
-      return { contactos, tareasCliente, correos, consentimientos, respuestas, documentos, resenas, historial, avisos };
+      return { contactos, tareasCliente, correos, consentimientos, respuestas, documentos, resenas, carpetas, historial, avisos };
     },
   });
 }
@@ -87,65 +88,6 @@ export function useLeerCorreoAhora() {
     mutationFn: () => unwrap(supabase.rpc('leer_respuestas_clientes')),
     onSettled: invalidar,
   });
-}
-
-// ─── Documents (private bucket clientes-documentos, path <cliente_id>/<file>) ──
-
-export const MAX_DOCUMENTO = 50 * 1024 * 1024;
-const BUCKET = 'clientes-documentos';
-
-function nombreSeguro(nombre) {
-  const limpio = nombre
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-zA-Z0-9._-]+/g, '-')
-    .replace(/-+/g, '-')
-    .slice(-80);
-  return limpio || 'archivo';
-}
-
-export function useSubirDocumento() {
-  const invalidar = useInvalidar();
-  return useMutation({
-    mutationFn: async ({ clienteId, file, visible = false }) => {
-      if (file.size > MAX_DOCUMENTO) {
-        throw Object.assign(new Error(`«${file.name}» pesa más de 50 MB. Para archivos grandes, guarda un enlace de Drive en las notas del cliente.`), { amigable: true });
-      }
-      const ruta = `${clienteId}/${crypto.randomUUID().slice(0, 8)}-${nombreSeguro(file.name)}`;
-      const { error } = await supabase.storage.from(BUCKET).upload(ruta, file, { contentType: file.type || undefined, upsert: false });
-      if (error) throw Object.assign(new Error(`No se pudo subir «${file.name}». Revisa tu conexión e intenta de nuevo.`), { amigable: true });
-      return unwrap(supabase.rpc('cliente_doc_registrar', {
-        p_cliente: clienteId, p_ruta: ruta, p_nombre: file.name, p_tamano: file.size, p_tipo: file.type || null, p_visible: visible,
-      }));
-    },
-    onSettled: invalidar,
-  });
-}
-
-export function useDocumentoVisible() {
-  const invalidar = useInvalidar();
-  return useMutation({
-    mutationFn: ({ id, visible }) => unwrap(supabase.rpc('cliente_doc_visible', { p_doc: id, p_visible: visible })),
-    onSettled: invalidar,
-  });
-}
-
-export function useBorrarDocumento() {
-  const invalidar = useInvalidar();
-  return useMutation({
-    mutationFn: async (doc) => {
-      await supabase.storage.from(BUCKET).remove([doc.ruta]);
-      return unwrap(supabase.rpc('cliente_doc_borrar', { p_doc: doc.id }));
-    },
-    onSettled: invalidar,
-  });
-}
-
-/** Opens a document through a short-lived signed URL (works for the team and, if shared, the client). */
-export async function abrirDocumento(ruta, nombre) {
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(ruta, 300, { download: nombre || true });
-  if (error) throw Object.assign(new Error('No se pudo abrir el documento.'), { amigable: true });
-  window.open(data.signedUrl, '_blank', 'noopener');
 }
 
 /** "dyetales.cl" from "https://www.dyetales.cl/tienda". */

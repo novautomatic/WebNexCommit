@@ -4,15 +4,15 @@
 // Gmail, deliveries, consents, reviews); and documents.
 import React, { useMemo, useState } from 'react';
 import {
-  ArrowLeft, Check, Download, Eye, EyeOff, FileText, Handshake, Inbox, Mail, MailCheck, Pencil, Phone,
-  RefreshCw, Trash2, Upload,
+  ArrowLeft, Check, FileText, Handshake, Inbox, Mail, MailCheck, Pencil, Phone, RefreshCw,
 } from 'lucide-react';
 import { ESTADO, estaAbierta, estaVencida, formatearFecha } from '../../hooks/tareas';
-import { ESTADO_CLIENTE, ESTADO_ENCARGADO, estaCerrada, pesoLegible } from '../../hooks/tareasCliente';
+import { ESTADO_CLIENTE, ESTADO_ENCARGADO, estaCerrada } from '../../hooks/tareasCliente';
 import {
-  abrirDocumento, useBorrarDocumento, useClienteDashboard, useDocumentoVisible, useLeerCorreoAhora,
-  useResolverRespuesta, useSubirDocumento, useUltimaLectura,
+  useClienteDashboard, useLeerCorreoAhora, useResolverRespuesta, useUltimaLectura,
 } from '../../hooks/clienteDashboard';
+import { useAccionesEquipo } from '../../hooks/archivosCliente';
+import ExploradorArchivos from '../../components/ExploradorArchivos';
 import { ClienteForm, SitiosFila } from './ClientesVista';
 import { ErrorBox, Pill, btnGhost, btnPrimary, card } from './ui';
 
@@ -107,7 +107,7 @@ export default function ClienteDashboard({ cliente, proyectos, vinculos, tareas,
             <Contactos contactos={d.contactos} irA={irA} />
           </div>
           <LineaDeTiempo cliente={cliente} d={d} />
-          <Documentos clienteId={cliente.id} documentos={d.documentos} />
+          <Documentos clienteId={cliente.id} documentos={d.documentos} carpetas={d.carpetas} />
         </>
       )}
 
@@ -322,7 +322,8 @@ function LineaDeTiempo({ cliente, d }) {
     }
     for (const doc of d.documentos) {
       e.push({ id: `d${doc.id}`, grupo: 'otro', fecha: doc.created_at, icono: FileText, color: '#9aafc3',
-        titulo: `Documento: ${doc.nombre}`, detalle: doc.visible_cliente ? 'Visible para el cliente' : 'Interno' });
+        titulo: doc.origen === 'cliente' ? `Subió un documento: ${doc.nombre}` : `Documento: ${doc.nombre}`,
+        detalle: doc.origen === 'cliente' ? doc.subido_por_nombre || 'El cliente' : doc.visible_cliente ? 'Visible para el cliente' : 'Interno' });
     }
     return e.sort((a, b) => b.fecha.localeCompare(a.fecha));
   }, [d, cliente.email, numero, contacto]);
@@ -381,73 +382,16 @@ function LineaDeTiempo({ cliente, d }) {
   );
 }
 
-function Documentos({ clienteId, documentos }) {
-  const subir = useSubirDocumento();
-  const visible = useDocumentoVisible();
-  const borrar = useBorrarDocumento();
-  const [compartir, setCompartir] = useState(false);
-  const [error, setError] = useState(null);
-
-  const onArchivos = async (e) => {
-    const archivos = [...e.target.files];
-    e.target.value = '';
-    setError(null);
-    for (const file of archivos) {
-      try {
-        await subir.mutateAsync({ clienteId, file, visible: compartir });
-      } catch (err) {
-        setError(err);
-        break;
-      }
-    }
-  };
-  const abrir = async (doc) => {
-    try {
-      await abrirDocumento(doc.ruta, doc.nombre);
-    } catch (err) {
-      setError(err);
-    }
-  };
-
+function Documentos({ clienteId, documentos, carpetas }) {
+  const acciones = useAccionesEquipo(clienteId);
+  const usado = documentos.filter((d) => d.origen === 'cliente').reduce((n, d) => n + (d.tamano || 0), 0);
   return (
-    <Seccion
-      titulo="Documentos"
-      extra={(
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="flex items-center gap-2 text-xs text-[#9aafc3]">
-            <input type="checkbox" checked={compartir} onChange={(e) => setCompartir(e.target.checked)} /> Visible para el cliente
-          </label>
-          <label className={`${btnPrimary} cursor-pointer`}>
-            <Upload className="w-4 h-4" /> {subir.isPending ? 'Subiendo…' : 'Subir'}
-            <input type="file" multiple className="sr-only" onChange={onArchivos} disabled={subir.isPending} />
-          </label>
-        </div>
-      )}
-    >
-      <p className="text-xs text-[#9aafc3] mb-3">Contratos, cotizaciones, manuales… Hasta 50 MB cada uno. Son internos salvo que marques «Visible para el cliente»: así aparecen en su portal.</p>
-      <ErrorBox error={error || visible.error || borrar.error} />
-      {!documentos.length && <p className="text-sm text-[#9aafc3]">Sin documentos.</p>}
-      <ul className="divide-y divide-white/5">
-        {documentos.map((doc) => (
-          <li key={doc.id} className="flex flex-wrap items-center gap-3 py-2 text-sm">
-            <FileText className="w-4 h-4 text-[#9aafc3]" />
-            <button type="button" onClick={() => abrir(doc)} className="text-white hover:underline truncate max-w-[50%] text-left">{doc.nombre}</button>
-            <span className="text-xs text-[#9aafc3]">{pesoLegible(doc.tamano)} · {formatearFecha(doc.created_at)}</span>
-            <div className="ml-auto flex items-center gap-3 text-[#9aafc3]">
-              <button type="button" className="flex items-center gap-1 text-xs hover:text-white" disabled={visible.isPending}
-                onClick={() => visible.mutate({ id: doc.id, visible: !doc.visible_cliente })}
-                title={doc.visible_cliente ? 'El cliente lo ve en su portal. Clic para ocultarlo.' : 'Solo el equipo lo ve. Clic para compartirlo.'}>
-                {doc.visible_cliente ? <><Eye className="w-4 h-4 text-emerald-300" /> Lo ve el cliente</> : <><EyeOff className="w-4 h-4" /> Interno</>}
-              </button>
-              <button type="button" onClick={() => abrir(doc)} className="hover:text-white" aria-label={`Descargar ${doc.nombre}`}><Download className="w-4 h-4" /></button>
-              <button type="button" className="hover:text-red-300" aria-label={`Borrar ${doc.nombre}`} disabled={borrar.isPending}
-                onClick={() => window.confirm(`¿Borrar «${doc.nombre}»? No se puede deshacer.`) && borrar.mutate(doc)}>
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <Seccion titulo="Documentos">
+      <p className="text-xs text-[#9aafc3] mb-3">
+        La misma carpeta que el cliente ve en su portal. Lo que sube el cliente lo ves aquí; lo tuyo es interno salvo que lo
+        marques «Lo ve el cliente». El cliente solo puede mover o borrar lo que subió él. Cupo del cliente: 500 MB.
+      </p>
+      <ExploradorArchivos tema="oscuro" modo="equipo" carpetas={carpetas} documentos={documentos} acciones={acciones} usado={usado} cupo={524288000} />
     </Seccion>
   );
 }
