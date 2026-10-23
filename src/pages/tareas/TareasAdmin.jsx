@@ -188,12 +188,12 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-        <Kpi label={textos.kpi.abiertas} valor={kpis.abiertas} onClick={() => { setFiltros((f) => ({ ...f, responsable: '', soloVencidas: false })); setVista('lista'); }} />
-        <Kpi label={textos.kpi.mias} valor={kpis.mias} color="#67c8f3" onClick={() => { setFiltros((f) => ({ ...f, responsable: 'yo' })); setVista('tablero'); }} />
-        <Kpi label={textos.kpi.vencidas} valor={kpis.vencidas} color={kpis.vencidas ? '#f87171' : undefined} onClick={() => { setFiltros((f) => ({ ...f, soloVencidas: true })); setVista('lista'); }} />
-        <Kpi label={textos.kpi.semana} valor={kpis.semana} color={kpis.semana ? '#f59e0b' : undefined} />
-        <Kpi label={textos.kpi.sinAsignar} valor={kpis.sinAsignar} onClick={() => { setFiltros((f) => ({ ...f, responsable: 'nadie' })); setVista('lista'); }} />
-        <Kpi label={textos.kpi.completadas} valor={kpis.completadas} color="#34d399" />
+        <Kpi tono="cielo" label={textos.kpi.abiertas} valor={kpis.abiertas} onClick={() => { setFiltros((f) => ({ ...f, responsable: '', soloVencidas: false })); setVista('lista'); }} />
+        <Kpi tono="lila" label={textos.kpi.mias} valor={kpis.mias} color="#67c8f3" onClick={() => { setFiltros((f) => ({ ...f, responsable: 'yo' })); setVista('tablero'); }} />
+        <Kpi tono="coral" label={textos.kpi.vencidas} valor={kpis.vencidas} color={kpis.vencidas ? '#f87171' : undefined} onClick={() => { setFiltros((f) => ({ ...f, soloVencidas: true })); setVista('lista'); }} />
+        <Kpi tono="sol" label={textos.kpi.semana} valor={kpis.semana} color={kpis.semana ? '#f59e0b' : undefined} />
+        <Kpi tono="durazno" label={textos.kpi.sinAsignar} valor={kpis.sinAsignar} onClick={() => { setFiltros((f) => ({ ...f, responsable: 'nadie' })); setVista('lista'); }} />
+        <Kpi tono="menta" label={textos.kpi.completadas} valor={kpis.completadas} color="#34d399" />
       </div>
 
       <div className="inline-flex rounded-lg border border-white/10 bg-[#0c1a2c] p-1" role="tablist" aria-label="Vista de tareas">
@@ -369,10 +369,10 @@ function SyncEstado({ sync }) {
   );
 }
 
-function Kpi({ label, valor, color, onClick }) {
+function Kpi({ label, valor, color, onClick, tono }) {
   const Comp = onClick ? 'button' : 'div';
   return (
-    <Comp type={onClick ? 'button' : undefined} onClick={onClick} className={`${card} px-4 py-3 text-left ${onClick ? 'hover:border-white/25 transition-colors' : ''}`}>
+    <Comp type={onClick ? 'button' : undefined} onClick={onClick} className={`kpi-tile ${card} px-4 py-3 text-left ${onClick ? 'hover:border-white/25 transition-colors' : ''}`} data-tono={tono}>
       <div className="text-2xl font-semibold" style={{ color: color || '#fff' }}>{valor}</div>
       <div className="text-xs text-[#9aafc3]">{label}</div>
     </Comp>
@@ -436,8 +436,9 @@ function Tablero({ tareas, miembro, proyecto, onAbrir, onNueva, ideas = null }) 
               onDragOver={(e) => { e.preventDefault(); setSobre(col.id); }}
               onDragLeave={() => setSobre((s) => (s === col.id ? null : s))}
               onDrop={soltar(col.id)}
-              className={`snap-start shrink-0 w-[280px] rounded-xl p-2 transition-colors ${sobre === col.id ? 'bg-[#1a3050]' : 'bg-[#0c1a2c]'}`}
+              className={`columna-tablero snap-start shrink-0 w-[280px] rounded-xl p-2 transition-colors ${sobre === col.id ? 'bg-[#1a3050]' : 'bg-[#0c1a2c]'}`}
               aria-label={col.label}
+              data-estado={col.id}
             >
               <header className="flex items-center justify-between px-2 py-1.5 mb-1">
                 <div className="flex items-center gap-2 text-sm font-medium text-white">
@@ -472,7 +473,9 @@ function Tarjeta({ t, miembro, proyecto, onAbrir, onEstado }) {
     <article
       draggable
       onDragStart={(e) => e.dataTransfer.setData('text/tarea', t.id)}
-      className={`${card} p-3 cursor-grab active:cursor-grabbing hover:border-white/25 transition-colors`}
+      className={`tarjeta-tarea ${card} p-3 cursor-grab active:cursor-grabbing hover:border-white/25 transition-colors`}
+      data-estado={t.estado}
+      data-vencida={vencida || undefined}
     >
       <button type="button" onClick={() => onAbrir(t)} className="text-left w-full">
         <div className="flex items-center gap-1.5 text-[11px] text-[#9aafc3] mb-1">

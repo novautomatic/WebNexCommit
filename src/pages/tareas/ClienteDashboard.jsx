@@ -135,9 +135,9 @@ function Seccion({ titulo, extra, children }) {
   );
 }
 
-function Tile({ label, valor, detalle, color }) {
+function Tile({ label, valor, detalle, color, tono }) {
   return (
-    <div className={`${card} px-4 py-3`}>
+    <div className={`kpi-tile ${card} px-4 py-3`} data-tono={tono}>
       <div className="text-xl font-semibold truncate" style={{ color: color || '#fff' }}>{valor}</div>
       <div className="text-xs text-[#9aafc3]">{label}</div>
       {detalle && <div className="text-[11px] text-[#9aafc3] mt-0.5 truncate">{detalle}</div>}
@@ -160,12 +160,13 @@ function Indicadores({ cliente, d, internas }) {
   const respondio = ultimaRespuesta && (!ultimoEnviado || ultimaRespuesta >= ultimoEnviado);
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <Tile label="Tareas abiertas" valor={abiertasCliente.length + internas.filter(estaAbierta).length}
+      <Tile tono="cielo" label="Tareas abiertas" valor={abiertasCliente.length + internas.filter(estaAbierta).length}
         detalle={`${abiertasCliente.length} de cliente · ${internas.filter(estaAbierta).length} internas`} />
-      <Tile label="Atrasadas" valor={atrasadas} color={atrasadas ? '#f87171' : undefined} />
-      <Tile label="Último correo que le enviamos" valor={ultimoEnviado ? formatearFecha(ultimoEnviado) : '—'}
+      <Tile tono="coral" label="Atrasadas" valor={atrasadas} color={atrasadas ? '#f87171' : undefined} />
+      <Tile tono="sol" label="Último correo que le enviamos" valor={ultimoEnviado ? formatearFecha(ultimoEnviado) : '—'}
         detalle={ultimoEnviado ? `hace ${diasDesde(ultimoEnviado)} días` : 'Todavía nada'} />
       <Tile
+        tono="menta"
         label="¿Respondió?"
         valor={!ultimoEnviado && !ultimaRespuesta ? '—' : respondio ? 'Sí' : 'No ha respondido'}
         color={respondio ? '#34d399' : ultimoEnviado ? '#f59e0b' : undefined}

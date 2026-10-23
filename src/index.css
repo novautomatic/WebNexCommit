@@ -625,3 +625,199 @@ select optgroup {
 @media (prefers-reduced-motion: reduce) {
   [data-tema='elemental'] .elemental-flota { animation: none; }
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Panel theme "Cielo 🌤️": calm and easy to read. Soft navy base, the light
+   sky-blue highlight with navy text for "where you are", and lively colors that
+   always MEAN something: coral = needs attention, sun = energy/soon, mint =
+   done, lilac = yours/ideas, peach = unassigned, sky = open. Atkinson
+   Hyperlegible for reading comfort, a little more line height and contrast,
+   gentle motion (and none with prefers-reduced-motion).
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-tema='cielo'] {
+  --c-fondo: #0e1c30;
+  --c-barra: #10233b;
+  --c-tarjeta: #142a45;
+  --c-campo: #1a3354;
+  --c-texto: #f2f7fd;
+  --c-texto-2: #c9d9eb;
+  --c-texto-3: #9db3cc;
+  --c-cielo: #8ecbff;
+  --c-cielo-claro: #a9d6ff;
+  --c-tinta: #0b1a2e;
+  --c-coral: #ff8a80;
+  --c-sol: #ffd166;
+  --c-menta: #5ee0b0;
+  --c-lila: #b9a7ff;
+  --c-durazno: #ffb38a;
+  --c-borde: rgba(142, 203, 255, 0.16);
+  font-family: 'Atkinson Hyperlegible', 'Inter', system-ui, sans-serif;
+  line-height: 1.55;
+  background-color: var(--c-fondo);
+  background-image:
+    radial-gradient(circle at 8% 0%, rgba(142, 203, 255, 0.10), transparent 38%),
+    radial-gradient(circle at 92% 6%, rgba(255, 209, 102, 0.07), transparent 34%),
+    radial-gradient(circle at 50% 100%, rgba(94, 224, 176, 0.06), transparent 40%);
+  background-attachment: fixed;
+}
+
+[data-tema='cielo'].bg-\[\#0a1628\],
+[data-tema='cielo'] .bg-\[\#0a1628\] { background-color: var(--c-fondo) !important; }
+[data-tema='cielo'] .bg-\[\#0d1e30\] { background-color: var(--c-tarjeta) !important; }
+[data-tema='cielo'] .bg-\[\#0c1a2c\] { background-color: var(--c-barra) !important; }
+[data-tema='cielo'] .bg-\[\#151f33\],
+[data-tema='cielo'] .bg-\[\#0f172a\]\/60 { background-color: var(--c-campo) !important; }
+[data-tema='cielo'] .bg-\[\#1a3050\] { background-color: #1f3d63 !important; }
+[data-tema='cielo'] .text-white { color: var(--c-texto) !important; }
+[data-tema='cielo'] .text-\[\#9aafc3\] { color: var(--c-texto-2) !important; }
+[data-tema='cielo'] .text-\[\#5f7891\] { color: var(--c-texto-3) !important; }
+[data-tema='cielo'] .text-\[\#67c8f3\],
+[data-tema='cielo'] .hover\:text-\[\#67c8f3\]:hover { color: var(--c-cielo) !important; }
+[data-tema='cielo'] .border-\[\#67c8f3\],
+[data-tema='cielo'] .focus\:border-\[\#67c8f3\]:focus { border-color: var(--c-cielo) !important; }
+[data-tema='cielo'] .border-white\/10,
+[data-tema='cielo'] .border-white\/5 { border-color: var(--c-borde) !important; }
+[data-tema='cielo'] .rounded-xl { border-radius: 1rem; }
+[data-tema='cielo'] input:focus-visible,
+[data-tema='cielo'] select:focus-visible,
+[data-tema='cielo'] textarea:focus-visible,
+[data-tema='cielo'] button:focus-visible {
+  outline: 2px solid var(--c-cielo-claro);
+  outline-offset: 2px;
+}
+
+/* "Where you are": light sky with navy text (sidebar and view tabs). */
+[data-tema='cielo'] aside .bg-\[\#1a3050\],
+[data-tema='cielo'] [role='tablist'] .bg-\[\#1a3050\] {
+  background-color: var(--c-cielo-claro) !important;
+  color: var(--c-tinta) !important;
+  font-weight: 700;
+  box-shadow: 0 6px 16px -10px rgba(169, 214, 255, 0.9);
+}
+[data-tema='cielo'] aside .bg-\[\#1a3050\] *,
+[data-tema='cielo'] [role='tablist'] .bg-\[\#1a3050\] * { color: var(--c-tinta) !important; }
+
+/* Header: a slow, soft rainbow underline that drifts. */
+[data-tema='cielo'] > header {
+  position: relative;
+  border-bottom-color: transparent !important;
+}
+[data-tema='cielo'] > header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--c-coral), var(--c-sol), var(--c-menta), var(--c-cielo), var(--c-lila), var(--c-coral));
+  background-size: 200% 100%;
+  animation: cielo-deriva 18s linear infinite;
+  opacity: 0.9;
+}
+@keyframes cielo-deriva {
+  from { background-position: 0% 0; }
+  to { background-position: 200% 0; }
+}
+
+/* Primary buttons and brand gradients: sky → mint, navy text. */
+[data-tema='cielo'] .bg-\[\#248bde\] {
+  background-image: linear-gradient(135deg, var(--c-cielo), var(--c-menta)) !important;
+  background-color: var(--c-cielo) !important;
+  color: var(--c-tinta) !important;
+  font-weight: 700;
+  box-shadow: 0 8px 20px -10px rgba(142, 203, 255, 0.85);
+}
+[data-tema='cielo'] .bg-\[\#248bde\] * { color: var(--c-tinta) !important; }
+[data-tema='cielo'] .hover\:bg-\[\#2f9bf0\]:hover { filter: brightness(1.06); }
+[data-tema='cielo'] .bg-gradient-to-br.from-\[\#248bde\] {
+  background-image: linear-gradient(135deg, var(--c-lila), var(--c-cielo)) !important;
+  color: var(--c-tinta) !important;
+}
+
+/* Cards: soft depth and a gentle lift on hover. */
+[data-tema='cielo'] main .rounded-xl.border {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 24px -18px rgba(0, 0, 0, 0.6);
+}
+[data-tema='cielo'] .tarjeta-tarea {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  border-left-width: 4px !important;
+}
+[data-tema='cielo'] .tarjeta-tarea:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 26px -16px rgba(0, 0, 0, 0.7);
+}
+/* Card edge = its state, with the same meaning colors. */
+[data-tema='cielo'] .tarjeta-tarea[data-estado='pendiente'] { border-left-color: var(--c-cielo) !important; }
+[data-tema='cielo'] .tarjeta-tarea[data-estado='en_progreso'] { border-left-color: var(--c-sol) !important; }
+[data-tema='cielo'] .tarjeta-tarea[data-estado='en_revision'] { border-left-color: var(--c-lila) !important; }
+[data-tema='cielo'] .tarjeta-tarea[data-estado='bloqueada'] { border-left-color: var(--c-coral) !important; }
+[data-tema='cielo'] .tarjeta-tarea[data-estado='completada'] { border-left-color: var(--c-menta) !important; }
+/* Overdue: a calm coral glow that breathes, not a siren. */
+[data-tema='cielo'] .tarjeta-tarea[data-vencida] {
+  border-left-color: var(--c-coral) !important;
+  animation: cielo-respira 3.2s ease-in-out infinite;
+}
+@keyframes cielo-respira {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 138, 128, 0); }
+  50% { box-shadow: 0 0 0 3px rgba(255, 138, 128, 0.28); }
+}
+
+/* Board columns: a colored cap per state. */
+[data-tema='cielo'] .columna-tablero { border-top: 3px solid transparent; }
+[data-tema='cielo'] .columna-tablero[data-estado='pendiente'] { border-top-color: var(--c-cielo); }
+[data-tema='cielo'] .columna-tablero[data-estado='en_progreso'] { border-top-color: var(--c-sol); }
+[data-tema='cielo'] .columna-tablero[data-estado='en_revision'] { border-top-color: var(--c-lila); }
+[data-tema='cielo'] .columna-tablero[data-estado='bloqueada'] { border-top-color: var(--c-coral); }
+[data-tema='cielo'] .columna-tablero[data-estado='completada'] { border-top-color: var(--c-menta); }
+
+/* KPI tiles: tinted by meaning, number in the same color. */
+[data-tema='cielo'] .kpi-tile { position: relative; overflow: hidden; transition: transform 0.18s ease; }
+[data-tema='cielo'] button.kpi-tile:hover { transform: translateY(-2px); }
+[data-tema='cielo'] .kpi-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--tono, var(--c-cielo));
+}
+[data-tema='cielo'] .kpi-tile[data-tono] {
+  background-image: linear-gradient(135deg, color-mix(in srgb, var(--tono) 16%, transparent), transparent 70%) !important;
+}
+[data-tema='cielo'] .kpi-tile[data-tono] > div:first-child { color: var(--tono) !important; }
+[data-tema='cielo'] .kpi-tile[data-tono='cielo'] { --tono: var(--c-cielo); }
+[data-tema='cielo'] .kpi-tile[data-tono='lila'] { --tono: var(--c-lila); }
+[data-tema='cielo'] .kpi-tile[data-tono='coral'] { --tono: var(--c-coral); }
+[data-tema='cielo'] .kpi-tile[data-tono='sol'] { --tono: var(--c-sol); }
+[data-tema='cielo'] .kpi-tile[data-tono='durazno'] { --tono: var(--c-durazno); }
+[data-tema='cielo'] .kpi-tile[data-tono='menta'] { --tono: var(--c-menta); }
+
+/* Pills read a bit bigger. */
+[data-tema='cielo'] .rounded-full.text-\[11px\] { font-size: 12px; }
+
+/* "La pandilla del cielo" banner in the summary. */
+[data-tema='cielo'] .cielo-banda {
+  background:
+    linear-gradient(90deg, var(--c-coral), var(--c-sol), var(--c-menta), var(--c-cielo), var(--c-lila)) top / 100% 3px no-repeat,
+    linear-gradient(180deg, #1b3658, var(--c-tarjeta));
+  border: 1px solid var(--c-borde);
+}
+
+[data-tema='cielo'] select option,
+[data-tema='cielo'] select optgroup { background-color: var(--c-tarjeta); color: var(--c-texto); }
+
+/* The gang floats softly. */
+@keyframes cielo-flota {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(-2deg); }
+}
+[data-tema='cielo'] .cielo-flota {
+  animation: cielo-flota 4s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(142, 203, 255, 0.25));
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-tema='cielo'] .cielo-flota,
+  [data-tema='cielo'] > header::after,
+  [data-tema='cielo'] .tarjeta-tarea[data-vencida] { animation: none; }
+  [data-tema='cielo'] .tarjeta-tarea:hover,
+  [data-tema='cielo'] button.kpi-tile:hover { transform: none; }
+}

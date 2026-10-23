@@ -5,16 +5,18 @@ import { useTema, useTextos } from '../../hooks/tema';
 import { Miembro } from './BtsTema';
 import { Personaje } from './AvatarTema';
 import { Elemento } from './ElementalTema';
+import { Cielito } from './CieloTema';
 
 // Mood → character per theme.
 const POR_ANIMO = {
   kawaii: { feliz: 'jhope', contenta: 'jimin', preocupada: 'rm', dormida: 'suga' },
   avatar: { feliz: 'aang', contenta: 'katara', preocupada: 'zuko', dormida: 'appa' },
   elemental: { feliz: 'hoja', contenta: 'aqua', preocupada: 'llama', dormida: 'roca' },
+  cielo: { feliz: 'sol', contenta: 'brote', preocupada: 'chispa', dormida: 'nube' },
 };
-const COMPONENTE = { kawaii: Miembro, avatar: Personaje, elemental: Elemento };
+const COMPONENTE = { kawaii: Miembro, avatar: Personaje, elemental: Elemento, cielo: Cielito };
 // Sleepy character for empty states.
-const DORMIDO = { avatar: 'momo', elemental: 'roca' };
+const DORMIDO = { avatar: 'momo', elemental: 'roca', cielo: 'nube' };
 
 // animo: 'feliz' | 'contenta' | 'preocupada' | 'dormida'. `quien` forces a character.
 export function Mascota({ animo = 'contenta', quien, size = 56, className = '', titulo }) {

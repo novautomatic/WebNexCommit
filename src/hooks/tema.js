@@ -1,7 +1,8 @@
 // Personal panel theme. 'nexcommit' is the default brand look; 'kawaii' is the
 // pastel "Borahae" purple theme (default for Stephania); 'avatar' is the four
 // nations theme from Avatar: The Last Airbender (default for Fabián); 'elemental'
-// is the fire/water/rock/air/leaf spirits team (default for jpa.pizarro). The choice
+// is the fire/water/rock/air/leaf spirits team (default for jpa.pizarro); 'cielo' is the
+// calm, high-legibility theme (navy + light sky blue with lively meaning colors). The choice
 // is per user and per browser (localStorage), so anyone can switch from the header.
 import { createContext, useContext } from 'react';
 
@@ -10,6 +11,7 @@ export const TEMAS = {
   kawaii: { id: 'kawaii', label: 'Borahae 💜' },
   avatar: { id: 'avatar', label: 'Avatar 🌀' },
   elemental: { id: 'elemental', label: 'Elemental 🔥' },
+  cielo: { id: 'cielo', label: 'Cielo 🌤️' },
 };
 
 const POR_DEFECTO = {
@@ -72,6 +74,14 @@ const EMOJI = {
     completada: '🌿',
     cancelada: '🫧',
   },
+  cielo: {
+    pendiente: '☁️',
+    en_progreso: '☀️',
+    en_revision: '🔎',
+    bloqueada: '⛈️',
+    completada: '🌈',
+    cancelada: '🌫️',
+  },
 };
 export const emojiEstado = (tema, estado) => EMOJI[tema]?.[estado] || '';
 
@@ -127,6 +137,21 @@ export const TEXTOS = {
       preocupada: (n) => `Llama avisa: hay ${n} tarea${n === 1 ? '' : 's'} atrasada${n === 1 ? '' : 's'}. ¡Hora de encender motores! 🔥`,
       feliz: () => 'Hoja dice que vamos creciendo muy bien 🌿',
       contenta: () => 'Aqua lo tiene claro: paso a paso se llega lejos 💧',
+    },
+  },
+  cielo: {
+    saludo: (n) => `¡Hola${n ? ` ${n}` : ''}! Que tengas un día sereno 🌤️`,
+    tituloTareas: 'Tu cielo de tareas',
+    kpi: {
+      abiertas: '☁️ Abiertas', mias: '💙 Mías', vencidas: '🔴 Vencidas', semana: '🟡 Vencen en 7 días',
+      sinAsignar: '🫧 Sin asignar', completadas: '🌈 Completadas (7 días)',
+    },
+    vacio: 'Cielo despejado: no hay tareas con estos filtros ☁️',
+    frase: {
+      dormida: () => 'Nube descansa: todavía no hay tareas por aquí 💤',
+      preocupada: (n) => `Chispa avisa: hay ${n} tarea${n === 1 ? '' : 's'} atrasada${n === 1 ? '' : 's'}. Una a la vez, sin apuro 💪`,
+      feliz: () => '¡Sol brillando! Vamos muy bien ☀️',
+      contenta: () => 'Brote dice: paso a paso, todo crece 🌱',
     },
   },
 };
