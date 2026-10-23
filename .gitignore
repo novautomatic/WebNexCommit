@@ -40,3 +40,6 @@ dist-ssr
 
 # Local screenshots / patches from Claude sessions
 Claude outputs/
+
+# Supabase CLI local state (project ref, versions)
+supabase/.temp/

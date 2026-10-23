@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Globe, Mail, Megaphone, Pencil, Phone, Plus, Send, Trash2 } from 'lucide-react';
+import { ExternalLink, Globe, LayoutDashboard, Mail, Megaphone, Pencil, Phone, Plus, Send, Trash2, X } from 'lucide-react';
 import {
   estaAbierta, estaVencida, formatearFecha, useBorrarCliente, useCorreosClientes, useEnviarCampana,
   useEnviarInvitacion, useEnviarPermisoWeb, useGuardarCliente, useVincularClientes,
 } from '../../hooks/tareas';
+import { dominio, normalizarSitio, useRespuestasPorRevisar } from '../../hooks/clienteDashboard';
 import { ErrorBox, Modal, Pill, btnGhost, btnPrimary, card, inputClass, labelClass } from './ui';
 
 const EMAIL_OK = /^[^\s@]{1,64}@[^\s@]{1,190}\.[a-z]{2,24}$/i;
@@ -28,11 +29,13 @@ const PERMISO_WEB = {
 };
 const puedePedirPermisoWeb = (c) => consentimiento(c).id === 'promociones' || consentimiento(c).id === 'politicas';
 
-export default function ClientesVista({ clientes, vinculos, proyectos, tareas, onVerProyecto }) {
+export default function ClientesVista({ clientes, vinculos, proyectos, tareas, onVerProyecto, onAbrirCliente }) {
   const [editando, setEditando] = useState(null);
   const [campana, setCampana] = useState(false);
   const [aviso, setAviso] = useState('');
   const correos = useCorreosClientes();
+  const porRevisar = useRespuestasPorRevisar();
+  const conRespuestaPendiente = new Set((porRevisar.data ?? []).map((r) => r.cliente_id));
   const invitar = useEnviarInvitacion();
   const permisoWeb = useEnviarPermisoWeb();
   const proyecto = Object.fromEntries(proyectos.map((p) => [p.id, p]));
@@ -132,17 +135,28 @@ export default function ClientesVista({ clientes, vinculos, proyectos, tareas, o
           return (
             <div key={c.id} className={`${card} p-4 flex flex-col gap-3 ${c.activo ? '' : 'opacity-60'}`}>
               <div className="flex items-start justify-between gap-2">
-                <div>
+                <button type="button" onClick={() => onAbrirCliente?.(c.id)} className="text-left group" title="Ver el dashboard del cliente">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color }} />
-                    <span className="text-white font-semibold">{c.nombre}</span>
+                    <span className="text-white font-semibold group-hover:underline">{c.nombre}</span>
                   </div>
                   {c.empresa && <p className="text-xs text-[#9aafc3] mt-0.5">{c.empresa}</p>}
-                </div>
-                <button type="button" onClick={() => setEditando(c)} className="text-[#9aafc3] hover:text-white" aria-label={`Editar ${c.nombre}`}>
-                  <Pencil className="w-4 h-4" />
                 </button>
+                <div className="flex items-center gap-3">
+                  <button type="button" onClick={() => onAbrirCliente?.(c.id)} className="text-[#9aafc3] hover:text-white" aria-label={`Dashboard de ${c.nombre}`}>
+                    <LayoutDashboard className="w-4 h-4" />
+                  </button>
+                  <button type="button" onClick={() => setEditando(c)} className="text-[#9aafc3] hover:text-white" aria-label={`Editar ${c.nombre}`}>
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
+              <SitiosFila cliente={c} />
+              {conRespuestaPendiente.has(c.id) && (
+                <button type="button" onClick={() => onAbrirCliente?.(c.id)} className="self-start">
+                  <Pill color="#f59e0b" title="Respondió el correo de permiso web y hay que confirmar qué dijo">Respondió · revisar</Pill>
+                </button>
+              )}
               {(c.email || c.telefono) && (
                 <div className="flex flex-wrap gap-3 text-xs text-[#9aafc3]">
                   {c.email && <a href={`mailto:${c.email}`} className="flex items-center gap-1 hover:text-white"><Mail className="w-3.5 h-3.5" />{c.email}</a>}
@@ -183,6 +197,26 @@ export default function ClientesVista({ clientes, vinculos, proyectos, tareas, o
         />
       )}
       {campana && <CampanaModal destinatarios={aceptan} onClose={() => setCampana(false)} />}
+    </div>
+  );
+}
+
+export function SitiosFila({ cliente: c }) {
+  const sitios = c.sitios ?? [];
+  if (!sitios.length) {
+    return (
+      <p className="text-xs text-[#9aafc3] flex items-center gap-1">
+        <Globe className="w-3.5 h-3.5" /> {c.sin_web ? 'Aún no tiene web' : <span className="text-amber-300">Falta su web: agrégala en Editar</span>}
+      </p>
+    );
+  }
+  return (
+    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+      {sitios.map((s) => (
+        <a key={s} href={s} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[#67c8f3] hover:text-white" title={s}>
+          <Globe className="w-3.5 h-3.5" /> {dominio(s)} <ExternalLink className="w-3 h-3" />
+        </a>
+      ))}
     </div>
   );
 }
@@ -323,7 +357,7 @@ function CampanaModal({ destinatarios, onClose }) {
   );
 }
 
-function ClienteForm({ cliente, proyectos, vinculados, onClose }) {
+export function ClienteForm({ cliente, proyectos, vinculados, onClose }) {
   const guardar = useGuardarCliente();
   const vincular = useVincularClientes();
   const borrar = useBorrarCliente();
@@ -336,7 +370,11 @@ function ClienteForm({ cliente, proyectos, vinculados, onClose }) {
     color: cliente.color || '#e0a64b',
     activo: cliente.activo ?? true,
     permiso_web: cliente.permiso_web || '',
+    sin_web: cliente.sin_web ?? false,
   });
+  // One input per website; always at least one empty row to type in.
+  const [sitios, setSitios] = useState(() => (cliente.sitios?.length ? [...cliente.sitios] : ['']));
+  const [errorSitios, setErrorSitios] = useState('');
   const [retirar, setRetirar] = useState(false);
   const [seleccion, setSeleccion] = useState(new Set(vinculados));
   const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
@@ -348,6 +386,18 @@ function ClienteForm({ cliente, proyectos, vinculados, onClose }) {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    setErrorSitios('');
+    const escritos = sitios.map((s) => s.trim()).filter(Boolean);
+    const malos = escritos.filter((s) => !normalizarSitio(s));
+    if (malos.length) {
+      setErrorSitios(`Revisa esta dirección: «${malos[0]}». Escríbela como dyetales.cl o https://dyetales.cl`);
+      return;
+    }
+    const validos = [...new Set(escritos.map(normalizarSitio))];
+    if (!validos.length && !f.sin_web) {
+      setErrorSitios('Agrega al menos una página web del cliente, o marca «Aún no tiene web».');
+      return;
+    }
     const guardado = await guardar.mutateAsync({
       id: cliente.id,
       nombre: f.nombre.trim(),
@@ -357,6 +407,8 @@ function ClienteForm({ cliente, proyectos, vinculados, onClose }) {
       notas: f.notas.trim() || null,
       color: f.color,
       activo: f.activo,
+      sitios: validos,
+      sin_web: validos.length ? false : f.sin_web,
       // The panel can only withdraw promotions; granting them is the client's call.
       ...(retirar ? { acepta_marketing: false } : {}),
       // Only sent when it changed: the database stamps the date and logs it as proof.
@@ -403,6 +455,38 @@ function ClienteForm({ cliente, proyectos, vinculados, onClose }) {
             <label className={labelClass} htmlFor="c-tel">Teléfono</label>
             <input id="c-tel" className={inputClass} value={f.telefono} onChange={set('telefono')} inputMode="tel" />
           </div>
+        </div>
+        <div>
+          <span className={labelClass}>Páginas web *</span>
+          <div className="space-y-2">
+            {sitios.map((s, i) => (
+              <div key={i} className="flex gap-2">
+                <input
+                  className={inputClass}
+                  value={s}
+                  onChange={(e) => setSitios((l) => l.map((x, j) => (j === i ? e.target.value : x)))}
+                  placeholder="dyetales.cl"
+                  inputMode="url"
+                  aria-label={`Página web ${i + 1}`}
+                  disabled={f.sin_web}
+                />
+                {sitios.length > 1 && (
+                  <button type="button" onClick={() => setSitios((l) => l.filter((_, j) => j !== i))} className="text-[#9aafc3] hover:text-white" aria-label="Quitar esta web">
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
+            <button type="button" onClick={() => setSitios((l) => [...l, ''])} className="text-xs text-[#9aafc3] hover:text-white flex items-center gap-1" disabled={f.sin_web}>
+              <Plus className="w-3.5 h-3.5" /> Otra web (tienda, landing, chatbot…)
+            </button>
+            <label className="flex items-center gap-2 text-xs text-[#9aafc3]">
+              <input type="checkbox" checked={f.sin_web} onChange={set('sin_web')} /> Aún no tiene web
+            </label>
+          </div>
+          {errorSitios && <p className="text-xs text-red-300 mt-1">{errorSitios}</p>}
         </div>
         <div>
           <label className={labelClass} htmlFor="c-notas">Notas</label>

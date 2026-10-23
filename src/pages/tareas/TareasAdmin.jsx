@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AlertTriangle, BarChart3, Briefcase, CalendarClock, CalendarDays, LayoutGrid, List, Plus, RefreshCw, Search } from 'lucide-react';
+import { AlertTriangle, BarChart3, Briefcase, CalendarClock, CalendarDays, Handshake, LayoutGrid, List, Plus, RefreshCw, Search } from 'lucide-react';
 import {
   ESTADOS,
   PRIORIDAD,
@@ -21,6 +21,9 @@ import {
   useSyncGithub,
   useTareasRealtime,
 } from '../../hooks/tareas';
+import {
+  ESTADO_ENCARGADO_DESDE_COLUMNA, comoTareaDelEncargado, proyectoDeCliente, useRpcTcliente, useTareasCliente,
+} from '../../hooks/tareasCliente';
 import TareaModal from './TareaModal';
 import { emojiEstado, useTema, useTextos } from '../../hooks/tema';
 import { Mascota, Vacio } from './Mascota';
@@ -48,6 +51,7 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
   const equipoQ = useEquipo();
   const proyectosQ = useProyectos();
   const tareasQ = useTareasLista();
+  const tareasClienteQ = useTareasCliente();
   useTareasRealtime();
   const sync = useSyncGithub();
 
@@ -70,21 +74,35 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
   const equipo = useMemo(() => equipoQ.data ?? [], [equipoQ.data]);
   const proyectos = useMemo(() => proyectosQ.data ?? [], [proyectosQ.data]);
   const tareas = useMemo(() => tareasQ.data ?? [], [tareasQ.data]);
+  // Team half of every client task, shown next to the internal ones (see comoTareaDelEncargado).
+  const deClientes = useMemo(() => (tareasClienteQ.data ?? []).map(comoTareaDelEncargado), [tareasClienteQ.data]);
+  const proyectosCliente = useMemo(() => {
+    const vistos = new Map();
+    for (const t of tareasClienteQ.data ?? []) if (t.cliente) vistos.set(t.cliente.id, proyectoDeCliente(t.cliente));
+    return [...vistos.values()].sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }, [tareasClienteQ.data]);
+  const todas = useMemo(() => [...tareas, ...deClientes], [tareas, deClientes]);
   const areas = useMemo(() => proyectos.filter((p) => p.tipo === 'area' && !p.archivado), [proyectos]);
   const repos = useMemo(() => proyectos.filter((p) => p.tipo !== 'area' && !p.archivado), [proyectos]);
   const miembro = useMemo(() => Object.fromEntries(equipo.map((m) => [m.id, m])), [equipo]);
-  const proyecto = useMemo(() => Object.fromEntries(proyectos.map((p) => [p.id, p])), [proyectos]);
+  const proyecto = useMemo(
+    () => Object.fromEntries([...proyectos, ...proyectosCliente].map((p) => [p.id, p])),
+    [proyectos, proyectosCliente],
+  );
 
-  // Deep link from the WhatsApp notice: /admin?tab=tareas&tarea=<numero>
+  // Deep link from the WhatsApp notice: /admin?tab=tareas&tarea=<numero> (internal tasks only).
   const setVista = (id) => irA?.(id);
   const numeroAbierto = params.get('tarea');
   const tareaAbierta = numeroAbierto ? tareas.find((t) => String(t.numero) === numeroAbierto) : null;
-  const abrir = (t) => setParams((p) => { p.set('tarea', String(t.numero)); return p; }, { replace: true });
+  const abrir = (t) => {
+    if (t.origen === 'cliente') irA?.('clientes-tareas', { tarea: String(t.numero) });
+    else setParams((p) => { p.set('tarea', String(t.numero)); return p; }, { replace: true });
+  };
   const cerrar = () => setParams((p) => { p.delete('tarea'); return p; }, { replace: true });
 
   const filtradas = useMemo(() => {
     const q = filtros.q.trim().toLowerCase();
-    return tareas.filter((t) => {
+    return todas.filter((t) => {
       if (filtros.proyecto && t.proyecto_id !== filtros.proyecto) return false;
       if (filtros.responsable === 'yo' && t.responsable_id !== yo.data) return false;
       if (filtros.responsable === 'nadie' && t.responsable_id) return false;
@@ -92,27 +110,29 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
       if (filtros.prioridad && t.prioridad !== filtros.prioridad) return false;
       if (filtros.estado && t.estado !== filtros.estado) return false;
       if (filtros.soloVencidas && !estaVencida(t)) return false;
-      if (q && !`#${t.github_numero ?? ''} ${t.titulo} ${t.descripcion ?? ''} ${(t.etiquetas || []).join(' ')}`.toLowerCase().includes(q)) return false;
+      const numero = t.origen === 'cliente' ? t.numero : t.github_numero;
+      if (q && !`#${numero ?? ''} ${t.titulo} ${t.descripcion ?? ''} ${proyecto[t.proyecto_id]?.nombre ?? ''} ${(t.etiquetas || []).join(' ')}`.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [tareas, filtros, yo.data]);
+  }, [todas, filtros, yo.data, proyecto]);
 
   const kpis = useMemo(() => {
     const hoy = hoyISO();
     const enSiete = enDiasISO(7);
     const haceSiete = ahoraMs() - 7 * 86400000;
-    const abiertas = tareas.filter(estaAbierta);
+    const abiertas = todas.filter(estaAbierta);
     return {
       abiertas: abiertas.length,
       mias: abiertas.filter((t) => t.responsable_id && t.responsable_id === yo.data).length,
       vencidas: abiertas.filter(estaVencida).length,
       semana: abiertas.filter((t) => t.fecha_limite && t.fecha_limite >= hoy && t.fecha_limite <= enSiete).length,
       sinAsignar: abiertas.filter((t) => !t.responsable_id).length,
-      completadas: tareas.filter((t) => t.completada_at && new Date(t.completada_at).getTime() >= haceSiete).length,
+      completadas: todas.filter((t) => t.completada_at && new Date(t.completada_at).getTime() >= haceSiete).length,
     };
-  }, [tareas, yo.data]);
+  }, [todas, yo.data]);
 
   const cargando = equipoQ.isLoading || proyectosQ.isLoading || tareasQ.isLoading || yo.isLoading;
+  // Client tasks are a bonus here: if they fail to load, the internal board still works.
   const error = equipoQ.error || proyectosQ.error || tareasQ.error || yo.error;
 
   if (cargando) return <p className="text-[#9aafc3]">Cargando tareas…</p>;
@@ -134,7 +154,10 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
   const areaActiva = areas.find((a) => a.id === areaSel) || areas[0];
   const nuevaTarea = (defaults = {}) =>
     setNuevaLocal({
-      proyecto_id: vista === 'areas' && areaActiva ? areaActiva.id : filtros.proyecto || proyectoInterno,
+      proyecto_id: vista === 'areas' && areaActiva
+        ? areaActiva.id
+        // A client filter is not a real project: new tasks go to the internal one.
+        : (!filtros.proyecto.startsWith('cliente:') && filtros.proyecto) || proyectoInterno,
       ...defaults,
     });
 
@@ -152,8 +175,12 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
           </h1>
           <p className="text-sm text-[#9aafc3]">
             Proyectos: issues de GitHub de novautomatic (nacen y se mueven en GitHub). Áreas: tareas internas que viven solo aquí.
+            Con <Handshake className="inline w-3.5 h-3.5 -mt-0.5" aria-label="tarea de cliente" />: la parte del encargado de una tarea de cliente.
           </p>
           <SyncEstado sync={sync} />
+          {tareasClienteQ.error && (
+            <p className="text-xs text-red-300 mt-1">No se pudieron cargar las tareas de clientes; se muestran solo las internas.</p>
+          )}
         </div>
         <button type="button" className={btnPrimary} onClick={() => nuevaTarea()}>
           <Plus className="w-4 h-4" /> Nueva tarea
@@ -204,6 +231,11 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
             <optgroup label="Proyectos (GitHub)">
               {repos.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
             </optgroup>
+            {proyectosCliente.length > 0 && (
+              <optgroup label="Tareas de clientes (parte del encargado)">
+                {proyectosCliente.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+              </optgroup>
+            )}
           </select>
           <select className={`${inputClass} w-auto`} value={filtros.responsable} onChange={setFiltro('responsable')} aria-label="Responsable">
             <option value="">Todo el equipo</option>
@@ -349,9 +381,31 @@ function Kpi({ label, valor, color, onClick }) {
 
 function Tablero({ tareas, miembro, proyecto, onAbrir, onNueva, ideas = null }) {
   const tema = useTema();
-  const guardar = useGuardarTarea();
+  const guardarInterna = useGuardarTarea();
+  const estadoEncargado = useRpcTcliente('tcliente_encargado_estado');
+  const [aviso, setAviso] = useState('');
   const [sobre, setSobre] = useState(null);
   const ahora = ahoraMs();
+
+  // Client tasks only move their team half: Pendiente, En progreso or Completada (= «Lista»).
+  const guardar = {
+    error: guardarInterna.error || estadoEncargado.error,
+    mutate: ({ id, estado }) => {
+      setAviso('');
+      const t = tareas.find((x) => x.id === id);
+      if (t?.origen !== 'cliente') return guardarInterna.mutate({ id, estado });
+      const destino = ESTADO_ENCARGADO_DESDE_COLUMNA[estado];
+      if (!destino) {
+        setAviso('Las tareas de clientes solo pasan por Pendiente, En progreso y Completada. La revisión de la entrega se hace en «De clientes».');
+        return undefined;
+      }
+      if (t.tareaCliente.cerrada_at || t.tareaCliente.cancelada_at) {
+        setAviso('Esa tarea de cliente ya está cerrada.');
+        return undefined;
+      }
+      return estadoEncargado.mutate({ p_tarea: t.tareaCliente.id, p_estado: destino });
+    },
+  };
 
   const porColumna = (estado) =>
     tareas
@@ -371,6 +425,7 @@ function Tablero({ tareas, miembro, proyecto, onAbrir, onNueva, ideas = null }) 
   return (
     <>
       <ErrorBox error={guardar.error} />
+      {aviso && <p className="text-sm text-amber-300">{aviso}</p>}
       <div className="flex gap-4 overflow-x-auto pb-4 -mx-1 px-1 snap-x">
         {ideas}
         {COLUMNAS.map((col) => {
@@ -426,10 +481,14 @@ function Tarjeta({ t, miembro, proyecto, onAbrir, onEstado }) {
           <span className="ml-auto flex items-center gap-1">
             {t.sync_estado === 'pendiente' && <RefreshCw className="w-3 h-3 animate-spin" aria-label="Sincronizando" />}
             {t.sync_estado === 'error' && <AlertTriangle className="w-3 h-3 text-red-300" aria-label="Error de sincronización" />}
-            #{p?.tipo === 'area' ? t.numero : t.github_numero ?? '…'}
+            {t.origen === 'cliente' && <Handshake className="w-3 h-3" aria-label="Tarea de cliente" />}
+            #{p?.tipo === 'area' || t.origen === 'cliente' ? t.numero : t.github_numero ?? '…'}
           </span>
         </div>
         <h3 className="text-sm text-white leading-snug break-words">{t.titulo}</h3>
+        {t.origen === 'cliente' && (
+          <p className="text-[11px] text-[#9aafc3] mt-0.5 truncate">{t.etiquetas[1]}</p>
+        )}
       </button>
       <div className="mt-2 flex items-center gap-1.5 flex-wrap">
         <PrioridadPill prioridad={t.prioridad} />
@@ -447,7 +506,8 @@ function Tarjeta({ t, miembro, proyecto, onAbrir, onEstado }) {
         onChange={(e) => onEstado(e.target.value)}
         aria-label="Cambiar estado"
       >
-        {ESTADOS.map((e) => <option key={e.id} value={e.id}>{e.label}</option>)}
+        {ESTADOS.filter((e) => t.origen !== 'cliente' || ESTADO_ENCARGADO_DESDE_COLUMNA[e.id] || e.id === t.estado)
+          .map((e) => <option key={e.id} value={e.id}>{e.label}</option>)}
       </select>
     </article>
   );

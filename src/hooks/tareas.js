@@ -49,6 +49,7 @@ export function estaVencida(t) {
 // "repo#12" label for a task, from its GitHub issue.
 export function refGithub(t, proyecto) {
   if (proyecto?.tipo === 'area') return `${proyecto.nombre} #${t.numero}`;
+  if (proyecto?.tipo === 'cliente') return `Cliente #${t.numero}`;
   if (!t.github_numero) return 'creando en GitHub…';
   const repo = proyecto?.github_repo?.split('/')[1] || proyecto?.nombre || '';
   return `${repo}#${t.github_numero}`;

@@ -1,9 +1,11 @@
 // Management sections of the panel (sidebar → Gestión). Each one loads its own data;
 // react-query shares the cache with the tasks zone.
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useClientes, useEquipo, useProyectoClientes, useProyectos, useTareasLista } from '../../hooks/tareas';
 import ProyectosVista from './ProyectosVista';
 import ClientesVista from './ClientesVista';
+import ClienteDashboard from './ClienteDashboard';
 import EquipoVista from './EquipoVista';
 import { ErrorBox } from './ui';
 
@@ -46,13 +48,31 @@ export function ProyectosPagina({ irA }) {
 }
 
 export function ClientesPagina({ irA }) {
+  const [params] = useSearchParams();
   const proyectos = useProyectos();
   const tareas = useTareasLista();
   const clientes = useClientes();
   const vinculos = useProyectoClientes();
+  // ?cliente=<id> opens that client's dashboard.
+  const abierto = (clientes.data ?? []).find((c) => c.id === params.get('cliente'));
+  if (abierto) {
+    return (
+      <Estado consultas={[proyectos, tareas, clientes, vinculos]}>
+        <ClienteDashboard
+          key={abierto.id}
+          cliente={abierto}
+          proyectos={proyectos.data ?? []}
+          vinculos={vinculos.data ?? []}
+          tareas={tareas.data ?? []}
+          irA={irA}
+          onVolver={() => irA('clientes')}
+        />
+      </Estado>
+    );
+  }
   return (
     <>
-      <Encabezado titulo="Clientes">Quién es cliente de qué proyecto, y cuánto trabajo tiene abierto.</Encabezado>
+      <Encabezado titulo="Clientes">Quién es cliente de qué proyecto, y cuánto trabajo tiene abierto. Haz clic en un cliente para ver su dashboard.</Encabezado>
       <Estado consultas={[proyectos, tareas, clientes, vinculos]}>
         <ClientesVista
           clientes={clientes.data ?? []}
@@ -60,6 +80,7 @@ export function ClientesPagina({ irA }) {
           proyectos={proyectos.data ?? []}
           tareas={tareas.data ?? []}
           onVerProyecto={(id) => irA('tablero', { proyecto: id })}
+          onAbrirCliente={(id) => irA('clientes', { cliente: id })}
         />
       </Estado>
     </>

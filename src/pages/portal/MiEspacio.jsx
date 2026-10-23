@@ -8,12 +8,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Copy, History, Inbox, Loader2, LogOut, Mail, Lock, Send, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
+import { Copy, Download, FileText, History, Inbox, Loader2, LogOut, Mail, Lock, Send, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
 import SEO from '../../components/SEO';
 import { BrandLogo } from '../../components/Brand';
 import { useAuth } from '../../components/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 import { funcionPortal, mensajeError } from '../../hooks/tareasCliente';
+import { abrirDocumento } from '../../hooks/clienteDashboard';
 import PortalTarea from './PortalTarea';
 import PortalMisDatos from './PortalMisDatos';
 
@@ -176,9 +177,48 @@ function PedirAlgo({ solicitudes }) {
   );
 }
 
+// Documents the team shared with this client (panel → Clientes → dashboard → Documentos).
+function PortalDocumentos() {
+  const [error, setError] = useState('');
+  const { data, isLoading } = useQuery({
+    queryKey: ['portal', 'documentos'],
+    queryFn: async () => {
+      const { data: d, error: e } = await supabase.rpc('portal_documentos');
+      if (e) throw e;
+      return d ?? [];
+    },
+  });
+  const abrir = async (doc) => {
+    setError('');
+    try {
+      await abrirDocumento(doc.ruta, doc.nombre);
+    } catch {
+      setError('No pudimos abrir el documento. Intenta de nuevo en un rato.');
+    }
+  };
+  if (isLoading) return <p className="text-center text-sm text-slate-500 py-10">Cargando…</p>;
+  if (!data?.length) return <p className="text-center text-sm text-slate-500 py-10">Aquí verás los documentos que compartamos contigo.</p>;
+  return (
+    <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 divide-y divide-slate-100">
+      {error && <p className="p-4 text-sm text-red-600">{error}</p>}
+      {data.map((doc) => (
+        <button key={doc.id} type="button" onClick={() => abrir(doc)} className="w-full flex items-center gap-3 p-4 text-left hover:bg-slate-50">
+          <FileText className="w-5 h-5 text-[#248bde] shrink-0" />
+          <span className="flex-1 min-w-0">
+            <span className="block font-semibold text-slate-800 truncate">{doc.nombre}</span>
+            <span className="block text-xs text-slate-500">{new Date(doc.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+          </span>
+          <Download className="w-4 h-4 text-slate-400" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 const PESTANAS = [
   { id: 'tareas', label: 'Mis tareas', icon: Inbox },
   { id: 'historial', label: 'Historial', icon: History },
+  { id: 'documentos', label: 'Documentos', icon: FileText },
   { id: 'pedir', label: 'Pedir algo', icon: Sparkles },
   { id: 'datos', label: 'Mis datos', icon: UserRound },
 ];
@@ -281,6 +321,7 @@ function Portal({ tareaInicial }) {
         {pestana === 'historial' && (cerradas.length ? cerradas.map((t) => <PortalTarea key={t.id} t={t} />) : (
           <p className="text-center text-sm text-slate-500 py-10">Aquí verás tus tareas cumplidas.</p>
         ))}
+        {pestana === 'documentos' && <PortalDocumentos />}
         {pestana === 'pedir' && <PedirAlgo solicitudes={data.solicitudes} />}
         {pestana === 'datos' && <PortalMisDatos datos={data} />}
       </main>

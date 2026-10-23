@@ -26,6 +26,36 @@ export const DERECHOS = {
 };
 
 export const estaCerrada = (t) => Boolean(t.cerrada_at || t.cancelada_at);
+
+// The team half of a client task, shaped like a row of `tareas` so the main
+// board, list, calendar and summary show it next to the internal tasks.
+// It lives under a pseudo-project "cliente:<id>"; opening it goes to «De clientes».
+export function comoTareaDelEncargado(t) {
+  const lista = t.estado_encargado === 'lista' || Boolean(t.cerrada_at);
+  return {
+    id: `cliente-${t.id}`,
+    origen: 'cliente',
+    tareaCliente: t,
+    numero: t.numero,
+    titulo: t.titulo,
+    descripcion: t.tarea_encargado,
+    proyecto_id: `cliente:${t.cliente_id}`,
+    responsable_id: t.encargado_id,
+    fecha_limite: t.fecha_encargado,
+    estado: t.cancelada_at ? 'cancelada' : lista ? 'completada' : t.estado_encargado,
+    // A delivery waiting for review is the team's move: bump it.
+    prioridad: t.estado_cliente === 'entregada' ? 'alta' : 'media',
+    etiquetas: ['cliente', `cliente: ${ESTADO_CLIENTE[t.estado_cliente]?.label ?? t.estado_cliente}`],
+    orden: 0,
+    created_at: t.created_at,
+    completada_at: lista ? t.cerrada_at || t.updated_at : null,
+  };
+}
+
+export const proyectoDeCliente = (c) => ({ id: `cliente:${c.id}`, nombre: c.nombre, color: c.color, tipo: 'cliente' });
+
+// Board column → team-half state. Columns without an equivalent are not allowed.
+export const ESTADO_ENCARGADO_DESDE_COLUMNA = { pendiente: 'pendiente', en_progreso: 'en_progreso', completada: 'lista' };
 export const esperaCliente = (t) => !estaCerrada(t) && ['pendiente', 'devuelta'].includes(t.estado_cliente);
 
 /** Days from today (Santiago, the browser's local date) to an ISO date. */
