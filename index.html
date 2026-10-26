@@ -12,25 +12,25 @@
 
     <!-- Google tag (gtag.js) — page views are sent per-route from App.jsx
          (see the useLocation effect), so no initial `config` call here.
-         Consent Mode v2: everything starts denied (no cookies) until the visitor
-         accepts in the cookie banner (src/components/CookieConsent.jsx). -->
+         Measurement without a cookie banner (Ley 19.628, decision 22-10-2026):
+         GA4 and Google Ads count visits and contacts from the first page view, but
+         never receive the visitor's name, email, phone or tokens. Remarketing
+         (ad_personalization) stays off. Anyone can opt out from the privacy page
+         (stored as nc_cookie_consent = 'denied', the same key the old banner used,
+         so earlier rejections are still respected). -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      var ncConsent = null;
-      try { ncConsent = localStorage.getItem('nc_cookie_consent'); } catch (e) {}
-      var ncState = ncConsent === 'granted' ? 'granted' : 'denied';
+      var ncMedir = true;
+      try { ncMedir = localStorage.getItem('nc_cookie_consent') !== 'denied'; } catch (e) {}
+      var ncState = ncMedir ? 'granted' : 'denied';
       gtag('consent', 'default', {
         analytics_storage: ncState,
         ad_storage: ncState,
         ad_user_data: ncState,
-        ad_personalization: ncState,
-        wait_for_update: 500
+        ad_personalization: 'denied'
       });
-      // While consent is denied: strip ad identifiers from requests, and keep
-      // the gclid in the URL so the Ads click still counts once accepted.
-      gtag('set', 'ads_data_redaction', true);
-      gtag('set', 'url_passthrough', true);
+      if (!ncMedir) gtag('set', 'ads_data_redaction', true);
       gtag('js', new Date());
     </script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-FBHZGW2YB7"></script>

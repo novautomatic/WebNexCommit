@@ -2,9 +2,11 @@
 // Each one mirrors one ad group: the H1 repeats the search intent so the
 // visitor sees exactly what they searched for (better Quality Score + CTR).
 // Pages are noindex so they don't compete with /servicios in organic search.
+// The "desde $X" in the hero comes from the cheapest plan in `planes` (src/data/PRECIOS.js).
+// Copy rule: plain words for a business owner (no "SEO", "UX/UI", "leads"):
+// what they get, how much it costs and how fast.
 
-// Set to true if you decide to show "desde $X" on the landings.
-export const SHOW_PRICES = false;
+import { PLANES } from './PRECIOS.js'; // con extensión: scripts/generate-sitemap.mjs lo importa desde Node
 
 export const ADS_LANDINGS = [
   {
@@ -12,26 +14,16 @@ export const ADS_LANDINGS = [
     queries: ['precio pagina web chile', 'cotizar pagina web', 'diseño web profesional chile', 'pagina web para mi negocio'],
     planes: ['landing-page', 'ecommerce', 'reservas-y-citas', 'web-empresarial'],
     topic: 'una página web',
-    eyebrow: 'Diseño y desarrollo web en Chile',
-    title: 'Páginas web profesionales para tu empresa',
-    highlight: 'que consiguen clientes',
+    eyebrow: 'Páginas web para negocios en Chile',
+    title: 'Tu página web profesional,',
+    highlight: 'lista para recibir clientes',
     subtitle:
-      'Creamos tu sitio web a medida: rápido, adaptado a celulares, con SEO desde el día uno y WhatsApp integrado para que las visitas te contacten.',
-    priceFrom: 580000,
-    priceNote: 'sitio corporativo',
+      'La diseñamos con tu marca, la dejamos lista para aparecer en Google y con WhatsApp para que te contacten con un toque. Antes de empezar te mandamos el precio y el plazo por escrito.',
     bullets: [
-      'Sitio corporativo listo en ~3 semanas',
-      'Diseño 100% a medida, sin plantillas genéricas',
-      'Optimizado para Google (SEO técnico)',
-      'Botón de WhatsApp y formularios para captar contactos',
-    ],
-    includes: [
-      { title: 'Diseño UX/UI a medida', text: 'Una web con la identidad de tu marca, pensada para convertir visitas en clientes.' },
-      { title: 'Responsive y veloz', text: 'Se ve perfecta en celular, tablet y computador, con tiempos de carga mínimos.' },
-      { title: 'SEO técnico incluido', text: 'Estructura, metadatos y sitemap listos para posicionar en Google.' },
-      { title: 'Captura de leads', text: 'WhatsApp, llamada y formularios conectados para que no pierdas ningún contacto.' },
-      { title: 'Ecommerce opcional', text: 'Tienda online con Webpay/Transbank, Flow o Mercado Pago y despacho integrado.' },
-      { title: 'Soporte post-lanzamiento', text: 'Planes de hosting, mantención y soporte para que tu web siga funcionando.' },
+      'Lista en 1 a 4 semanas, según lo que necesites',
+      'Se ve perfecta en el celular, donde te buscan tus clientes',
+      'Preparada para aparecer en Google',
+      'Precio cerrado: lo que cotizamos es lo que pagas',
     ],
   },
   {
@@ -40,25 +32,15 @@ export const ADS_LANDINGS = [
     planes: ['landing-page', 'web-empresarial'],
     topic: 'una landing page',
     eyebrow: 'Landing pages para campañas y ventas',
-    title: 'Landing page profesional',
-    highlight: 'lista en aproximadamente 1 semana',
+    title: 'Una landing page para tu negocio,',
+    highlight: 'lista en 1 semana',
     subtitle:
-      'Una página enfocada en una sola meta: que tu cliente te escriba, te llame o compre. Ideal para campañas de Google Ads, Meta Ads y lanzamientos.',
-    priceFrom: 250000,
-    priceNote: 'landing page',
+      'Una sola página con un objetivo: que te escriban, te llamen o te compren. Ideal para tus anuncios en Google, Instagram o Facebook, o para lanzar algo nuevo.',
     bullets: [
-      'Entrega en ~1 semana',
-      'Copy y estructura orientados a conversión',
-      'WhatsApp, llamada y formulario integrados',
-      'Medición de conversiones para tus anuncios',
-    ],
-    includes: [
-      { title: 'Estructura que convierte', text: 'Mensaje claro, beneficios, prueba social y llamados a la acción en el lugar correcto.' },
-      { title: 'Lista para anuncios', text: 'Preparada para Google Ads y Meta Ads, con seguimiento de conversiones.' },
-      { title: 'Carga ultrarrápida', text: 'Cada segundo cuenta: menos rebote y más contactos por el mismo presupuesto.' },
-      { title: 'Diseño con tu marca', text: 'Colores, tipografía y tono de tu negocio, no una plantilla genérica.' },
-      { title: 'Contacto directo', text: 'Botones de WhatsApp y llamada visibles en todo momento, sobre todo en celular.' },
-      { title: 'Escalable', text: 'Si tu negocio crece, la convertimos en un sitio completo o una plataforma.' },
+      'Lista en aproximadamente 1 semana',
+      'Textos pensados para que te contacten, no solo para verse bien',
+      'WhatsApp, llamada y formulario a la vista',
+      'Lista para medir qué anuncios te traen clientes',
     ],
   },
   {
@@ -71,8 +53,6 @@ export const ADS_LANDINGS = [
     highlight: 'hechos a la medida de tu negocio',
     subtitle:
       'Desarrollamos plataformas para agenda, inventario, reportes, portales de clientes y operaciones críticas, con bases de datos seguras y automatizaciones.',
-    priceFrom: 3500000,
-    priceNote: 'plataforma SaaS',
     bullets: [
       'Desarrollo 100% a medida de tus procesos',
       'Bases de datos seguras (Supabase/PostgreSQL)',
@@ -98,8 +78,6 @@ export const ADS_LANDINGS = [
     highlight: 'que atiende y vende 24/7',
     subtitle:
       'Creamos tu chatbot para WhatsApp, Instagram, Facebook y tu sitio web, entrenado con la información de tu negocio: responde consultas, cotiza, agenda y te deriva los clientes listos para comprar.',
-    priceFrom: 600000,
-    priceNote: 'chatbot con IA',
     bullets: [
       'Funciona en WhatsApp, Instagram, Facebook y tu web',
       'Entrenado con tus productos, precios y preguntas frecuentes',
@@ -147,8 +125,6 @@ export const ADS_LANDINGS = [
     highlight: 'lista para vender con Webpay',
     subtitle:
       'Creamos tu tienda online con pagos chilenos (Webpay, Flow, Mercado Pago), despacho integrado y un panel simple para administrar productos, stock y pedidos.',
-    priceFrom: 890000,
-    priceNote: 'tienda online',
     bullets: [
       'Tienda lista en ~4 semanas',
       'Pagos con Webpay/Transbank, Flow o Mercado Pago',
@@ -167,31 +143,39 @@ export const ADS_LANDINGS = [
 ];
 
 export const PROCESS_STEPS = [
-  { title: 'Conversamos', text: 'Nos escribes por WhatsApp o nos llamas y entendemos tu negocio y objetivo.' },
-  { title: 'Propuesta clara', text: 'Te enviamos alcance, plazos y precio antes de partir, sin letra chica.' },
-  { title: 'Desarrollo y lanzamiento', text: 'Construimos con hitos y comunicación constante hasta publicar.' },
+  { title: 'Nos escribes', text: 'Por WhatsApp, llamada o el formulario. Nos cuentas de tu negocio en 5 minutos, sin compromiso.' },
+  { title: 'Te mandamos precio y plazo', text: 'El mismo día hábil y por escrito: qué incluye, cuánto cuesta y cuándo está lista. Sin sorpresas después.' },
+  { title: 'La construimos contigo', text: 'Te mostramos avances durante el proyecto y la publicamos juntos. Hablas directo con el equipo que la hace.' },
 ];
+
+const clp = (n) => '$' + n.toLocaleString('es-CL');
+const precioDe = (slug) => clp(PLANES.find((p) => p.slug === slug).precio);
 
 export const LANDING_FAQS = [
   {
-    question: '¿Cuánto cuesta?',
+    question: '¿Cuánto cuesta una página web?',
     answer:
-      'Depende del alcance. Tras una conversación corta te enviamos una propuesta con alcance, plazos y precio cerrado antes de empezar.',
+      `Una landing page cuesta ${precioDe('landing-page')} + IVA, una tienda online ${precioDe('ecommerce')} + IVA, un sistema de reservas ${precioDe('reservas-y-citas')} + IVA y una página empresarial de varias secciones ${precioDe('web-empresarial')} + IVA. Si necesitas algo extra, te lo cotizamos antes de empezar: el precio que acordamos por escrito es el que pagas.`,
   },
   {
     question: '¿Cuánto se demora?',
     answer:
-      'Una landing page toma alrededor de 1 semana, un sitio corporativo cerca de 3 semanas, un ecommerce cerca de 4 semanas y una plataforma a medida entre 10 y 12 semanas.',
+      'Una landing page está lista en alrededor de 1 semana, una página empresarial en 3 a 4 semanas y una tienda online en unas 4 semanas, desde que apruebas la propuesta. La fecha exacta va por escrito.',
   },
   {
-    question: '¿Trabajan con empresas de regiones?',
+    question: '¿Qué necesito para empezar?',
+    answer:
+      'Tu logo si lo tienes, fotos de tus productos o servicios y una idea de lo que quieres contar. Si te faltan textos o fotos, lo vemos juntos en la propuesta.',
+  },
+  {
+    question: '¿El hosting y el dominio están incluidos?',
+    answer:
+      'Se contratan aparte en un plan mensual de hosting, mantención y soporte, para que tu página siga funcionando y al día después de publicarla.',
+  },
+  {
+    question: '¿Trabajan con negocios de regiones?',
     answer:
       'Sí. Trabajamos 100% remoto con clientes de todo Chile, por WhatsApp, llamada y videollamada.',
-  },
-  {
-    question: '¿Qué pasa después de lanzar?',
-    answer:
-      'Ofrecemos planes de hosting, mantención y soporte para que tu web o plataforma siga funcionando sin fricción.',
   },
 ];
 

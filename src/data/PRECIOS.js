@@ -14,8 +14,8 @@ export const PLANES = [
       'Diseño con tu marca (colores, tipografía y tono), sin plantillas genéricas',
       'Adaptada a celular y de carga rápida',
       'Botones de WhatsApp y llamada, y formulario de contacto',
-      'SEO técnico: títulos, descripción y sitemap listos para Google',
-      'Lista para anuncios, con medición de conversiones',
+      'Lista para que Google la encuentre (títulos, descripción y mapa del sitio)',
+      'Lista para anuncios: sabrás cuántos contactos te trae cada uno',
     ],
   },
   {
@@ -59,11 +59,11 @@ export const PLANES = [
     topic: 'una página web empresarial',
     incluye: [
       'Sitio de varias páginas: inicio, servicios, nosotros, casos y contacto',
-      'Diseño UX/UI 100% a medida de tu marca',
-      'SEO técnico y textos pensados para las búsquedas de tus clientes',
+      'Diseño 100% a medida de tu marca, fácil de recorrer',
+      'Lista para Google, con textos pensados en lo que buscan tus clientes',
       'Blog para publicar novedades y artículos',
       'WhatsApp, llamada y formularios conectados para no perder contactos',
-      'Medición con Google Analytics y conversiones para tus anuncios',
+      'Medición de visitas y de los contactos que te traen tus anuncios',
     ],
   },
 ];

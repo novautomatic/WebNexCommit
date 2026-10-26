@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Lock, MessageCircle, Search } from 'lucide-react';
 import { WhatsAppLink } from './ContactButtons';
 import { PLAZOS, PLAZOS_MAX_WEEKS, SEARCH_QUERIES, SHOWCASE } from '../data/HOME';
+import { RESPONSABLE } from '../config/legal';
 
 function prefersReducedMotion() {
   return typeof window !== 'undefined'
@@ -147,6 +148,31 @@ export function ShowcaseMarquee() {
         {SHOWCASE.map((p) => <ShowcaseCard key={`dup-${p.name}`} project={p} hidden />)}
       </div>
     </div>
+  );
+}
+
+/** Who is behind NexCommit: legal identity (D.S. 6/2021) + how we work, to build trust with cold ad traffic. */
+export function QuienesSomos() {
+  const r = RESPONSABLE;
+  return (
+    <section id="quienes" className="nh-block">
+      <div className="nh-wrap nh-quienes">
+        <div>
+          <div className="nh-kicker">Quiénes somos</div>
+          <h2>Un equipo chileno, con nombre y RUT.</h2>
+        </div>
+        <div className="nh-quienes-txt">
+          <p>
+            NexCommit es <b>{r.razonSocial}</b>, RUT {r.rut}, con domicilio en Las Condes, Santiago. Hacemos páginas web,
+            tiendas online y sistemas para negocios de todo Chile, 100% remoto.
+          </p>
+          <p>
+            Hablas directo con el equipo que construye tu página, por WhatsApp, llamada o videollamada. Todo lo que acordamos
+            (qué incluye, plazo y precio) queda por escrito antes de empezar.
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 

@@ -26,8 +26,8 @@ import CreaTuWeb from './pages/CreaTuWeb';
 import Precios from './pages/Precios';
 import { ContactDock, WhatsAppLink } from './components/ContactButtons';
 import { IrACotizar } from './components/Conversion';
-import CookieConsent, { resetCookieConsent } from './components/CookieConsent';
-import { captureAdClick, GOOGLE_ADS } from './config/contact';
+import { RESPONSABLE } from './config/legal';
+import { captureAdClick, GOOGLE_ADS, PHONE_DISPLAY } from './config/contact';
 import { getAdLanding } from './data/ADS_LANDINGS';
 import { queryClient } from './lib/queryClient';
 
@@ -261,16 +261,17 @@ function App() {
                 <Link to="/terms" className="hover:text-white transition-colors">
                   Términos y Condiciones
                 </Link>
-                <button
-                  type="button"
-                  onClick={resetCookieConsent}
-                  className="hover:text-white transition-colors"
-                >
+                <Link to="/privacy#cookies" className="hover:text-white transition-colors">
                   Cookies
-                </button>
+                </Link>
               </nav>
             </div>
             <div className="text-center text-sm border-t border-white/5 pt-8 text-brand-footer">
+              {/* Identificación del proveedor (Ley 19.496 art. 12 A y D.S. 6/2021). */}
+              <p className="text-xs mb-3 opacity-80">
+                {RESPONSABLE.razonSocial} · RUT {RESPONSABLE.rut} · Las Condes, Santiago, Chile ·{' '}
+                <a href={`mailto:${RESPONSABLE.correo}`} className="hover:text-white">{RESPONSABLE.correo}</a> · {PHONE_DISPLAY}
+              </p>
               <p>&copy; {new Date().getFullYear()} NexCommit. Todos los derechos reservados.</p>
               <p className="mt-2 text-xs italic opacity-70">Mas que un proyecto, una alianza.</p>
             </div>
@@ -278,7 +279,6 @@ function App() {
         </footer>
         </>)}
         {!hideDock && <ContactDock topic={dockTopic} />}
-        {!isAdmin && <CookieConsent />}
       </div>
     </AuthProvider>
     </QueryClientProvider>

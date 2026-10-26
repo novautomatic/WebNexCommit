@@ -1,10 +1,30 @@
+import { useSyncExternalStore } from 'react';
 import { Link } from 'react-router-dom';
 import SEO from '../components/SEO';
 import { POLITICA, RESPONSABLE } from '../config/legal';
 import { CLARITY_ID } from '../lib/clarity';
+import { cambiarMedicion, medicionActiva } from '../lib/medicion';
 
-// Contents follow Ley 21.719 art. 14 ter (minimum information the controller must publish).
+// Follows the law in force today: Ley 19.628 (vida privada) + Ley 19.496 (consumidor).
+// Ley 21.719 is NOT in force yet (bill to postpone it to 1-dic-2027, boletín 18.623-07,
+// still in Congress as of 26-oct-2026): review this page before 1-dic-2026.
 // Responsible-party data lives in src/config/legal.js.
+
+/** Botón para dejar de ser medido (o volver a serlo) en este navegador. Solo en el navegador. */
+const sinSuscripcion = () => () => {};
+function PreferenciaMedicion() {
+  // null en el HTML prerenderizado (no hay navegador); el valor real al hidratar.
+  const activa = useSyncExternalStore(sinSuscripcion, medicionActiva, () => null);
+  if (activa === null) return null;
+  return (
+    <p className="text-brand-muted leading-relaxed mt-3">
+      {activa ? 'Hoy medimos tus visitas en este navegador. ' : 'Pediste que no midamos tus visitas en este navegador. '}
+      <button type="button" onClick={() => cambiarMedicion(!activa)} className="text-brand-light underline underline-offset-2">
+        {activa ? 'No medir mis visitas' : 'Volver a medir mis visitas'}
+      </button>
+    </p>
+  );
+}
 
 const p = 'text-brand-muted leading-relaxed';
 const ul = 'list-disc list-inside space-y-2 text-brand-muted';
@@ -13,9 +33,9 @@ const h2 = 'text-2xl font-bold text-white mb-4';
 const TRATAMIENTOS = [
   {
     quien: 'Visitantes del sitio',
-    datos: `Datos de navegación (páginas vistas, dispositivo, origen de la visita) mediante cookies de Google${CLARITY_ID ? ' y, si aceptas, cómo se usa la página (clics y desplazamiento, con textos y formularios ocultos) con Microsoft Clarity' : ''}`,
+    datos: `Datos de navegación que no te identifican (páginas vistas, dispositivo, origen de la visita) mediante cookies de Google${CLARITY_ID ? ' y cómo se usa la página (clics y desplazamiento, con textos y formularios ocultos) con Microsoft Clarity' : ''}. Nunca tu nombre, correo, teléfono ni RUT`,
     para: 'Medir visitas y saber qué anuncios generan contactos',
-    base: 'Consentimiento (aviso de cookies)',
+    base: 'Medición del sitio con datos que no te identifican; puedes pedir que no te midamos (sección 10)',
     plazo: 'El que tenga configurado Google Analytics (como máximo 14 meses)',
   },
   {
@@ -68,7 +88,7 @@ export default function Privacy() {
     <>
       <SEO
         title="Política de Privacidad | NexCommit"
-        description="Cómo NexCommit trata los datos personales de visitantes, clientes y usuarios de sus servicios, y cómo ejercer tus derechos según la Ley 21.719."
+        description="Cómo NexCommit trata los datos personales de visitantes, clientes y usuarios de sus servicios, y cómo ejercer tus derechos según la Ley 19.628."
         canonicalUrl="https://www.nexcommit.com/privacy"
       />
 
@@ -91,7 +111,8 @@ export default function Privacy() {
             <p className="text-lg text-brand-muted mb-10 leading-relaxed">
               En NexCommit cuidamos los datos personales de quienes visitan nuestro sitio, nos contactan, usan nuestras plataformas o
               trabajan con nosotros. Esta política explica qué datos tratamos, para qué, con quién los compartimos, cuánto tiempo los
-              guardamos y cómo puedes ejercer tus derechos, conforme a la Ley N° 19.628 modificada por la Ley N° 21.719.
+              guardamos y cómo puedes ejercer tus derechos, conforme a la Ley N° 19.628 sobre protección de la vida privada y la Ley N° 19.496 sobre protección de los
+              derechos de los consumidores.
             </p>
 
             <div className="space-y-10">
@@ -148,8 +169,8 @@ export default function Privacy() {
                 <ul className={ul}>
                   <li><strong className="text-white">Supabase</strong>: base de datos, archivos y acceso al portal (Estados Unidos).</li>
                   <li><strong className="text-white">Vercel</strong>: alojamiento del sitio y del servidor que envía los correos (Estados Unidos).</li>
-                  <li><strong className="text-white">Google</strong>: envío de correos, y con tu consentimiento, Google Analytics y Google Ads (Estados Unidos).</li>
-                  {CLARITY_ID && <li><strong className="text-white">Microsoft</strong>: con tu consentimiento, Microsoft Clarity para ver de forma agregada cómo se navega el sitio, con textos y formularios ocultos (Estados Unidos).</li>}
+                  <li><strong className="text-white">Google</strong>: envío de correos, Google Analytics y Google Ads, que miden visitas sin datos que te identifiquen (Estados Unidos).</li>
+                  {CLARITY_ID && <li><strong className="text-white">Microsoft</strong>: Microsoft Clarity para ver de forma agregada cómo se navega el sitio, con textos y formularios ocultos (Estados Unidos).</li>}
                   <li><strong className="text-white">OpenAI</strong>: genera los textos de las páginas de «Crea tu web» a partir de la descripción del negocio; no le enviamos datos de contacto (Estados Unidos).</li>
                   <li><strong className="text-white">Meta (WhatsApp)</strong>: avisos y conversaciones por WhatsApp cuando corresponda (Estados Unidos).</li>
                 </ul>
@@ -173,24 +194,23 @@ export default function Privacy() {
 
               <section>
                 <h2 className={h2}>6. Tus derechos</h2>
-                <p className={`${p} mb-3`}>Puedes pedirnos en cualquier momento:</p>
+                <p className={`${p} mb-3`}>Según la Ley 19.628 puedes pedirnos en cualquier momento, sin costo:</p>
                 <ul className={ul}>
-                  <li><strong className="text-white">Acceso</strong>: saber qué datos tenemos de ti y cómo los usamos.</li>
-                  <li><strong className="text-white">Rectificación</strong>: corregir datos inexactos o incompletos.</li>
-                  <li><strong className="text-white">Supresión</strong>: que borremos tus datos cuando ya no corresponda tenerlos.</li>
-                  <li><strong className="text-white">Oposición</strong>: que dejemos de usarlos para un fin determinado, como las promociones.</li>
-                  <li><strong className="text-white">Portabilidad</strong>: recibir una copia en un formato de uso común (JSON o CSV).</li>
-                  <li><strong className="text-white">Bloqueo</strong>: que suspendamos temporalmente su uso mientras se resuelve una solicitud.</li>
+                  <li><strong className="text-white">Acceso</strong>: saber qué datos tenemos de ti, de dónde vienen, para qué los usamos y a quién se los entregamos.</li>
+                  <li><strong className="text-white">Rectificación</strong>: corregir datos erróneos, inexactos o incompletos.</li>
+                  <li><strong className="text-white">Eliminación</strong>: que borremos tus datos cuando no haya razón legal para guardarlos o cuando los entregaste voluntariamente.</li>
+                  <li><strong className="text-white">Bloqueo</strong>: que suspendamos su uso mientras se resuelve una solicitud.</li>
+                  <li><strong className="text-white">Oposición a promociones</strong>: que dejemos de usarlos para enviarte publicidad.</li>
+                  <li><strong className="text-white">Copia de tus datos</strong>: además, te entregamos una copia en un formato de uso común (JSON o CSV).</li>
                 </ul>
                 <p className={`${p} mt-3`}>
                   Escríbenos a <a href={`mailto:${r.correo}`} className="text-brand-light hover:underline">{r.correo}</a> o, si
                   eres cliente, usa «Mis datos» en tu espacio, donde además puedes descargar tus datos y corregirlos al instante. Te
-                  confirmaremos que recibimos tu solicitud y te responderemos por escrito dentro de 30 días corridos (plazo que la ley
-                  permite extender una vez por otros 30). Si nos negamos o no respondemos a tiempo, puedes reclamar ante la Agencia
-                  de Protección de Datos Personales.
+                  responderemos por escrito dentro de 2 días hábiles (art. 16 de la Ley 19.628). Si no respondemos a tiempo o
+                  rechazamos tu solicitud, puedes recurrir al juez de letras en lo civil de nuestro domicilio.
                 </p>
                 <p className={`${p} mt-3`}>
-                  Cuando el tratamiento se basa en tu consentimiento (promociones, cookies de medición), puedes retirarlo cuando
+                  Cuando el tratamiento se basa en tu autorización (promociones, publicar tu nombre en una reseña), puedes retirarla cuando
                   quieras, sin que eso afecte lo hecho antes de retirarlo.
                 </p>
               </section>
@@ -228,17 +248,19 @@ export default function Privacy() {
               </section>
 
               <section>
-                <h2 className={h2}>10. Cookies y medición</h2>
+                <h2 id="cookies" className={h2}>10. Cookies y medición</h2>
                 <p className={`${p} mb-3`}>
-                  Con tu consentimiento usamos Google Analytics 4 para medir visitas y Google Ads para saber qué anuncios generan
-                  contactos. Estas herramientas guardan cookies en tu navegador y envían datos de navegación a Google, que puede
-                  tratarlos fuera de Chile.
+                  Usamos Google Analytics 4 para medir visitas y Google Ads para saber qué anuncios generan contactos. Estas
+                  herramientas guardan cookies en tu navegador y envían a Google datos de navegación que no te identifican (páginas
+                  vistas, dispositivo, de dónde llegaste), que puede tratar fuera de Chile. Nunca les enviamos tu nombre, correo,
+                  teléfono ni RUT, ni los usamos para mostrarte publicidad personalizada.
                   {CLARITY_ID && ' También usamos Microsoft Clarity para ver dónde se hace clic y hasta dónde se baja en cada página (mapas de calor y grabaciones con todos los textos y formularios ocultos); Microsoft puede tratar esos datos fuera de Chile.'}
                 </p>
                 <p className={p}>
-                  No se activan hasta que aceptas el aviso de cookies. Puedes cambiar tu decisión en cualquier momento desde el enlace
-                  «Cookies» al pie de cada página. El portal de clientes no envía a Google los enlaces personales de los correos.
+                  Las páginas con datos personales (portal de clientes, confirmación de datos y reseñas) no envían sus enlaces
+                  personales a Google y no usan Microsoft Clarity. También puedes bloquear las cookies desde tu navegador.
                 </p>
+                <PreferenciaMedicion />
               </section>
 
               <section>

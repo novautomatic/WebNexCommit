@@ -1,11 +1,29 @@
-import { Check, ClipboardList, MessageCircle, ShieldCheck, Timer, MapPin } from 'lucide-react';
+// /precios: la página que más clics recibe desde Google Ads (grupo «Precios»).
+// Mismo diseño que la home y las landings (clases nh-* de home.css). Orden: precio
+// de entrada, planes, ayuda para elegir, prueba (proyectos + reseñas), quiénes
+// somos, preguntas y contacto. Los precios viven solo en src/data/PRECIOS.js.
+import { Check, MessageCircle, Phone } from 'lucide-react';
 import SEO from '../components/SEO';
-import { WhatsAppLink } from '../components/ContactButtons';
-import { ContactoSeccion, IrACotizar, PlanBaseCard } from '../components/Conversion';
+import { CallLink, WhatsAppLink } from '../components/ContactButtons';
+import { ContactoSeccion, IrACotizar, PlanBaseCard, PlanesGrid } from '../components/Conversion';
+import { QuienesSomos, ShowcaseMarquee } from '../components/NhPiezas';
+import ResenasSeccion from '../components/Resenas';
+import { PHONE_DISPLAY } from '../config/contact';
+import { SHOWCASE } from '../data/HOME';
 import { FAQ_PRECIOS, NOTA_PRECIOS, PLAN_BASE, PLANES } from '../data/PRECIOS';
+import './home.css';
 
 const clp = (n) => '$' + n.toLocaleString('es-CL');
 const URL = 'https://www.nexcommit.com/precios';
+const precio = (slug) => clp(PLANES.find((p) => p.slug === slug).precio);
+
+// «¿Cuál me conviene?»: cada fila lleva al plan que corresponde.
+const GUIA = [
+  { si: 'Vendes un servicio y quieres que te escriban o te llamen', plan: 'landing-page', nombre: 'Landing page' },
+  { si: 'Vendes productos y quieres cobrar en línea', plan: 'ecommerce', nombre: 'E-commerce' },
+  { si: 'Trabajas con horas agendadas (consulta, clínica, estética)', plan: 'reservas-y-citas', nombre: 'Reservas y citas' },
+  { si: 'Eres una empresa con varios servicios que mostrar', plan: 'web-empresarial', nombre: 'Página empresarial' },
+];
 
 const jsonLd = [
   {
@@ -32,7 +50,7 @@ const jsonLd = [
 
 export default function Precios() {
   return (
-    <>
+    <div className="nh">
       <SEO
         title="Precios de Páginas Web en Chile 2026 | NexCommit"
         description="Precios claros: tu página hecha con IA y publicada $150.000, landing page $300.000, e-commerce $800.000, sistema de reservas y citas $1.000.000 y página empresarial a medida $1.200.000 (+ IVA). Cotiza por WhatsApp."
@@ -41,80 +59,91 @@ export default function Precios() {
         jsonLd={jsonLd}
       />
 
-      <section className="relative pb-12 md:pb-16">
-        <div className="hero-grid absolute inset-0 z-0 pointer-events-none" />
-        <div className="container relative z-10 text-center">
-          <div className="eyebrow mb-6 mx-auto"><span>Precios 2026</span></div>
-          <h1 className="text-4xl md:text-6xl font-semibold mb-5 leading-tight text-white">
-            ¿Cuánto cuesta tu <span className="text-gradient">página web</span>?
-          </h1>
-          <p className="text-lg md:text-xl max-w-2xl mx-auto text-brand-muted">
-            Precios claros desde el primer día. Elige el plan que se parece a lo que necesitas y te enviamos la propuesta con alcance, plazo y precio cerrado.
+      {/* Hero: la respuesta a «cuánto cuesta», en la primera pantalla */}
+      <section className="nh-hero nh-hero-centro">
+        <div className="nh-wrap">
+          <div className="nh-kicker">Precios 2026 · valores + IVA</div>
+          <h1 className="nh-h1-lp">¿Cuánto cuesta tu <em>página web</em>?</h1>
+          <p className="nh-lead">
+            Landing page {precio('landing-page')}, tienda online {precio('ecommerce')}, reservas y citas {precio('reservas-y-citas')} y
+            página empresarial {precio('web-empresarial')}. Antes de empezar te mandamos por escrito qué incluye, el plazo y el
+            precio final: el que acordamos es el que pagas.
           </p>
-          <div className="flex flex-wrap justify-center gap-6 mt-8 text-sm text-brand-muted">
-            <span className="flex items-center gap-2"><Timer className="w-4 h-4" /> Respondemos el mismo día hábil</span>
-            <span className="flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Precio cerrado, sin letra chica</span>
-            <span className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Clientes en todo Chile</span>
+          <div className="nh-ctas">
+            <WhatsAppLink topic="una página web" placement="precios_hero" className="nh-btn nh-btn-wa">
+              <MessageCircle aria-hidden="true" /> Cotizar por WhatsApp
+            </WhatsAppLink>
+            <a href="#cual" className="nh-btn nh-btn-ghost">¿Cuál me conviene?</a>
+          </div>
+          <p className="nh-hero-mini">
+            o llama al <CallLink placement="precios_hero"><Phone aria-hidden="true" style={{ display: 'inline', width: 14, height: 14 }} /> {PHONE_DISPLAY}</CallLink>
+          </p>
+          <div className="nh-trust">
+            <span><i />Respondemos el mismo día hábil</span>
+            <span><i />{SHOWCASE.length} proyectos publicados</span>
+            <span><i />Empresa chilena, clientes en todo Chile</span>
           </div>
         </div>
       </section>
 
-      <section className="pb-16 md:pb-20">
-        <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            {PLANES.map((p) => (
-              <article key={p.slug} id={p.slug} className="glass-dark rounded-2xl p-6 flex flex-col">
-                {/* Alto fijo para título + descripción: los precios quedan alineados entre tarjetas. */}
-                <div className="xl:min-h-[8.5rem]">
-                  <h2 className="text-xl font-semibold text-white">{p.nombre}</h2>
-                  <p className="text-sm text-brand-muted mt-1">{p.para}</p>
-                </div>
-                <div className="mt-4">
-                  <span className="text-3xl font-bold text-white">{clp(p.precio)}</span>
-                  <span className="text-brand-muted text-sm"> + IVA</span>
-                </div>
-                <p className="text-xs text-brand-muted mt-1">Plazo: {p.plazo}</p>
-                <ul className="mt-5 space-y-2.5 flex-1">
-                  {p.incluye.map((i) => (
-                    <li key={i} className="flex gap-2.5 text-sm text-white/90">
-                      <Check className="w-4 h-4 text-brand-light shrink-0 mt-0.5" /> {i}
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-6 flex flex-col gap-2">
-                  <IrACotizar servicio={p.slug} placement={`precios_${p.slug}`} className="btn btn-brand justify-center whitespace-nowrap">
-                    <ClipboardList className="w-5 h-5" /> Cotizar este plan
-                  </IrACotizar>
-                  <WhatsAppLink
-                    topic={p.topic}
-                    placement={`precios_${p.slug}`}
-                    className="btn text-white justify-center whitespace-nowrap"
-                    style={{ backgroundColor: '#1faa53' }}
-                  >
-                    <MessageCircle className="w-5 h-5" /> Por WhatsApp
-                  </WhatsAppLink>
-                </div>
-              </article>
+      {/* Planes */}
+      <section id="planes" className="nh-block nh-block-pegado">
+        <div className="nh-wrap">
+          {/* Producto base primero: es el precio de entrada ($150.000). */}
+          <PlanBaseCard placement="precios" />
+          <PlanesGrid placement="precios" detalle="todo" />
+          <p className="nh-sub nh-nota">{NOTA_PRECIOS}</p>
+        </div>
+      </section>
+
+      {/* Ayuda para elegir */}
+      <section id="cual" className="nh-block">
+        <div className="nh-wrap">
+          <div className="nh-kicker">¿Cuál me conviene?</div>
+          <h2>Elige por lo que haces, no por la tecnología.</h2>
+          <div className="nh-guia">
+            {GUIA.map((g) => (
+              <a key={g.plan} href={`#${g.plan}`} className="nh-guia-fila">
+                <span>{g.si}</span>
+                <b><Check aria-hidden="true" />{g.nombre} · {precio(g.plan)}</b>
+              </a>
             ))}
           </div>
-          <PlanBaseCard placement="precios" />
-          <p className="text-xs text-brand-muted text-center max-w-3xl mx-auto mt-8 leading-relaxed">{NOTA_PRECIOS}</p>
+          <p className="nh-sub">
+            ¿No calzas en ninguna?{' '}
+            <IrACotizar servicio="otro" placement="precios_guia" className="nh-service-more">Cuéntanos y te recomendamos el plan justo →</IrACotizar>
+          </p>
         </div>
       </section>
 
-      <section className="py-16 md:py-20">
-        <div className="container max-w-3xl">
-          <h2 className="text-3xl md:text-4xl font-semibold text-white mb-10 text-center">
-            Preguntas <span className="text-gradient">frecuentes</span>
-          </h2>
-          <div className="flex flex-col gap-4">
+      {/* Prueba */}
+      <section id="proyectos" className="nh-block">
+        <div className="nh-wrap nh-head-row">
+          <div>
+            <div className="nh-kicker">Proyectos reales</div>
+            <h2>Lo que ya hicimos por estos precios.</h2>
+          </div>
+          <p className="nh-sub" style={{ maxWidth: '26em' }}>
+            Toca cualquier tarjeta para ver el sitio publicado, funcionando hoy.
+          </p>
+        </div>
+        <ShowcaseMarquee />
+      </section>
+
+      <ResenasSeccion limite={3} placement="precios_resenas" />
+
+      <QuienesSomos />
+
+      {/* Preguntas frecuentes */}
+      <section id="faq" className="nh-block">
+        <div className="nh-wrap">
+          <div className="nh-kicker">Preguntas frecuentes</div>
+          <h2>Lo que nos preguntan sobre precios.</h2>
+          <div className="nh-faq">
             {FAQ_PRECIOS.map((faq) => (
-              <details key={faq.question} className="glass-dark rounded-2xl p-6 group">
-                <summary className="text-lg font-semibold text-white cursor-pointer list-none flex items-center justify-between gap-4">
-                  {faq.question}
-                  <span className="text-brand-muted transition-transform group-open:rotate-45 text-2xl leading-none">+</span>
-                </summary>
-                <p className="mt-4 leading-relaxed text-brand-muted">{faq.answer}</p>
+              <details key={faq.question}>
+                <summary>{faq.question}<span aria-hidden="true">+</span></summary>
+                <p>{faq.answer}</p>
               </details>
             ))}
           </div>
@@ -122,6 +151,6 @@ export default function Precios() {
       </section>
 
       <ContactoSeccion placement="precios" titulo="¿No sabes cuál elegir? Te recomendamos el plan justo." />
-    </>
+    </div>
   );
 }

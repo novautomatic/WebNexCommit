@@ -71,6 +71,39 @@
   -webkit-box-decoration-break: clone; box-decoration-break: clone;
 }
 .nh-hero h1.nh-h1-lp em::after { display: none; }
+/* Landings: precio de entrada en el hero */
+.nh-desde {
+  display: inline-flex; align-items: center; gap: 10px; margin-top: 22px; max-width: 100%;
+  border: 1px solid rgba(37, 211, 102, 0.4); background: rgba(37, 211, 102, 0.08);
+  border-radius: 14px; padding: 10px 14px; color: #dff7e8; font-size: 15px; line-height: 1.35; text-decoration: none;
+  transition: border-color .2s ease, background .2s ease;
+}
+.nh-desde:hover { border-color: var(--nh-wa); background: rgba(37, 211, 102, 0.14); }
+.nh-desde b { color: #fff; font-size: 18px; }
+.nh-desde svg { width: 18px; height: 18px; flex: none; color: var(--nh-wa); }
+/* Quiénes somos */
+.nh-quienes { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 40px; align-items: start; }
+.nh-quienes-txt { display: grid; gap: 14px; color: var(--nh-muted); font-size: 17px; line-height: 1.65; }
+.nh-quienes-txt b { color: #fff; font-weight: 600; }
+/* /precios */
+.nh-hero-centro { text-align: center; padding-bottom: 40px; }
+.nh-hero-centro .nh-lead { margin-inline: auto; max-width: 40em; }
+.nh-hero-centro .nh-ctas, .nh-hero-centro .nh-trust { justify-content: center; }
+.nh-block-pegado { padding-top: 40px; }
+.nh-nota { font-size: 13.5px; text-align: center; margin-inline: auto; }
+.nh-guia { margin-top: 36px; display: grid; gap: 10px; max-width: 900px; }
+.nh-guia-fila {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px 24px; flex-wrap: wrap;
+  padding: 16px 20px; border: 1px solid var(--nh-line); border-radius: 14px; background: var(--nh-panel);
+  color: var(--nh-text); text-decoration: none; font-size: 16px; line-height: 1.45; transition: border-color .2s ease;
+}
+.nh-guia-fila:hover { border-color: var(--nh-sky); }
+.nh-guia-fila b { display: inline-flex; align-items: center; gap: 8px; color: var(--nh-sky); font-weight: 700; white-space: nowrap; }
+.nh-guia-fila b svg { width: 16px; height: 16px; }
+@media (max-width: 920px) {
+  .nh-solo-pc { display: none; }
+  .nh-quienes { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+}
 .nh-lead { font-size: 18px; line-height: 1.6; color: var(--nh-muted); max-width: 34em; margin-top: 22px !important; }
 .nh-ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
 .nh-trust { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 30px; font-size: 14px; color: var(--nh-muted); }
@@ -257,8 +290,8 @@
 .nh-resto { background: radial-gradient(700px 400px at 85% 40%, rgba(47, 191, 113, 0.08), transparent 70%); }
 .nh-resto-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 48px; align-items: center; }
 .nh-checks { list-style: none; padding: 0; margin: 26px 0 0; display: grid; gap: 12px; }
-.nh-checks li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: #e6eef6; font-size: 15.5px; }
-.nh-checks svg { width: 18px; height: 18px; color: var(--nh-sky); flex: none; }
+.nh-checks li { display: flex; align-items: flex-start; gap: 10px; color: #e6eef6; font-size: 15.5px; line-height: 1.45; }
+.nh-checks svg { width: 18px; height: 18px; color: var(--nh-sky); flex: none; margin-top: 2px; }
 .nh-soon { font: 600 10.5px/1 var(--nh-mono); letter-spacing: 0.06em; text-transform: uppercase; color: #f2b632; border: 1px solid rgba(242, 182, 50, 0.5); border-radius: 999px; padding: 4px 8px; }
 .nh-kds-caption { margin-top: 12px !important; font-size: 13px; color: var(--nh-muted); text-align: center; }
 

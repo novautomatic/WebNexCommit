@@ -1,4 +1,4 @@
-// Requests from the client portal + data-subject rights (Ley 21.719, 30 calendar days to answer).
+// Requests from the client portal + data-subject rights (Ley 19.628 art. 16: answer within 2 business days).
 import React, { useState } from 'react';
 import { Pill, btnGhost, btnPrimary, card, inputClass } from '../tareas/ui';
 import { DERECHOS, diasHasta, fechaCorta, mensajeError, useRpcTcliente } from '../../hooks/tareasCliente';
@@ -28,7 +28,7 @@ export default function SolicitudesVista({ datos, clientes, contactos, onCrearTa
       {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</div>}
 
       <section>
-        <h3 className="text-white font-semibold mb-2">Derechos de datos personales <span className="text-[#9aafc3] font-normal text-sm">· Ley 21.719, responder en 30 días corridos</span></h3>
+        <h3 className="text-white font-semibold mb-2">Derechos de datos personales <span className="text-[#9aafc3] font-normal text-sm">· Ley 19.628, responder en 2 días hábiles</span></h3>
         {!pendientes.length && <div className={`${card} p-4 text-sm text-[#9aafc3]`}>Ninguna solicitud pendiente.</div>}
         <div className="space-y-2">
           {pendientes.map((d) => {

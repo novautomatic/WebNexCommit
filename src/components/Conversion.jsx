@@ -219,21 +219,21 @@ export function CtaFranja({
   );
 }
 
-/** Tarjetas de precio. `slugs` elige y ordena los planes (por defecto, todos). */
+/** Tarjetas de precio. `slugs` elige y ordena los planes (por defecto, todos); `detalle="todo"` muestra todo lo que incluye. */
 export function PlanesGrid({ placement, slugs, detalle = true }) {
   const planes = slugs ? slugs.map((s) => PLANES.find((p) => p.slug === s)).filter(Boolean) : PLANES;
   return (
     <div className="cx">
       <div className="cx-planes" style={planes.length < 4 ? { gridTemplateColumns: `repeat(${planes.length}, minmax(0, 1fr))` } : undefined}>
         {planes.map((p) => (
-          <article key={p.slug} className="cx-plan">
+          <article key={p.slug} id={p.slug} className="cx-plan">
             <h3>{p.nombre}</h3>
             <p className="cx-para">{p.para}</p>
             <div className="cx-precio"><b>{clp(p.precio)}</b> <span>+ IVA</span></div>
             <p className="cx-plazo">Plazo: {p.plazo}</p>
             {detalle && (
               <ul>
-                {p.incluye.slice(0, 4).map((i) => <li key={i}><Check aria-hidden="true" />{i}</li>)}
+                {(detalle === 'todo' ? p.incluye : p.incluye.slice(0, 4)).map((i) => <li key={i}><Check aria-hidden="true" />{i}</li>)}
               </ul>
             )}
             <div className="cx-btns">

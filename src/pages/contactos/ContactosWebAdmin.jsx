@@ -118,7 +118,7 @@ export default function ContactosWebAdmin() {
           <h2 className="text-xl font-semibold text-white">Contactos web</h2>
           <p className="text-sm text-[#9aafc3]">
             Solicitudes del formulario «Cotiza en 1 minuto». Prometimos responder el mismo día hábil · {nuevos} sin contactar.
-            Se borran solas a los 12 meses, salvo las ganadas (Ley 21.719).
+            Se borran solas a los 12 meses, salvo las ganadas (Ley 19.628).
           </p>
         </div>
         <div className="flex gap-1">

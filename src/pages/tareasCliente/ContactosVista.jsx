@@ -45,7 +45,7 @@ function ContactoForm({ contacto, clienteId, clientes, onClose }) {
           <div><label className={labelClass}>Cargo</label><input className={inputClass} value={f.cargo} onChange={set('cargo')} maxLength={80} /></div>
         </div>
         <p className="text-[11px] text-[#9aafc3]">
-          Datos personales (Ley 21.719): solo los necesarios para coordinar sus tareas. Al darle acceso, el correo de bienvenida le
+          Datos personales (Ley 19.628): solo los necesarios para coordinar sus tareas. Al darle acceso, el correo de bienvenida le
           informa para qué se usan y cómo ejercer sus derechos.
         </p>
         {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</div>}

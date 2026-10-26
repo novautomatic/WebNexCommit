@@ -1,6 +1,6 @@
-// "Mis datos" in the client portal: the six rights of Ley 21.719 working in the software,
+// "Mis datos" in the client portal: the rights of Ley 19.628 (plus a data copy) working in the software,
 // not only in the policy text. Access/portability/rectification are self-service; deletion,
-// opposition and blocking create a request the owners must answer within 30 calendar days.
+// opposition and blocking create a request the owners must answer within 2 business days (art. 16).
 import React, { useState } from 'react';
 import { Download, FileJson, KeyRound, Loader2, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -110,7 +110,7 @@ export default function PortalMisDatos({ datos }) {
 
       <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
         <h3 className="font-bold text-slate-900 mb-1">Tus otros derechos</h3>
-        <p className="text-sm text-slate-500 mb-4">Te respondemos en un máximo de 30 días corridos.</p>
+        <p className="text-sm text-slate-500 mb-4">Te respondemos en un máximo de 2 días hábiles.</p>
         <div className="grid sm:grid-cols-3 gap-2">
           {Object.entries(SOLICITABLES).map(([tipo, s]) => (
             <button key={tipo} type="button" onClick={() => { setPedir(tipo); setDetalle(''); }}
@@ -169,10 +169,10 @@ export default function PortalMisDatos({ datos }) {
 
       <section className="rounded-2xl bg-slate-100 p-5 text-sm text-slate-600 space-y-2">
         <h3 className="font-bold text-slate-800 flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Cómo cuidamos tus datos</h3>
-        <p><b>Para qué:</b> coordinar las tareas y entregas de tu proyecto con NexCommit. <b>Base legal:</b> el contrato de servicios con tu empresa (Ley 21.719).</p>
+        <p><b>Para qué:</b> coordinar las tareas y entregas de tu proyecto con NexCommit. <b>Base legal:</b> el contrato de servicios con tu empresa (Ley 19.628).</p>
         <p><b>Dónde están:</b> Supabase (base de datos y archivos), Google Gmail (correos) y Vercel (sitio), con servidores en Estados Unidos. No vendemos ni compartimos tus datos con fines comerciales.</p>
         <p><b>Cuánto tiempo:</b> los archivos se borran 180 días después de cerrar cada tarea; las tareas y notas, 24 meses después; tu ficha se anonimiza 12 meses después de terminar la relación.</p>
-        <p>Si no quedas conforme con nuestra respuesta, puedes reclamar ante la <b>Agencia de Protección de Datos Personales</b>. Más detalle en la <Link to="/privacy" className="text-[#248bde] underline">política de privacidad</Link> o en nexcommit@gmail.com.</p>
+        <p>Si no quedas conforme con nuestra respuesta, puedes recurrir al <b>juez de letras en lo civil</b> (art. 16 de la Ley 19.628). Más detalle en la <Link to="/privacy" className="text-[#248bde] underline">política de privacidad</Link> o en nexcommit@gmail.com.</p>
       </section>
     </div>
   );
