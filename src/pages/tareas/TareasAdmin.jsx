@@ -13,6 +13,7 @@ import {
   hoyISO,
   refGithub,
   useBorrarIdea,
+  useClientes,
   useEquipo,
   useGuardarTarea,
   useMiEquipoId,
@@ -42,6 +43,8 @@ const VISTAS = [
 ];
 const COLUMNAS = ESTADOS.filter((e) => e.id !== 'cancelada');
 const CATORCE_DIAS = 14 * 24 * 60 * 60 * 1000;
+// Client of a task: the tag on internal tasks, or the owner of a client task.
+const clienteIdDe = (t) => (t.origen === 'cliente' ? t.tareaCliente?.cliente_id : t.cliente_id);
 
 export default function TareasAdmin({ vista = 'resumen', irA }) {
   const tema = useTema();
@@ -52,12 +55,13 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
   const proyectosQ = useProyectos();
   const tareasQ = useTareasLista();
   const tareasClienteQ = useTareasCliente();
+  const clientesQ = useClientes();
   useTareasRealtime();
   const sync = useSyncGithub();
 
   // ?proyecto=<id> pre-filters (coming from Proyectos/Clientes); ?nueva=<id> opens the create form.
   const [filtros, setFiltros] = useState(() => ({
-    q: '', proyecto: params.get('proyecto') || '', responsable: '', prioridad: '', estado: '', soloVencidas: false,
+    q: '', proyecto: params.get('proyecto') || '', cliente: params.get('cliente') || '', responsable: '', prioridad: '', estado: '', soloVencidas: false,
   }));
   const [nuevaLocal, setNuevaLocal] = useState(null); // defaults for a new task, or null
   const [ideaOrigen, setIdeaOrigen] = useState(null); // «Proyectos futuros» idea being turned into a task
@@ -85,6 +89,8 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
   const areas = useMemo(() => proyectos.filter((p) => p.tipo === 'area' && !p.archivado), [proyectos]);
   const repos = useMemo(() => proyectos.filter((p) => p.tipo !== 'area' && !p.archivado), [proyectos]);
   const miembro = useMemo(() => Object.fromEntries(equipo.map((m) => [m.id, m])), [equipo]);
+  const clientes = useMemo(() => clientesQ.data ?? [], [clientesQ.data]);
+  const clienteDe = useMemo(() => Object.fromEntries(clientes.map((c) => [c.id, c])), [clientes]);
   const proyecto = useMemo(
     () => Object.fromEntries([...proyectos, ...proyectosCliente].map((p) => [p.id, p])),
     [proyectos, proyectosCliente],
@@ -104,6 +110,8 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
     const q = filtros.q.trim().toLowerCase();
     return todas.filter((t) => {
       if (filtros.proyecto && t.proyecto_id !== filtros.proyecto) return false;
+      if (filtros.cliente === 'ninguno' && clienteIdDe(t)) return false;
+      if (filtros.cliente && filtros.cliente !== 'ninguno' && clienteIdDe(t) !== filtros.cliente) return false;
       if (filtros.responsable === 'yo' && t.responsable_id !== yo.data) return false;
       if (filtros.responsable === 'nadie' && t.responsable_id) return false;
       if (filtros.responsable && !['yo', 'nadie'].includes(filtros.responsable) && t.responsable_id !== filtros.responsable) return false;
@@ -111,10 +119,10 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
       if (filtros.estado && t.estado !== filtros.estado) return false;
       if (filtros.soloVencidas && !estaVencida(t)) return false;
       const numero = t.origen === 'cliente' ? t.numero : t.github_numero;
-      if (q && !`#${numero ?? ''} ${t.titulo} ${t.descripcion ?? ''} ${proyecto[t.proyecto_id]?.nombre ?? ''} ${(t.etiquetas || []).join(' ')}`.toLowerCase().includes(q)) return false;
+      if (q && !`#${numero ?? ''} ${t.titulo} ${t.descripcion ?? ''} ${proyecto[t.proyecto_id]?.nombre ?? ''} ${clienteDe[clienteIdDe(t)]?.nombre ?? ''} ${(t.etiquetas || []).join(' ')}`.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [todas, filtros, yo.data, proyecto]);
+  }, [todas, filtros, yo.data, proyecto, clienteDe]);
 
   const kpis = useMemo(() => {
     const hoy = hoyISO();
@@ -158,6 +166,8 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
         ? areaActiva.id
         // A client filter is not a real project: new tasks go to the internal one.
         : (!filtros.proyecto.startsWith('cliente:') && filtros.proyecto) || proyectoInterno,
+      // Filtering by a client pre-fills it in the new task.
+      cliente_id: filtros.cliente && filtros.cliente !== 'ninguno' ? filtros.cliente : '',
       ...defaults,
     });
 
@@ -237,6 +247,13 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
               </optgroup>
             )}
           </select>
+          <select className={`${inputClass} w-auto`} value={filtros.cliente} onChange={setFiltro('cliente')} aria-label="Cliente">
+            <option value="">Todos los clientes</option>
+            <option value="ninguno">Sin cliente</option>
+            {clientes.filter((c) => c.activo !== false || c.id === filtros.cliente).map((c) => (
+              <option key={c.id} value={c.id}>{c.nombre}</option>
+            ))}
+          </select>
           <select className={`${inputClass} w-auto`} value={filtros.responsable} onChange={setFiltro('responsable')} aria-label="Responsable">
             <option value="">Todo el equipo</option>
             <option value="yo">Mis tareas</option>
@@ -264,6 +281,7 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
           tareas={filtradas}
           miembro={miembro}
           proyecto={proyecto}
+          clienteDe={clienteDe}
           onAbrir={abrir}
           onNueva={nuevaTarea}
           ideas={
@@ -274,7 +292,7 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
           }
         />
       )}
-      {vista === 'lista' && <Lista tareas={filtradas} miembro={miembro} proyecto={proyecto} onAbrir={abrir} />}
+      {vista === 'lista' && <Lista tareas={filtradas} miembro={miembro} proyecto={proyecto} clienteDe={clienteDe} onAbrir={abrir} />}
       {vista === 'resumen' && (
         <ResumenVista
           tareas={filtradas}
@@ -324,6 +342,7 @@ export default function TareasAdmin({ vista = 'resumen', irA }) {
             tareas={tareas.filter((t) => t.proyecto_id === areaActiva.id)}
             miembro={miembro}
             proyecto={proyecto}
+            clienteDe={clienteDe}
             onAbrir={abrir}
             onNueva={() => nuevaTarea({ proyecto_id: areaActiva.id })}
           />
@@ -379,7 +398,7 @@ function Kpi({ label, valor, color, onClick, tono }) {
   );
 }
 
-function Tablero({ tareas, miembro, proyecto, onAbrir, onNueva, ideas = null }) {
+function Tablero({ tareas, miembro, proyecto, clienteDe = {}, onAbrir, onNueva, ideas = null }) {
   const tema = useTema();
   const guardarInterna = useGuardarTarea();
   const estadoEncargado = useRpcTcliente('tcliente_encargado_estado');
@@ -455,7 +474,7 @@ function Tablero({ tareas, miembro, proyecto, onAbrir, onNueva, ideas = null }) 
               </header>
               <div className="space-y-2 min-h-[60px]">
                 {lista.map((t) => (
-                  <Tarjeta key={t.id} t={t} miembro={miembro} proyecto={proyecto} onAbrir={onAbrir} onEstado={(estado) => guardar.mutate({ id: t.id, estado })} />
+                  <Tarjeta key={t.id} t={t} miembro={miembro} proyecto={proyecto} cliente={clienteDe[t.cliente_id]} onAbrir={onAbrir} onEstado={(estado) => guardar.mutate({ id: t.id, estado })} />
                 ))}
               </div>
             </section>
@@ -466,7 +485,7 @@ function Tablero({ tareas, miembro, proyecto, onAbrir, onNueva, ideas = null }) 
   );
 }
 
-function Tarjeta({ t, miembro, proyecto, onAbrir, onEstado }) {
+function Tarjeta({ t, miembro, proyecto, cliente, onAbrir, onEstado }) {
   const p = proyecto[t.proyecto_id];
   const vencida = estaVencida(t);
   return (
@@ -492,6 +511,11 @@ function Tarjeta({ t, miembro, proyecto, onAbrir, onEstado }) {
         {t.origen === 'cliente' && (
           <p className="text-[11px] text-[#9aafc3] mt-0.5 truncate">{t.etiquetas[1]}</p>
         )}
+        {cliente && (
+          <p className="text-[11px] text-[#9aafc3] mt-0.5 truncate flex items-center gap-1" title="Cliente asociado">
+            <Handshake className="w-3 h-3 shrink-0" style={{ color: cliente.color }} /> {cliente.nombre}
+          </p>
+        )}
       </button>
       <div className="mt-2 flex items-center gap-1.5 flex-wrap">
         <PrioridadPill prioridad={t.prioridad} />
@@ -516,7 +540,7 @@ function Tarjeta({ t, miembro, proyecto, onAbrir, onEstado }) {
   );
 }
 
-function Lista({ tareas, miembro, proyecto, onAbrir }) {
+function Lista({ tareas, miembro, proyecto, clienteDe = {}, onAbrir }) {
   const [orden, setOrden] = useState('fecha');
   const ordenadas = [...tareas].sort((a, b) => {
     if (orden === 'prioridad') return PRIORIDAD[a.prioridad].peso - PRIORIDAD[b.prioridad].peso;
@@ -557,7 +581,12 @@ function Lista({ tareas, miembro, proyecto, onAbrir }) {
                   <div className="text-[11px] text-[#9aafc3] truncate">{t.etiquetas.join(' · ')}</div>
                 )}
               </td>
-              <td className="px-3 py-2 text-[#9aafc3] whitespace-nowrap">{proyecto[t.proyecto_id]?.nombre}</td>
+              <td className="px-3 py-2 text-[#9aafc3] whitespace-nowrap">
+                {proyecto[t.proyecto_id]?.nombre}
+                {clienteDe[t.cliente_id] && (
+                  <div className="text-[11px] flex items-center gap-1"><Handshake className="w-3 h-3" /> {clienteDe[t.cliente_id].nombre}</div>
+                )}
+              </td>
               <td className="px-3 py-2"><EstadoPill estado={t.estado} /></td>
               <td className="px-3 py-2"><PrioridadPill prioridad={t.prioridad} /></td>
               <td className="px-3 py-2 text-[#9aafc3] whitespace-nowrap">{miembro[t.responsable_id]?.nombre || '—'}</td>

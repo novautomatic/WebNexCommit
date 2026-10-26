@@ -142,9 +142,16 @@ export function useGuardarTarea() {
   const invalidar = useInvalidar();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...campos }) => {
-      if (id) return unwrap(supabase.rpc('tarea_actualizar', { p_tarea: id, p_cambios: campos }));
-      return unwrap(supabase.rpc('tarea_crear', {
+    mutationFn: async ({ id, cliente_id, ...campos }) => {
+      // The associated client is local-only (never goes to GitHub): its own RPC.
+      const asignarCliente = (tareaId) =>
+        unwrap(supabase.rpc('tarea_asignar_cliente', { p_tarea: tareaId, p_cliente: cliente_id || null }));
+      if (id) {
+        if (Object.keys(campos).length) await unwrap(supabase.rpc('tarea_actualizar', { p_tarea: id, p_cambios: campos }));
+        if (cliente_id !== undefined) await asignarCliente(id);
+        return null;
+      }
+      const nuevaId = await unwrap(supabase.rpc('tarea_crear', {
         p_proyecto: campos.proyecto_id,
         p_titulo: campos.titulo,
         p_descripcion: campos.descripcion,
@@ -154,14 +161,19 @@ export function useGuardarTarea() {
         p_fecha: campos.fecha_limite,
         p_etiquetas: campos.etiquetas,
       }));
+      if (cliente_id && nuevaId) await asignarCliente(nuevaId);
+      return nuevaId;
     },
     // Optimistic update so drag & drop feels instant.
     onMutate: async ({ id, ...campos }) => {
       if (!id) return undefined;
+      if (campos.cliente_id === '') campos.cliente_id = null;
+      // Only the client changed: nothing goes to GitHub, so don't show it as syncing.
+      const soloCliente = Object.keys(campos).every((k) => k === 'cliente_id');
       await qc.cancelQueries({ queryKey: ['tareas', 'lista'] });
       const previa = qc.getQueryData(['tareas', 'lista']);
       qc.setQueryData(['tareas', 'lista'], (lista = []) =>
-        lista.map((t) => (t.id === id ? { ...t, ...campos, sync_estado: 'pendiente' } : t)));
+        lista.map((t) => (t.id === id ? { ...t, ...campos, ...(soloCliente ? {} : { sync_estado: 'pendiente' }) } : t)));
       return { previa };
     },
     onError: (_e, _v, ctx) => {

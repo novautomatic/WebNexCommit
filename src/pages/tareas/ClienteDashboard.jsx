@@ -60,8 +60,9 @@ export default function ClienteDashboard({ cliente, proyectos, vinculos, tareas,
   }, [vinculos, proyectos, cliente.id]);
   const internas = useMemo(() => {
     const ids = new Set(suyos.map((p) => p.id));
-    return tareas.filter((t) => ids.has(t.proyecto_id));
-  }, [tareas, suyos]);
+    // Tasks of its projects + tasks tagged with this client (tareas.cliente_id).
+    return tareas.filter((t) => ids.has(t.proyecto_id) || t.cliente_id === cliente.id);
+  }, [tareas, suyos, cliente.id]);
 
   return (
     <div className="space-y-5">

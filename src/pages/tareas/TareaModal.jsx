@@ -11,6 +11,7 @@ import {
   useGuardarTarea,
   useReenviarAviso,
   useBorrarTareaArea,
+  useClientes,
   useResincronizar,
 } from '../../hooks/tareas';
 import { Avatar, ErrorBox, Modal, Pill, btnGhost, btnPrimary, inputClass, labelClass } from './ui';
@@ -19,6 +20,7 @@ const VACIA = {
   titulo: '',
   descripcion: '',
   proyecto_id: '',
+  cliente_id: '',
   responsable_id: '',
   estado: 'pendiente',
   prioridad: 'media',
@@ -32,6 +34,7 @@ function aFormulario(tarea, defaults) {
     titulo: tarea.titulo,
     descripcion: tarea.descripcion || '',
     proyecto_id: tarea.proyecto_id,
+    cliente_id: tarea.cliente_id || '',
     responsable_id: tarea.responsable_id || '',
     estado: tarea.estado,
     prioridad: tarea.prioridad,
@@ -54,6 +57,7 @@ const CAMPOS = {
   responsable_id: 'responsable',
   fecha_limite: 'fecha límite',
   proyecto_id: 'proyecto',
+  cliente_id: 'cliente',
   descripcion: 'descripción',
 };
 
@@ -62,6 +66,8 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
   const guardar = useGuardarTarea();
   const resincronizar = useResincronizar();
   const borrar = useBorrarTareaArea();
+  const clientesQ = useClientes();
+  const clientes = (clientesQ.data ?? []).filter((c) => c.activo !== false || c.id === form.cliente_id);
   const esNueva = !tarea;
   const proyectoActual = proyectos.find((p) => p.id === (tarea?.proyecto_id || form.proyecto_id));
   const proyectoElegido = proyectos.find((p) => p.id === form.proyecto_id);
@@ -81,6 +87,7 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
       titulo: form.titulo.trim(),
       descripcion: form.descripcion.trim() || null,
       proyecto_id: form.proyecto_id,
+      cliente_id: form.cliente_id || null,
       responsable_id: form.responsable_id || null,
       estado: form.estado,
       prioridad: form.prioridad,
@@ -192,6 +199,19 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
         </div>
 
         <div>
+          <label className={labelClass} htmlFor="t-cliente">Cliente asociado (opcional)</label>
+          <select id="t-cliente" className={inputClass} value={form.cliente_id} onChange={set('cliente_id')}>
+            <option value="">Ninguno</option>
+            {clientes.map((c) => (
+              <option key={c.id} value={c.id}>{c.nombre}{c.empresa && c.empresa !== c.nombre ? ` — ${c.empresa}` : ''}</option>
+            ))}
+          </select>
+          <p className="text-[11px] text-[#9aafc3] mt-1">
+            Solo para saber de qué cliente es: el cliente no la ve ni recibe nada, y no se envía a GitHub.
+          </p>
+        </div>
+
+        <div>
           <label className={labelClass} htmlFor="t-desc">Descripción</label>
           <textarea id="t-desc" className={`${inputClass} min-h-[110px]`} value={form.descripcion} onChange={set('descripcion')} />
         </div>
@@ -241,23 +261,25 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
         </div>
       </form>
 
-      {!esNueva && <Seguimiento tarea={tarea} equipo={equipo} proyectos={proyectos} />}
+      {!esNueva && <Seguimiento tarea={tarea} equipo={equipo} proyectos={proyectos} clientes={clientesQ.data ?? []} />}
     </Modal>
   );
 }
 
-function Seguimiento({ tarea, equipo, proyectos }) {
+function Seguimiento({ tarea, equipo, proyectos, clientes }) {
   const { data, isLoading, error } = useDetalleTarea(tarea.id);
   const comentar = useComentar();
   const reenviar = useReenviarAviso();
   const [texto, setTexto] = useState('');
   const nombre = useMemo(() => Object.fromEntries(equipo.map((m) => [m.id, m.nombre])), [equipo]);
   const proyecto = useMemo(() => Object.fromEntries(proyectos.map((p) => [p.id, p.nombre])), [proyectos]);
+  const cliente = useMemo(() => Object.fromEntries(clientes.map((c) => [c.id, c.nombre])), [clientes]);
 
   const valor = (campo, v) => {
     if (v === null || v === undefined || v === '') return '—';
     if (campo === 'responsable_id') return nombre[v] || 'alguien';
     if (campo === 'proyecto_id') return proyecto[v] || 'otro proyecto';
+    if (campo === 'cliente_id') return cliente[v] || 'cliente borrado';
     if (campo === 'estado') return ESTADO[v]?.label || v;
     if (campo === 'fecha_limite') return formatearFecha(v);
     return v;
