@@ -1,6 +1,6 @@
 -- Plazo de respuesta a solicitudes de derechos según la ley VIGENTE (Ley 19.628, art. 16:
--- 2 días hábiles). Antes estaba en 30 días corridos (Ley 21.719, que aún no rige: su
--- postergación al 1-dic-2027, boletín 18.623-07, sigue en el Congreso al 26-oct-2026).
+-- 2 días hábiles). Antes estaba en 30 días corridos (Ley 21.719, que rige recién desde el
+-- 1-dic-2027: postergación votada, boletín 18.623-07).
 -- Días hábiles = lunes a viernes; los feriados no se descuentan (el plazo queda más corto, nunca más largo).
 -- Idempotente.
 

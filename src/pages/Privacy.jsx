@@ -6,8 +6,8 @@ import { CLARITY_ID } from '../lib/clarity';
 import { cambiarMedicion, medicionActiva } from '../lib/medicion';
 
 // Follows the law in force today: Ley 19.628 (vida privada) + Ley 19.496 (consumidor).
-// Ley 21.719 is NOT in force yet (bill to postpone it to 1-dic-2027, boletín 18.623-07,
-// still in Congress as of 26-oct-2026): review this page before 1-dic-2026.
+// Ley 21.719 applies from 1-dic-2027 (postponement voted in Congress, boletín 18.623-07):
+// review this page before that date.
 // Responsible-party data lives in src/config/legal.js.
 
 /** Botón para dejar de ser medido (o volver a serlo) en este navegador. Solo en el navegador. */
