@@ -33,7 +33,7 @@ ALTER TABLE public.avisos ADD CONSTRAINT avisos_resumen_chatbot
 INSERT INTO public.avisos_plantillas (nombre, categoria, asunto, cuerpo, es_sistema) VALUES
 ('Resumen de conversaciones del chatbot', 'chatbots',
  '💬 Resumen de {{chatbot}} del {{fecha}}',
- 'Entre las {{desde}} y las {{hasta}} hubo {{conversaciones}} conversaciones con {{mensajes}} mensajes de clientes; {{derivadas}} se derivaron a una persona. Resumen: {{resumen}} Puedes revisar cada conversación en https://nexa.nexcommit.com/panel/conversaciones', true)
+ 'Tramo de las {{desde}} a las {{hasta}}. Conversaciones: {{conversaciones}}. Mensajes de clientes: {{mensajes}}. Derivadas a una persona: {{derivadas}}. Resumen: {{resumen}} Puedes revisar cada conversación en https://nexa.nexcommit.com/panel/conversaciones', true)
 ON CONFLICT (nombre) WHERE es_sistema
 DO UPDATE SET categoria = EXCLUDED.categoria, asunto = EXCLUDED.asunto, cuerpo = EXCLUDED.cuerpo;
 
