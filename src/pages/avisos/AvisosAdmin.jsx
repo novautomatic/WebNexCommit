@@ -54,7 +54,7 @@ const CAMPO = /\[([^\]\n]+)\]/g;
 const camposDe = (p) => [...new Set([...`${p?.asunto ?? ''}\n${p?.cuerpo ?? ''}`.matchAll(CAMPO)].map((m) => m[1].trim()))];
 const rellenarCampos = (t, valores) => String(t ?? '').replace(CAMPO, (m, c) => valores?.[c.trim()] || m);
 
-// En qué va cada plantilla en Meta. Solo «Aprobada» (como UTILITY y con el
+// En qué va cada plantilla en Meta. Solo las aprobadas (utility o marketing, con el
 // mismo texto que se aprobó) se puede usar en un aviso; misma regla que el back.
 function estadoMeta(p) {
   const editada = p.meta_nombre && (p.meta_asunto !== p.asunto || p.meta_cuerpo !== p.cuerpo);
@@ -62,7 +62,9 @@ function estadoMeta(p) {
   if (!p.meta_nombre) return { clave: 'sin_enviar', label: 'Sin enviar', color: '#9aafc3', enviable: true };
   if (editada) return { clave: 'editada', label: 'Editada: falta reenviar', color: '#f59e0b', enviable: true };
   if (p.meta_estado === 'APPROVED' && p.meta_categoria === 'UTILITY') return { clave: 'aprobada', label: 'Aprobada', color: '#22c55e', usable: true };
-  if (p.meta_estado === 'APPROVED') return { clave: 'marketing', label: `Aprobada como ${String(p.meta_categoria).toLowerCase()} (no se usa)`, color: '#f59e0b' };
+  // Se pidió utility, pero si Meta la pasa a marketing igual se puede usar
+  // mientras se crea otra (decisión del 27-oct); queda marcada.
+  if (p.meta_estado === 'APPROVED') return { clave: 'marketing', label: `Aprobada como ${String(p.meta_categoria).toLowerCase()}`, color: '#a3e635', usable: true };
   if (p.meta_estado === 'REJECTED') return { clave: 'rechazada', label: 'Rechazada', color: '#f87171' };
   if (p.meta_estado === 'PAUSED' || p.meta_estado === 'DISABLED') return { clave: 'rechazada', label: p.meta_estado === 'PAUSED' ? 'Pausada por Meta' : 'Desactivada por Meta', color: '#f87171' };
   return { clave: 'revision', label: 'En revisión', color: '#67c8f3' };
@@ -326,7 +328,7 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
                 <option value="">— Elige una plantilla aprobada —</option>
                 {Object.entries(porCategoria).map(([cat, ps]) => (
                   <optgroup key={cat} label={CATEGORIAS[cat] || cat}>
-                    {ps.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                    {ps.map((p) => <option key={p.id} value={p.id}>{p.nombre}{p.meta_categoria === 'MARKETING' ? ' · sale como marketing' : ''}</option>)}
                   </optgroup>
                 ))}
                 {noAprobadas.length > 0 && (
@@ -471,7 +473,7 @@ function EditorPlantilla({ inicial, onClose }) {
           <p className="mt-1 text-xs text-[#9aafc3]">Variables: {VARIABLES.map((v) => `{{${v}}}`).join(' ')} · Usa [corchetes] para lo que se completa en cada aviso.</p>
         </div>
         <p className="rounded-lg border border-[#67c8f3]/30 bg-[#67c8f3]/10 px-3 py-2 text-xs text-[#cfe0f0]">
-          Al guardar se envía a aprobar a Meta como <b>utility</b> (aviso de servicio). Escríbela como aviso o recordatorio, sin ofertas ni promociones: si no, Meta la rechaza o la pasa a marketing y no se podrá usar.
+          Al guardar se envía a aprobar a Meta como <b>utility</b> (aviso de servicio). Escríbela como aviso o recordatorio, sin ofertas ni promociones: si no, Meta la rechaza o la pasa a marketing (se puede usar igual, pero cada envío cuesta más).
         </p>
         <ErrorBox error={guardar.error} />
         <div className="flex justify-end gap-2">
@@ -568,7 +570,7 @@ function Plantillas({ plantillas, onUsar }) {
                 {p.meta_motivo && (st.clave === 'rechazada' || st.clave === 'error') && (
                   <p className="mt-2 text-xs text-red-300">Motivo: {p.meta_motivo}{p.es_sistema ? ' · Duplícala para corregirla.' : ' · Edítala y se reenvía.'}</p>
                 )}
-                {st.clave === 'marketing' && <p className="mt-2 text-xs text-amber-300">Meta la clasificó como {String(p.meta_categoria).toLowerCase()}. Reescríbela como aviso de servicio (duplicar/editar) para que salga como utility.</p>}
+                {st.clave === 'marketing' && <p className="mt-2 text-xs text-amber-300">Meta la clasificó como {String(p.meta_categoria).toLowerCase()}: se puede usar, pero cada envío cuesta más. Para que salga como utility, duplícala y reescríbela como aviso de servicio.</p>}
                 {p.meta_enviada_at && <p className="mt-1 text-[11px] text-[#5f7891]">Enviada a Meta: {fechaHora(p.meta_enviada_at)}{p.meta_nombre ? ` · ${p.meta_nombre}` : ''}</p>}
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button type="button" className={btnGhost} disabled={!st.usable} title={st.usable ? '' : 'Solo con plantillas aprobadas por Meta'} onClick={() => onUsar(p)}>
