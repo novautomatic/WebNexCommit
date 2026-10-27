@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthContext';
 import SEO from '../components/SEO';
 import {
   BarChart3,
+  BellRing,
   Bot,
   Briefcase,
   CalendarDays,
@@ -38,6 +39,7 @@ import OpenAIAdmin from './openai/OpenAIAdmin';
 import GoogleAdmin from './google/GoogleAdmin';
 import AuditoriaAdmin from './auditoria/AuditoriaAdmin';
 import BovedaAdmin from './boveda/BovedaAdmin';
+import AvisosAdmin from './avisos/AvisosAdmin';
 import TareasAdmin from './tareas/TareasAdmin';
 import TareasClienteAdmin from './tareasCliente/TareasClienteAdmin';
 import { ClientesPagina, EquipoPagina, ProyectosPagina } from './tareas/GestionPaginas';
@@ -81,6 +83,7 @@ const GRUPOS = [
       { id: 'equipo', label: 'Equipo', icon: Users },
       { id: 'accesos', label: 'Accesos', icon: Link2 },
       { id: 'boveda', label: 'Bóveda', icon: KeyRound },
+      { id: 'avisos', label: 'Avisos', icon: BellRing },
     ],
   },
   {
@@ -326,6 +329,7 @@ export default function Admin() {
             {seccion === 'equipo' && <EquipoPagina />}
             {seccion === 'accesos' && <ConfiguracionAdmin />}
             {seccion === 'boveda' && <BovedaAdmin />}
+            {seccion === 'avisos' && <AvisosAdmin />}
             {seccion === 'blog' && <BlogAdmin />}
             {seccion === 'cotizador' && <Cotizador />}
             {seccion === 'creador' && <CreadorAdmin />}

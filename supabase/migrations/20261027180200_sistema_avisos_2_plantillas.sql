@@ -1,0 +1,53 @@
+-- ============================================================================
+--  Sistema de avisos · parte 2 de 3: plantillas de sistema
+--  Lo que va entre [corchetes] se completa a mano al crear el aviso.
+--  Idempotente: actualiza el texto de las que ya existen.
+-- ============================================================================
+INSERT INTO public.avisos_plantillas (nombre, categoria, asunto, cuerpo, es_sistema) VALUES
+('Saldo OpenAI bajo', 'saldo',
+ '⚠️ Queda poco saldo en OpenAI: US$ {{saldo_usd}}',
+ 'Quedan US$ {{saldo_usd}} (≈ {{saldo_clp}}) de saldo en OpenAI. El aviso está puesto en US$ {{umbral_usd}}. Recarga antes de que los chatbots dejen de responder: {{enlace_recarga}}', true),
+('Saldo OpenAI crítico', 'saldo',
+ '🚨 URGENTE: OpenAI está por quedar sin saldo (US$ {{saldo_usd}})',
+ 'Solo quedan US$ {{saldo_usd}} (≈ {{saldo_clp}}). Si llega a cero, SofIA, Nexa y el Creador dejan de responder. Recarga ahora: {{enlace_recarga}}', true),
+('Saldo OpenAI: recordatorio suave', 'saldo',
+ 'Saldo de OpenAI: US$ {{saldo_usd}}',
+ 'El saldo estimado de OpenAI va en US$ {{saldo_usd}} (≈ {{saldo_clp}}). Todavía alcanza, pero conviene planificar la próxima recarga: {{enlace_recarga}}', true),
+('Cobro a cliente', 'cobros',
+ '💰 Hoy toca cobrar a [cliente]',
+ 'Recordatorio {{fecha}}: emitir y enviar el cobro de [cliente] por [monto] ([servicio]). Revisar que el pago anterior esté al día.', true),
+('Pago pendiente de cliente', 'cobros',
+ '⏳ [cliente] tiene un pago pendiente',
+ '[cliente] tiene pendiente el pago de [monto] desde [fecha]. Escribirle hoy para coordinar.', true),
+('Factura por emitir', 'cobros',
+ '🧾 Emitir factura de [cliente]',
+ 'Hoy {{fecha}} toca emitir la factura de [cliente] por [monto] y enviarla a [correo].', true),
+('Pago de suscripción o proveedor', 'pagos',
+ '💳 Vence el pago de [servicio]',
+ 'El {{fecha}} vence el pago de [servicio] por [monto]. Revisar que la tarjeta tenga cupo para que no se corte.', true),
+('Renovación de dominio', 'pagos',
+ '🌐 Renovar el dominio [dominio]',
+ 'El dominio [dominio] vence pronto. Renovarlo en [proveedor] para que la web y los correos no se caigan.', true),
+('Revisar Google Ads', 'marketing',
+ '📈 Revisar campañas de Google Ads',
+ 'Toca revisar las campañas de Google Ads: gasto, conversiones y cambios por aprobar en el panel ({{panel}}).', true),
+('Publicar en redes', 'marketing',
+ '📣 Toca publicar en [red social]',
+ 'Recordatorio {{fecha}}: publicar en [red social] de [cliente o NexCommit]. Tema: [tema].', true),
+('Reunión', 'equipo',
+ '📅 Reunión: [tema] a las [hora]',
+ 'Recordatorio: hoy {{fecha}} hay reunión de [tema] a las [hora]. Enlace: [enlace].', true),
+('Mantenimiento mensual', 'equipo',
+ '🛠️ Mantenimiento mensual de [sistema]',
+ 'Toca el mantenimiento de [sistema]: respaldos, actualizaciones y revisión de errores.', true),
+('Revisar conversaciones derivadas', 'chatbots',
+ '💬 Hay conversaciones esperando a una persona',
+ 'Revisar en el panel de chatbots las conversaciones derivadas que siguen sin respuesta: https://nexa.nexcommit.com/panel/conversaciones', true),
+('Alerta urgente', 'general',
+ '🚨 {{aviso}}',
+ '[qué pasó y qué hay que hacer ahora]', true),
+('Recordatorio simple', 'general',
+ '🔔 {{aviso}}',
+ '[texto del recordatorio]', true)
+ON CONFLICT (nombre) WHERE es_sistema
+DO UPDATE SET categoria = EXCLUDED.categoria, asunto = EXCLUDED.asunto, cuerpo = EXCLUDED.cuerpo;
