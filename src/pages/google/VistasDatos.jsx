@@ -35,6 +35,9 @@ export function VistaResumen({ p }) {
   const t = a?.total;
   const camp = a?.campanas?.[0];
   const valorContacto = p.config.ticket_promedio * p.config.tasa_cierre;
+  // Tienda: se mide por ROAS; meta = ticket / costo por compra aceptable.
+  const tienda = p.tipo === 'tienda';
+  const metaRoas = p.config.cpa_objetivo ? p.config.ticket_promedio / p.config.cpa_objetivo : 4;
   const clicsMes = camp?.presupuesto && t?.cpc ? (camp.presupuesto * 30.4) / t.cpc : null;
   const conv = t?.clics ? t.conv / t.clics : null;
   const grupos = { alerta: [], mejorar: [], bien: [] };
@@ -49,13 +52,24 @@ export function VistaResumen({ p }) {
           <Kpi titulo="Clics" valor={entero(t.clics)} detalle={`${entero(t.impr)} impresiones`} />
           <Kpi titulo="CTR" valor={pct(t.ctr, 1)} estado={t.impr >= 50 ? (t.ctr >= 0.06 ? 'bien' : t.ctr < 0.03 ? 'mejorar' : undefined) : undefined} detalle="promedio búsqueda 4–6%" />
           <Kpi titulo="CPC promedio" valor={clp(t.cpc)} detalle={camp?.cpc_tope ? `tope ${clp(camp.cpc_tope)}` : tr(camp?.puja)} />
-          <Kpi titulo="Contactos (Ads)" valor={dec1(t.conv)} estado={t.clics >= 15 && !t.conv ? 'alerta' : t.conv ? 'bien' : undefined} detalle={t.conv ? `${pct(conv, 1)} de los clics` : 'clic en WhatsApp o llamada'} />
-          <Kpi titulo="Costo por contacto" valor={t.costo_conv ? clp(t.costo_conv) : '—'} estado={t.costo_conv ? (t.costo_conv <= p.config.cpa_objetivo ? 'bien' : 'mejorar') : undefined} detalle={`objetivo ${clp(p.config.cpa_objetivo)}`} />
+          {tienda ? (
+            <>
+              <Kpi titulo="Compras (Ads)" valor={dec1(t.conv)} estado={t.conv ? 'bien' : undefined} detalle={`${clp(t.valor)} en ventas medidas`} />
+              <Kpi titulo="ROAS" valor={t.roas != null ? `${dec1(t.roas)}×` : '—'} estado={t.costo >= 10000 ? (t.roas >= metaRoas ? 'bien' : 'mejorar') : undefined} detalle={`ventas ÷ gasto · meta ${dec1(metaRoas)}×`} />
+            </>
+          ) : (
+            <>
+              <Kpi titulo="Contactos (Ads)" valor={dec1(t.conv)} estado={t.clics >= 15 && !t.conv ? 'alerta' : t.conv ? 'bien' : undefined} detalle={t.conv ? `${pct(conv, 1)} de los clics` : 'clic en WhatsApp o llamada'} />
+              <Kpi titulo="Costo por contacto" valor={t.costo_conv ? clp(t.costo_conv) : '—'} estado={t.costo_conv ? (t.costo_conv <= p.config.cpa_objetivo ? 'bien' : 'mejorar') : undefined} detalle={`objetivo ${clp(p.config.cpa_objetivo)}`} />
+            </>
+          )}
           <Kpi titulo="Te mostraste en" valor={pct(t.cuota)} detalle="de las búsquedas posibles" />
           <Kpi titulo="Perdido por presupuesto" valor={pct(t.perd_presupuesto)} estado={t.perd_presupuesto > 0.3 ? 'mejorar' : undefined} />
           <Kpi titulo="Perdido por ranking" valor={pct(t.perd_ranking)} estado={t.perd_ranking > 0.4 ? 'mejorar' : undefined} />
           <Kpi titulo="Visitas a la web" valor={entero(g?.total.sesiones)} detalle={`${entero(g?.total.usuarios)} personas · ${entero(g?.total.sesiones_ads)} de anuncios`} />
-          <Kpi titulo="Contactos en la web" valor={entero(g?.total.contactos)} detalle="todas las fuentes (GA4)" />
+          {tienda && p.shopify && !p.shopify.error
+            ? <Kpi titulo="Ventas de la tienda" valor={clp(p.shopify.total.ventas)} detalle={`${entero(p.shopify.total.pedidos)} pedidos · Shopify, ${p.shopify.dias} días`} />
+            : <Kpi titulo="Contactos en la web" valor={entero(g?.total.contactos)} detalle="todas las fuentes (GA4)" />}
           <Kpi titulo="Google gratis (SEO)" valor={entero(s?.total.clics)} detalle={`${entero(s?.total.impr)} apariciones · pos. ${dec1(s?.total.pos)}`} />
         </div>
       )}

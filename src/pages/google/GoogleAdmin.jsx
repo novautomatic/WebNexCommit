@@ -9,10 +9,14 @@ import { CLIENTE_DEFECTO, ClienteGoogle, useGooglePanel, useRecargarPanel } from
 import { ErrorBox, btnGhost } from '../tareas/ui';
 import { VistaAds, VistaPalabras, VistaResumen, VistaSeo, VistaWeb } from './VistasDatos';
 import { VistaAnalisis, VistaCambios, VistaConfig } from './VistasGestion';
+import { VistaProductos, VistaVentas } from './VistasTienda';
 
+// `tienda`: solo para clientes con tienda online (p.tipo === 'tienda').
 const PESTANAS = [
   { id: 'resumen', label: 'Resumen' },
+  { id: 'ventas', label: 'Ventas (Shopify)', tienda: true },
   { id: 'ads', label: 'Google Ads' },
+  { id: 'productos', label: 'Productos (Shopping)', tienda: true },
   { id: 'palabras', label: 'Palabras y búsquedas' },
   { id: 'web', label: 'Web (Analytics)' },
   { id: 'seo', label: 'SEO (Search Console)' },
@@ -87,7 +91,7 @@ function Panel({ cliente, elegir }) {
       </div>
 
       <nav className="flex gap-1 overflow-x-auto border-b border-white/10" aria-label="Secciones de Herramientas Google">
-        {PESTANAS.map((t) => (
+        {PESTANAS.filter((t) => !t.tienda || p?.tipo === 'tienda').map((t) => (
           <button key={t.id} type="button" onClick={() => setPestana(t.id)}
             className={`px-3 py-2 text-sm whitespace-nowrap border-b-2 -mb-px ${pestana === t.id ? 'border-[#3987e5] text-white' : 'border-transparent text-[#9aafc3] hover:text-white'}`}>
             {t.label}{t.id === 'cambios' && porRevisar > 0 && <span className="ml-1.5 rounded-full bg-[#fab219] px-1.5 text-[10px] font-bold text-[#0a1628]">{porRevisar}</span>}
@@ -102,6 +106,10 @@ function Panel({ cliente, elegir }) {
         <>
           {pestana === 'resumen' && <VistaResumen p={p} />}
           {pestana === 'ads' && <VistaAds p={p} />}
+          {/* Al cambiar a un cliente sin tienda, estas dos no existen: se cae a Resumen. */}
+          {['ventas', 'productos'].includes(pestana) && p.tipo !== 'tienda' && <VistaResumen p={p} />}
+          {pestana === 'ventas' && p.tipo === 'tienda' && <VistaVentas p={p} />}
+          {pestana === 'productos' && p.tipo === 'tienda' && <VistaProductos p={p} />}
           {pestana === 'palabras' && <VistaPalabras p={p} irACambios={irACambios} />}
           {pestana === 'web' && <VistaWeb p={p} />}
           {pestana === 'seo' && <VistaSeo p={p} />}
