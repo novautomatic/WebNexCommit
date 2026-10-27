@@ -1,7 +1,7 @@
 // Datos del panel → Avisos. Los avisos y plantillas se leen y escriben directo
-// en Supabase (RLS: solo dueños); el saldo estimado, «Enviar ahora» y anotar
-// saldo/recargas pasan por el back de Agente-Next (/nexcommit/avisos), que es
-// quien habla con OpenAI, WhatsApp y Gmail.
+// en Supabase (RLS: solo dueños); el saldo estimado, «Enviar ahora», anotar
+// saldo/recargas y la aprobación de plantillas en Meta pasan por el back de
+// Agente-Next (/nexcommit/avisos), que es quien habla con OpenAI, WhatsApp y Gmail.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
 import { CREADOR_API } from '../config/creador';
@@ -88,6 +88,20 @@ export function useBorrarPlantilla() {
 
 export function useEnviarAviso() {
   return useMutar((id) => back(`/${id}/enviar`, { metodo: 'POST', cuerpo: {} }), ['avisos', 'avisos-envios']);
+}
+
+// Aprobación en Meta (WhatsApp): enviar una, enviar todas las que falten y
+// traer el veredicto de las que están en revisión.
+export function useEnviarPlantillaMeta() {
+  return useMutar((id) => back(`/plantillas/${id}/meta`, { metodo: 'POST', cuerpo: {} }), ['avisos-plantillas']);
+}
+
+export function useEnviarTodasMeta() {
+  return useMutar(() => back('/plantillas/todas', { metodo: 'POST', cuerpo: {} }), ['avisos-plantillas']);
+}
+
+export function useRevisarPlantillasMeta() {
+  return useMutar(() => back('/plantillas/revisar', { metodo: 'POST', cuerpo: {} }), ['avisos-plantillas']);
 }
 
 export function useAnotarSaldo() {

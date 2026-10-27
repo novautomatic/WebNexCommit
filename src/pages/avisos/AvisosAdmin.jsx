@@ -4,13 +4,15 @@
 // interruptor) y QUÉ dice (texto propio, que puede partir de una plantilla).
 // Los evalúa y envía el back de Agente-Next cada 5 minutos (cron
 // avisos-sistema-revisar). Solo dueños.
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  BellRing, Clock, Copy, FileText, Hand, History, Mail, MessageCircle, Pencil, Plus, Send, Trash2, Wallet,
+  BellRing, Clock, Copy, FileText, Hand, History, Mail, MessageCircle, Pencil, Plus, RefreshCw, Send, ShieldCheck,
+  Trash2, Wallet,
 } from 'lucide-react';
 import {
-  useAnotarSaldo, useAvisos, useBorrarAviso, useBorrarPlantilla, useEnviarAviso, useEnviosAvisos,
-  useEstadoAvisos, useGuardarAviso, useGuardarPlantilla, usePlantillasAvisos,
+  useAnotarSaldo, useAvisos, useBorrarAviso, useBorrarPlantilla, useEnviarAviso, useEnviarPlantillaMeta,
+  useEnviarTodasMeta, useEnviosAvisos, useEstadoAvisos, useGuardarAviso, useGuardarPlantilla, usePlantillasAvisos,
+  useRevisarPlantillasMeta,
 } from '../../hooks/avisos';
 import { ErrorBox, Modal, Pill, btnGhost, btnPrimary, card, inputClass, labelClass } from '../tareas/ui';
 
@@ -33,6 +35,29 @@ const aLocal = (iso) => {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 };
 const rellenar = (t, vars) => String(t ?? '').replace(/\{\{\s*(\w+)\s*\}\}/g, (m, k) => (vars?.[k] ?? m));
+
+// Lo que va entre [corchetes] en una plantilla se escribe en cada aviso.
+const CAMPO = /\[([^\]\n]+)\]/g;
+const camposDe = (p) => [...new Set([...`${p?.asunto ?? ''}\n${p?.cuerpo ?? ''}`.matchAll(CAMPO)].map((m) => m[1].trim()))];
+const rellenarCampos = (t, valores) => String(t ?? '').replace(CAMPO, (m, c) => valores?.[c.trim()] || m);
+
+// En qué va cada plantilla en Meta. Solo «Aprobada» (como UTILITY y con el
+// mismo texto que se aprobó) se puede usar en un aviso; misma regla que el back.
+function estadoMeta(p) {
+  const editada = p.meta_nombre && (p.meta_asunto !== p.asunto || p.meta_cuerpo !== p.cuerpo);
+  if (p.meta_estado === 'ERROR') return { clave: 'error', label: 'Error al enviar', color: '#f87171', enviable: true };
+  if (!p.meta_nombre) return { clave: 'sin_enviar', label: 'Sin enviar', color: '#9aafc3', enviable: true };
+  if (editada) return { clave: 'editada', label: 'Editada: falta reenviar', color: '#f59e0b', enviable: true };
+  if (p.meta_estado === 'APPROVED' && p.meta_categoria === 'UTILITY') return { clave: 'aprobada', label: 'Aprobada', color: '#22c55e', usable: true };
+  if (p.meta_estado === 'APPROVED') return { clave: 'marketing', label: `Aprobada como ${String(p.meta_categoria).toLowerCase()} (no se usa)`, color: '#f59e0b' };
+  if (p.meta_estado === 'REJECTED') return { clave: 'rechazada', label: 'Rechazada', color: '#f87171' };
+  if (p.meta_estado === 'PAUSED' || p.meta_estado === 'DISABLED') return { clave: 'rechazada', label: p.meta_estado === 'PAUSED' ? 'Pausada por Meta' : 'Desactivada por Meta', color: '#f87171' };
+  return { clave: 'revision', label: 'En revisión', color: '#67c8f3' };
+}
+const ESTADOS_FILTRO = [
+  ['todas', 'Todas'], ['aprobada', 'Aprobadas'], ['revision', 'En revisión'], ['rechazada', 'Rechazadas'],
+  ['sin_enviar', 'Sin enviar'], ['editada', 'Editadas'], ['error', 'Con error'], ['marketing', 'Como marketing'],
+];
 
 function Interruptor({ activo, onChange, label, icon: Icon, color = '#22c55e', disabled }) {
   return (
@@ -111,7 +136,7 @@ function TarjetaSaldo({ estado }) {
 // ─── Editor de aviso ──────────────────────────────────────────────────────────
 const NUEVO = {
   nombre: '', tipo: 'saldo_openai', umbral_usd: 5, repetir_horas: 6, proximo_envio: null, frecuencia: 'una_vez',
-  plantilla_id: null, asunto: '', cuerpo: '', whatsapp_activo: true, whatsapp_destinos: '', correo_activo: true,
+  plantilla_id: null, valores: {}, asunto: '', cuerpo: '', whatsapp_activo: true, whatsapp_destinos: '', correo_activo: true,
   correo_destinos: '', activo: true,
 };
 
@@ -121,11 +146,15 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
   const set = (cambios) => setA((p) => ({ ...p, ...cambios }));
   const tasa = estado?.usd_clp || 950;
 
+  const plantilla = plantillas.find((x) => x.id === a.plantilla_id) || null;
+  const lista = plantilla ? estadoMeta(plantilla).usable : false;
+  const campos = camposDe(plantilla);
+  const valores = a.valores || {};
   const usarPlantilla = (id) => {
     const p = plantillas.find((x) => x.id === id);
-    set({ plantilla_id: id || null, ...(p ? { asunto: p.asunto, cuerpo: p.cuerpo, nombre: a.nombre || p.nombre } : {}) });
+    set({ plantilla_id: id || null, ...(p ? { nombre: a.nombre || p.nombre } : {}) });
   };
-  const insertar = (v) => set({ cuerpo: `${a.cuerpo}${a.cuerpo && !a.cuerpo.endsWith(' ') ? ' ' : ''}{{${v}}}` });
+  const setValor = (c, v) => set({ valores: { ...valores, [c]: v } });
 
   const vars = {
     ...estado?.variables,
@@ -135,10 +164,16 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
 
   const enviar = async (e) => {
     e.preventDefault();
-    const { id, nombre, tipo, umbral_usd, repetir_horas, proximo_envio, frecuencia, plantilla_id, asunto, cuerpo,
+    if (!lista) return;
+    const { id, nombre, tipo, umbral_usd, repetir_horas, proximo_envio, frecuencia, plantilla_id,
       whatsapp_activo, whatsapp_destinos, correo_activo, correo_destinos, activo } = a;
+    // Solo los campos de ESTA plantilla (si se cambió de plantilla, los otros sobran).
+    const soloCampos = Object.fromEntries(campos.map((c) => [c, String(valores[c] ?? '').trim()]));
     await guardar.mutateAsync({
-      id, nombre: nombre.trim(), tipo, plantilla_id, asunto, cuerpo, whatsapp_activo, whatsapp_destinos, correo_activo, correo_destinos, activo,
+      id, nombre: nombre.trim(), tipo, plantilla_id, valores: soloCampos,
+      // Copia del texto ya completado: es lo que se ve en la lista y en el correo.
+      asunto: rellenarCampos(plantilla.asunto, soloCampos), cuerpo: rellenarCampos(plantilla.cuerpo, soloCampos),
+      whatsapp_activo, whatsapp_destinos, correo_activo, correo_destinos, activo,
       umbral_usd: tipo === 'saldo_openai' ? Number(String(umbral_usd).replace(',', '.')) : null,
       repetir_horas: Number(repetir_horas) || 6,
       proximo_envio: tipo === 'programado' ? proximo_envio : null,
@@ -151,9 +186,10 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
 
   const porCategoria = useMemo(() => {
     const g = {};
-    for (const p of plantillas) (g[p.categoria] ??= []).push(p);
+    for (const p of plantillas.filter((x) => estadoMeta(x).usable)) (g[p.categoria] ??= []).push(p);
     return g;
   }, [plantillas]);
+  const noAprobadas = plantillas.filter((x) => !estadoMeta(x).usable);
 
   return (
     <Modal titulo={a.id ? 'Editar aviso' : 'Nuevo aviso'} onClose={onClose} ancho="max-w-3xl">
@@ -226,46 +262,57 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
         <div className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className={labelClass}>Partir de una plantilla</label>
-              <select className={inputClass} value={a.plantilla_id || ''} onChange={(e) => usarPlantilla(e.target.value)}>
-                <option value="">— Escribirlo a mano —</option>
+              <label className={labelClass}>Plantilla (solo las aprobadas por Meta)</label>
+              <select className={inputClass} value={a.plantilla_id || ''} onChange={(e) => usarPlantilla(e.target.value)} required>
+                <option value="">— Elige una plantilla aprobada —</option>
                 {Object.entries(porCategoria).map(([cat, ps]) => (
                   <optgroup key={cat} label={CATEGORIAS[cat] || cat}>
                     {ps.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
                   </optgroup>
                 ))}
+                {noAprobadas.length > 0 && (
+                  <optgroup label="Todavía no se pueden usar (ver pestaña Plantillas)">
+                    {noAprobadas.map((p) => <option key={p.id} value={p.id} disabled>{p.nombre} · {estadoMeta(p).label}</option>)}
+                  </optgroup>
+                )}
               </select>
+              {!Object.keys(porCategoria).length && (
+                <p className="mt-1 text-xs text-amber-300">Aún no hay plantillas aprobadas. Envíalas a aprobar en la pestaña Plantillas.</p>
+              )}
             </div>
             <div>
               <label className={labelClass}>Nombre del aviso (solo lo ves tú)</label>
               <input className={inputClass} value={a.nombre} onChange={(e) => set({ nombre: e.target.value })} placeholder="Saldo OpenAI bajo" required />
             </div>
           </div>
-          <div>
-            <label className={labelClass}>Título (asunto del correo y primera línea del WhatsApp)</label>
-            <input className={inputClass} value={a.asunto} onChange={(e) => set({ asunto: e.target.value })} required />
-          </div>
-          <div>
-            <label className={labelClass}>Mensaje</label>
-            <textarea className={`${inputClass} resize-y`} rows={4} value={a.cuerpo} onChange={(e) => set({ cuerpo: e.target.value })} required />
-            <div className="mt-1 flex flex-wrap gap-1">
-              {VARIABLES.map((v) => (
-                <button key={v} type="button" onClick={() => insertar(v)} className="rounded border border-white/10 px-1.5 py-0.5 font-mono text-[11px] text-[#9aafc3] hover:text-white">{`{{${v}}}`}</button>
+          {plantilla && !lista && (
+            <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">
+              La plantilla «{plantilla.nombre}» está {estadoMeta(plantilla).label.toLowerCase()}: elige una aprobada para poder guardar.
+            </p>
+          )}
+          {lista && campos.length > 0 && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {campos.map((c) => (
+                <div key={c}>
+                  <label className={labelClass}>{c}</label>
+                  <input className={inputClass} value={valores[c] ?? ''} onChange={(e) => setValor(c, e.target.value)} required />
+                </div>
               ))}
             </div>
-            <p className="mt-1 text-xs text-[#9aafc3]">Lo que está entre [corchetes] en las plantillas es para que lo reemplaces tú.</p>
-          </div>
-          <div className="rounded-lg border border-[#22c55e]/30 bg-[#22c55e]/5 p-3 text-sm">
-            <div className="mb-1 text-xs font-medium text-[#86efac]">Así se verá</div>
-            <div className="font-semibold text-white">{rellenar(a.asunto, vars) || '(sin título)'}</div>
-            <div className="mt-1 whitespace-pre-wrap text-[#cfe0f0]">{rellenar(a.cuerpo, vars)}</div>
-          </div>
+          )}
+          {lista && (
+            <div className="rounded-lg border border-[#22c55e]/30 bg-[#22c55e]/5 p-3 text-sm">
+              <div className="mb-1 text-xs font-medium text-[#86efac]">Así se verá (texto aprobado por Meta; solo cambian los datos)</div>
+              <div className="font-semibold text-white">{rellenar(rellenarCampos(plantilla.asunto, valores), vars)}</div>
+              <div className="mt-1 whitespace-pre-wrap text-[#cfe0f0]">{rellenar(rellenarCampos(plantilla.cuerpo, valores), vars)}</div>
+            </div>
+          )}
         </div>
 
         <ErrorBox error={guardar.error} />
         <div className="flex justify-end gap-2">
           <button type="button" className={btnGhost} onClick={onClose}>Cancelar</button>
-          <button className={btnPrimary} disabled={guardar.isPending}>{guardar.isPending ? 'Guardando…' : 'Guardar aviso'}</button>
+          <button className={btnPrimary} disabled={guardar.isPending || !lista}>{guardar.isPending ? 'Guardando…' : 'Guardar aviso'}</button>
         </div>
       </form>
     </Modal>
@@ -279,7 +326,7 @@ function condicion(a, tasa) {
   return 'Solo cuando aprietes «Enviar ahora»';
 }
 
-function FilaAviso({ a, tasa, onEditar }) {
+function FilaAviso({ a, tasa, plantilla, onEditar }) {
   const guardar = useGuardarAviso();
   const borrar = useBorrarAviso();
   const enviar = useEnviarAviso();
@@ -298,6 +345,9 @@ function FilaAviso({ a, tasa, onEditar }) {
             <span className="font-medium text-white">{a.nombre}</span>
             <Pill color={t.color}>{t.label}</Pill>
             {!a.activo && <Pill color="#9aafc3">Apagado</Pill>}
+            {a.whatsapp_activo && !(plantilla && estadoMeta(plantilla).usable) && (
+              <Pill color="#f59e0b">{plantilla ? `Plantilla ${estadoMeta(plantilla).label.toLowerCase()}: el WhatsApp no sale` : 'Sin plantilla aprobada: edítalo'}</Pill>
+            )}
           </div>
           <p className="mt-0.5 text-xs text-[#9aafc3]">{condicion(a, tasa)}</p>
           {a.ultimo_envio_at && <p className="mt-0.5 text-xs text-[#9aafc3]">Último envío: {fechaHora(a.ultimo_envio_at)} · {a.ultimo_resultado}</p>}
@@ -333,10 +383,13 @@ function FilaAviso({ a, tasa, onEditar }) {
 // ─── Plantillas ───────────────────────────────────────────────────────────────
 function EditorPlantilla({ inicial, onClose }) {
   const guardar = useGuardarPlantilla();
+  const enviarMeta = useEnviarPlantillaMeta();
   const [p, setP] = useState({ nombre: '', categoria: 'general', asunto: '', cuerpo: '', ...inicial });
   const enviar = async (e) => {
     e.preventDefault();
-    await guardar.mutateAsync({ id: p.id, nombre: p.nombre.trim(), categoria: p.categoria, asunto: p.asunto, cuerpo: p.cuerpo });
+    const fila = await guardar.mutateAsync({ id: p.id, nombre: p.nombre.trim(), categoria: p.categoria, asunto: p.asunto, cuerpo: p.cuerpo });
+    // Guardar = mandarla a aprobar. Si Meta la rechaza, queda anotado en la tarjeta.
+    await enviarMeta.mutateAsync(fila.id).catch(() => {});
     onClose();
   };
   return (
@@ -357,10 +410,15 @@ function EditorPlantilla({ inicial, onClose }) {
           <textarea className={`${inputClass} resize-y`} rows={5} value={p.cuerpo} onChange={(e) => setP({ ...p, cuerpo: e.target.value })} required />
           <p className="mt-1 text-xs text-[#9aafc3]">Variables: {VARIABLES.map((v) => `{{${v}}}`).join(' ')} · Usa [corchetes] para lo que se completa en cada aviso.</p>
         </div>
+        <p className="rounded-lg border border-[#67c8f3]/30 bg-[#67c8f3]/10 px-3 py-2 text-xs text-[#cfe0f0]">
+          Al guardar se envía a aprobar a Meta como <b>utility</b> (aviso de servicio). Escríbela como aviso o recordatorio, sin ofertas ni promociones: si no, Meta la rechaza o la pasa a marketing y no se podrá usar.
+        </p>
         <ErrorBox error={guardar.error} />
         <div className="flex justify-end gap-2">
           <button type="button" className={btnGhost} onClick={onClose}>Cancelar</button>
-          <button className={btnPrimary} disabled={guardar.isPending}>Guardar plantilla</button>
+          <button className={btnPrimary} disabled={guardar.isPending || enviarMeta.isPending}>
+            {enviarMeta.isPending ? 'Enviando a Meta…' : 'Guardar y enviar a aprobar'}
+          </button>
         </div>
       </form>
     </Modal>
@@ -369,32 +427,98 @@ function EditorPlantilla({ inicial, onClose }) {
 
 function Plantillas({ plantillas, onUsar }) {
   const borrar = useBorrarPlantilla();
+  const enviarMeta = useEnviarPlantillaMeta();
+  const enviarTodas = useEnviarTodasMeta();
+  const revisar = useRevisarPlantillasMeta();
   const [editando, setEditando] = useState(null);
+  const [filtro, setFiltro] = useState('todas');
+
+  const conteo = useMemo(() => {
+    const c = { todas: plantillas.length };
+    for (const p of plantillas) { const k = estadoMeta(p).clave; c[k] = (c[k] || 0) + 1; }
+    return c;
+  }, [plantillas]);
+  const porEnviar = plantillas.filter((p) => estadoMeta(p).enviable).length;
+  const enRevision = conteo.revision || 0;
+
+  // Al abrir la pestaña se pregunta a Meta, y cada minuto mientras haya alguna en
+  // revisión (el back también lo hace solo cada 5 minutos).
+  const { mutate: revisarMeta } = revisar;
+  useEffect(() => { revisarMeta(); }, [revisarMeta]);
+  useEffect(() => {
+    if (!enRevision) return undefined;
+    const t = setInterval(() => revisarMeta(), 60_000);
+    return () => clearInterval(t);
+  }, [enRevision, revisarMeta]);
+
   const grupos = useMemo(() => {
     const g = {};
-    for (const p of plantillas) (g[p.categoria] ??= []).push(p);
+    for (const p of plantillas) {
+      if (filtro !== 'todas' && estadoMeta(p).clave !== filtro) continue;
+      (g[p.categoria] ??= []).push(p);
+    }
     return g;
-  }, [plantillas]);
+  }, [plantillas, filtro]);
 
   return (
     <div className="space-y-5">
-      <div className="flex justify-end">
-        <button type="button" className={btnPrimary} onClick={() => setEditando({})}><Plus className="w-4 h-4" /> Nueva plantilla</button>
+      <div className={`${card} space-y-3 p-4`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm text-[#cfe0f0]">
+            <div className="flex items-center gap-2 font-medium text-white"><ShieldCheck className="w-4 h-4 text-[#22c55e]" /> Aprobación de WhatsApp (Meta)</div>
+            <p className="mt-0.5 text-xs text-[#9aafc3]">Cada plantilla se aprueba como <b>utility</b>. Un aviso solo puede usar las aprobadas; si editas una, hay que volver a enviarla.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className={btnGhost} disabled={revisar.isPending} onClick={() => revisarMeta()}>
+              <RefreshCw className={`w-4 h-4 ${revisar.isPending ? 'animate-spin' : ''}`} /> Revisar en Meta
+            </button>
+            <button type="button" className={btnPrimary} disabled={!porEnviar || enviarTodas.isPending}
+              onClick={() => confirm(`¿Enviar ${porEnviar} plantilla(s) a aprobar en Meta como utility?`) && enviarTodas.mutate()}>
+              <Send className="w-4 h-4" /> {enviarTodas.isPending ? 'Enviando…' : `Enviar todas a aprobar${porEnviar ? ` (${porEnviar})` : ''}`}
+            </button>
+            <button type="button" className={btnGhost} onClick={() => setEditando({})}><Plus className="w-4 h-4" /> Nueva plantilla</button>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {ESTADOS_FILTRO.filter(([k]) => k === 'todas' || conteo[k]).map(([k, l]) => (
+            <button key={k} type="button" onClick={() => setFiltro(k)}
+              className={`rounded-full border px-3 py-1 text-xs ${filtro === k ? 'border-[#67c8f3] bg-[#67c8f3]/15 text-white' : 'border-white/10 text-[#9aafc3] hover:text-white'}`}>
+              {l} · {conteo[k] || 0}
+            </button>
+          ))}
+        </div>
+        <ErrorBox error={enviarTodas.error || revisar.error} />
       </div>
       {Object.entries(grupos).map(([cat, ps]) => (
         <div key={cat}>
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#5f7891]">{CATEGORIAS[cat] || cat}</h3>
           <div className="grid gap-3 md:grid-cols-2">
-            {ps.map((p) => (
+            {ps.map((p) => {
+              const st = estadoMeta(p);
+              const enviandoEsta = enviarMeta.isPending && enviarMeta.variables === p.id;
+              return (
               <div key={p.id} className={`${card} p-4`}>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-white">{p.nombre}</span>
                   {p.es_sistema ? <Pill color="#9aafc3">De sistema</Pill> : <Pill color="#22c55e">Tuya</Pill>}
+                  <Pill color={st.color}>{st.label}</Pill>
                 </div>
                 <p className="mt-1 text-sm text-[#cfe0f0]">{p.asunto}</p>
                 <p className="mt-1 line-clamp-3 text-xs text-[#9aafc3]">{p.cuerpo}</p>
+                {p.meta_motivo && (st.clave === 'rechazada' || st.clave === 'error') && (
+                  <p className="mt-2 text-xs text-red-300">Motivo: {p.meta_motivo}{p.es_sistema ? ' · Duplícala para corregirla.' : ' · Edítala y se reenvía.'}</p>
+                )}
+                {st.clave === 'marketing' && <p className="mt-2 text-xs text-amber-300">Meta la clasificó como {String(p.meta_categoria).toLowerCase()}. Reescríbela como aviso de servicio (duplicar/editar) para que salga como utility.</p>}
+                {p.meta_enviada_at && <p className="mt-1 text-[11px] text-[#5f7891]">Enviada a Meta: {fechaHora(p.meta_enviada_at)}{p.meta_nombre ? ` · ${p.meta_nombre}` : ''}</p>}
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button type="button" className={btnGhost} onClick={() => onUsar(p)}><BellRing className="w-4 h-4" /> Crear aviso</button>
+                  <button type="button" className={btnGhost} disabled={!st.usable} title={st.usable ? '' : 'Solo con plantillas aprobadas por Meta'} onClick={() => onUsar(p)}>
+                    <BellRing className="w-4 h-4" /> Crear aviso
+                  </button>
+                  {st.enviable && (
+                    <button type="button" className={btnGhost} disabled={enviarMeta.isPending} onClick={() => enviarMeta.mutate(p.id)}>
+                      <Send className="w-4 h-4" /> {enviandoEsta ? 'Enviando…' : st.clave === 'sin_enviar' ? 'Enviar a aprobar' : 'Reenviar a aprobar'}
+                    </button>
+                  )}
                   {p.es_sistema ? (
                     <button type="button" className={btnGhost} onClick={() => setEditando({ nombre: `${p.nombre} (copia)`, categoria: p.categoria, asunto: p.asunto, cuerpo: p.cuerpo })}><Copy className="w-4 h-4" /> Duplicar</button>
                   ) : (
@@ -405,11 +529,13 @@ function Plantillas({ plantillas, onUsar }) {
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ))}
-      <ErrorBox error={borrar.error} />
+      {!Object.keys(grupos).length && <p className="text-sm text-[#9aafc3]">No hay plantillas en este estado.</p>}
+      <ErrorBox error={borrar.error || enviarMeta.error} />
       {editando && <EditorPlantilla inicial={editando} onClose={() => setEditando(null)} />}
     </div>
   );
@@ -457,14 +583,13 @@ export default function AvisosAdmin() {
   const [editando, setEditando] = useState(null);
   const tasa = estado.data?.usd_clp || 950;
   const lista = plantillas.data || [];
-  const plantillaWa = estado.data?.whatsapp?.plantilla_estado;
 
   const nuevoSaldo = () => {
-    const p = lista.find((x) => x.nombre === 'Saldo OpenAI bajo');
-    setEditando({ nombre: 'Saldo OpenAI bajo', tipo: 'saldo_openai', umbral_usd: 5, plantilla_id: p?.id ?? null, asunto: p?.asunto ?? '', cuerpo: p?.cuerpo ?? '' });
+    const p = lista.find((x) => x.nombre === 'Saldo OpenAI bajo' && estadoMeta(x).usable);
+    setEditando({ nombre: 'Saldo OpenAI bajo', tipo: 'saldo_openai', umbral_usd: 5, plantilla_id: p?.id ?? null });
   };
   const desdePlantilla = (p) => {
-    setEditando({ nombre: p.nombre, tipo: p.categoria === 'saldo' ? 'saldo_openai' : 'manual', plantilla_id: p.id, asunto: p.asunto, cuerpo: p.cuerpo });
+    setEditando({ nombre: p.nombre, tipo: p.categoria === 'saldo' ? 'saldo_openai' : 'manual', plantilla_id: p.id });
     setPestana('avisos');
   };
 
@@ -477,12 +602,6 @@ export default function AvisosAdmin() {
 
       {estado.error && <ErrorBox error={estado.error} />}
       <TarjetaSaldo estado={estado.data} />
-
-      {plantillaWa && plantillaWa !== 'APPROVED' && (
-        <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
-          La plantilla de WhatsApp de los avisos está {plantillaWa === 'PENDING' ? 'en revisión en Meta' : `en estado ${plantillaWa}`}. Mientras tanto, el WhatsApp solo llega a quien le haya escrito a {estado.data?.whatsapp?.numero || 'NexCommit'} en las últimas 24 horas; el correo sale igual.
-        </div>
-      )}
 
       <div className="flex flex-wrap gap-1 border-b border-white/10">
         {PESTANAS.map((p) => {
@@ -509,7 +628,9 @@ export default function AvisosAdmin() {
               <button type="button" className={`${btnPrimary} mt-4`} onClick={nuevoSaldo}><Wallet className="w-4 h-4" /> Crear aviso de saldo bajo</button>
             </div>
           )}
-          {(avisos.data || []).map((a) => <FilaAviso key={a.id} a={a} tasa={tasa} onEditar={setEditando} />)}
+          {(avisos.data || []).map((a) => (
+            <FilaAviso key={a.id} a={a} tasa={tasa} plantilla={lista.find((p) => p.id === a.plantilla_id)} onEditar={setEditando} />
+          ))}
         </div>
       )}
       {pestana === 'plantillas' && <Plantillas plantillas={lista} onUsar={desdePlantilla} />}
