@@ -6,11 +6,11 @@
 // avisos-sistema-revisar). Solo dueños.
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  BellRing, Clock, Copy, FileText, Hand, History, Mail, MessageCircle, Pencil, Plus, RefreshCw, Send, ShieldCheck,
+  BellRing, Bot, Clock, Copy, FileText, Hand, History, Mail, MessageCircle, Pencil, Plus, RefreshCw, Send, ShieldCheck,
   Trash2, Wallet,
 } from 'lucide-react';
 import {
-  useAnotarSaldo, useAvisos, useBorrarAviso, useBorrarPlantilla, useEnviarAviso, useEnviarPlantillaMeta,
+  useAnotarSaldo, useAvisos, useBorrarAviso, useChatbotsAvisos, useBorrarPlantilla, useEnviarAviso, useEnviarPlantillaMeta,
   useEnviarTodasMeta, useEnviosAvisos, useEstadoAvisos, useGuardarAviso, useGuardarPlantilla, usePlantillasAvisos,
   useRevisarPlantillasMeta,
 } from '../../hooks/avisos';
@@ -20,10 +20,23 @@ const TIPOS = {
   saldo_openai: { label: 'Saldo de OpenAI bajo', icon: Wallet, color: '#f59e0b', desc: 'Sale cuando el saldo estimado queda en el monto que elijas o menos.' },
   programado: { label: 'Programado', icon: Clock, color: '#67c8f3', desc: 'Sale en una fecha y hora, una vez o repitiéndose.' },
   manual: { label: 'A mano', icon: Hand, color: '#a78bfa', desc: 'Solo sale cuando aprietas «Enviar ahora».' },
+  resumen_chatbot: { label: 'Resumen del chatbot', icon: Bot, color: '#22c55e', desc: 'A cada hora elegida, resume lo conversado desde la hora anterior.' },
 };
+const HORAS_RESUMEN = ['16:00', '20:00'];
+// Valores de muestra para la vista previa (los reales los calcula el back al enviar).
+const MUESTRA_RESUMEN = {
+  desde: '20:00 del día anterior', hasta: '16:00', conversaciones: '14', mensajes: '63', derivadas: '2',
+  resumen: 'Aquí va el resumen del tramo hecho con IA: de qué se habló, qué pidieron más y qué quedó pendiente.',
+};
+// Cada corte resume desde el corte anterior (el último de la lista mira al día anterior).
+function tramos(horas) {
+  const hs = [...new Set(horas)].filter(Boolean).sort();
+  return hs.map((h, i) => `a las ${h}: de ${hs[(i - 1 + hs.length) % hs.length]}${i === 0 ? ' del día anterior' : ''} a ${h}`);
+}
 const FRECUENCIAS = { una_vez: 'Una vez', diaria: 'Todos los días', semanal: 'Cada semana', mensual: 'Cada mes' };
 const CATEGORIAS = { saldo: 'Saldo OpenAI', cobros: 'Cobros', pagos: 'Pagos', marketing: 'Marketing', equipo: 'Equipo', chatbots: 'Chatbots', general: 'General' };
-const VARIABLES = ['aviso', 'fecha', 'hora', 'saldo_usd', 'saldo_clp', 'umbral_usd', 'umbral_clp', 'enlace_recarga', 'panel'];
+const VARIABLES = ['aviso', 'fecha', 'hora', 'saldo_usd', 'saldo_clp', 'umbral_usd', 'umbral_clp', 'enlace_recarga', 'panel',
+  'chatbot', 'desde', 'hasta', 'conversaciones', 'mensajes', 'derivadas', 'resumen'];
 
 const usd = (n) => `US$ ${Number(n || 0).toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const clp = (n) => `$${Math.round(Number(n || 0)).toLocaleString('es-CL')}`;
@@ -137,7 +150,7 @@ function TarjetaSaldo({ estado }) {
 const NUEVO = {
   nombre: '', tipo: 'saldo_openai', umbral_usd: 5, repetir_horas: 6, proximo_envio: null, frecuencia: 'una_vez',
   plantilla_id: null, valores: {}, asunto: '', cuerpo: '', whatsapp_activo: true, whatsapp_destinos: '', correo_activo: true,
-  correo_destinos: '', activo: true,
+  correo_destinos: '', activo: true, chatbot_agente_id: null, chatbot_nombre: '', resumen_horas: HORAS_RESUMEN,
 };
 
 function EditorAviso({ inicial, plantillas, estado, onClose }) {
@@ -145,6 +158,9 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
   const [a, setA] = useState(() => ({ ...NUEVO, ...inicial }));
   const set = (cambios) => setA((p) => ({ ...p, ...cambios }));
   const tasa = estado?.usd_clp || 950;
+  const chatbots = useChatbotsAvisos(a.tipo === 'resumen_chatbot');
+  const horas = a.resumen_horas?.length ? a.resumen_horas : HORAS_RESUMEN;
+  const setHora = (i, v) => set({ resumen_horas: horas.map((h, j) => (j === i ? v : h)) });
 
   const plantilla = plantillas.find((x) => x.id === a.plantilla_id) || null;
   const lista = plantilla ? estadoMeta(plantilla).usable : false;
@@ -158,6 +174,8 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
 
   const vars = {
     ...estado?.variables,
+    ...MUESTRA_RESUMEN,
+    chatbot: a.chatbot_nombre || 'el chatbot',
     aviso: a.nombre,
     ...(a.umbral_usd != null ? { umbral_usd: Number(a.umbral_usd).toLocaleString('es-CL', { minimumFractionDigits: 2 }), umbral_clp: clp(a.umbral_usd * tasa) } : {}),
   };
@@ -166,7 +184,8 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
     e.preventDefault();
     if (!lista) return;
     const { id, nombre, tipo, umbral_usd, repetir_horas, proximo_envio, frecuencia, plantilla_id,
-      whatsapp_activo, whatsapp_destinos, correo_activo, correo_destinos, activo } = a;
+      whatsapp_activo, whatsapp_destinos, correo_activo, correo_destinos, activo, chatbot_agente_id, chatbot_nombre } = a;
+    const esResumen = tipo === 'resumen_chatbot';
     // Solo los campos de ESTA plantilla (si se cambió de plantilla, los otros sobran).
     const soloCampos = Object.fromEntries(campos.map((c) => [c, String(valores[c] ?? '').trim()]));
     await guardar.mutateAsync({
@@ -178,6 +197,9 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
       repetir_horas: Number(repetir_horas) || 6,
       proximo_envio: tipo === 'programado' ? proximo_envio : null,
       frecuencia: tipo === 'programado' ? frecuencia : null,
+      chatbot_agente_id: esResumen ? chatbot_agente_id : null,
+      chatbot_nombre: esResumen ? chatbot_nombre : null,
+      resumen_horas: esResumen ? [...new Set(horas.filter(Boolean))].sort() : null,
       // Editar la condición rearma el aviso: puede volver a salir enseguida.
       disparado_at: null,
     });
@@ -196,7 +218,7 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
       <form onSubmit={enviar} className="space-y-5">
         <div>
           <label className={labelClass}>¿Cuándo sale?</label>
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {Object.entries(TIPOS).map(([k, t]) => {
               const Icon = t.icon;
               return (
@@ -238,6 +260,43 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
               <select className={inputClass} value={a.frecuencia || 'una_vez'} onChange={(e) => set({ frecuencia: e.target.value })}>
                 {Object.entries(FRECUENCIAS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
               </select>
+            </div>
+          </div>
+        )}
+
+        {a.tipo === 'resumen_chatbot' && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className={labelClass}>Chatbot</label>
+              <select className={inputClass} value={a.chatbot_agente_id || ''} required
+                onChange={(e) => {
+                  const c = chatbots.data?.chatbots?.find((x) => x.id === e.target.value);
+                  set({ chatbot_agente_id: e.target.value || null, chatbot_nombre: c?.nombre || '' });
+                }}>
+                <option value="">{chatbots.isLoading ? 'Cargando…' : '— Elige el chatbot —'}</option>
+                {(chatbots.data?.chatbots || []).map((c) => (
+                  <option key={c.id} value={c.id}>{c.nombre}{c.cliente ? ` · ${c.cliente}` : ''}{c.activo ? '' : ' (apagado)'}</option>
+                ))}
+              </select>
+              <ErrorBox error={chatbots.error} />
+            </div>
+            <div>
+              <label className={labelClass}>Horas de envío (hora de Chile)</label>
+              <div className="flex flex-wrap items-center gap-2">
+                {horas.map((h, i) => (
+                  <span key={i} className="inline-flex items-center gap-1">
+                    <input type="time" className={`${inputClass} w-28`} value={h} onChange={(e) => setHora(i, e.target.value)} required />
+                    {horas.length > 1 && (
+                      <button type="button" className="text-[#9aafc3] hover:text-white" aria-label="Quitar hora"
+                        onClick={() => set({ resumen_horas: horas.filter((_, j) => j !== i) })}><Trash2 className="w-3.5 h-3.5" /></button>
+                    )}
+                  </span>
+                ))}
+                {horas.length < 6 && (
+                  <button type="button" className={btnGhost} onClick={() => set({ resumen_horas: [...horas, '12:00'] })}><Plus className="w-4 h-4" /> Hora</button>
+                )}
+              </div>
+              <ul className="mt-1 text-xs text-[#9aafc3]">{tramos(horas).map((t) => <li key={t}>Resumen {t}</li>)}</ul>
             </div>
           </div>
         )}
@@ -323,6 +382,7 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
 function condicion(a, tasa) {
   if (a.tipo === 'saldo_openai') return `Cuando el saldo baje de ${usd(a.umbral_usd)} (≈ ${clp(a.umbral_usd * tasa)}) · repite cada ${a.repetir_horas} h mientras siga bajo`;
   if (a.tipo === 'programado') return `${FRECUENCIAS[a.frecuencia] || ''} · próximo: ${fechaHora(a.proximo_envio)}`;
+  if (a.tipo === 'resumen_chatbot') return `${a.chatbot_nombre || 'Chatbot'} · todos los días a las ${(a.resumen_horas || []).join(' y ')} · resume desde la hora anterior`;
   return 'Solo cuando aprietes «Enviar ahora»';
 }
 
@@ -589,7 +649,8 @@ export default function AvisosAdmin() {
     setEditando({ nombre: 'Saldo OpenAI bajo', tipo: 'saldo_openai', umbral_usd: 5, plantilla_id: p?.id ?? null });
   };
   const desdePlantilla = (p) => {
-    setEditando({ nombre: p.nombre, tipo: p.categoria === 'saldo' ? 'saldo_openai' : 'manual', plantilla_id: p.id });
+    const tipo = p.categoria === 'saldo' ? 'saldo_openai' : /\{\{\s*resumen\s*\}\}/.test(p.cuerpo) ? 'resumen_chatbot' : 'manual';
+    setEditando({ nombre: p.nombre, tipo, plantilla_id: p.id });
     setPestana('avisos');
   };
 

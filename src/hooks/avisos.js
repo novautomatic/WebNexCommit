@@ -56,6 +56,11 @@ export function useEstadoAvisos() {
   return useQuery({ queryKey: ['avisos-estado'], queryFn: () => back('/estado'), refetchInterval: 5 * 60_000 });
 }
 
+// Chatbots de Agente-Next, para el aviso «Resumen del chatbot».
+export function useChatbotsAvisos(activo = true) {
+  return useQuery({ queryKey: ['avisos-chatbots'], queryFn: () => back('/chatbots'), enabled: activo, staleTime: 10 * 60_000 });
+}
+
 function useMutar(fn, claves) {
   const qc = useQueryClient();
   return useMutation({
