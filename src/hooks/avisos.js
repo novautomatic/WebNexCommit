@@ -101,8 +101,16 @@ export function useEnviarPlantillaMeta() {
   return useMutar((id) => back(`/plantillas/${id}/meta`, { metodo: 'POST', cuerpo: {} }), ['avisos-plantillas']);
 }
 
+// El back procesa unas pocas por llamada (Vercel corta a los 60 s) y dice
+// cuántas quedan: se vuelve a llamar hasta terminar.
 export function useEnviarTodasMeta() {
-  return useMutar(() => back('/plantillas/todas', { metodo: 'POST', cuerpo: {} }), ['avisos-plantillas']);
+  return useMutar(async () => {
+    let r = { restantes: 1 };
+    for (let i = 0; i < 10 && r.restantes > 0; i += 1) {
+      r = await back('/plantillas/todas', { metodo: 'POST', cuerpo: {} });
+    }
+    return r;
+  }, ['avisos-plantillas']);
 }
 
 export function useRevisarPlantillasMeta() {
