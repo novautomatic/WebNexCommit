@@ -134,7 +134,7 @@ function TarjetaCambio({ c, ops, porDia, palabras }) {
         <select className="bg-transparent text-white text-sm font-medium" disabled={!editable} value={tipo} onChange={(ev) => setTipo(ev.target.value)}>
           {Object.entries(TIPOS_CAMBIO).map(([k, v]) => <option key={k} value={k} className="bg-[#0d1e30]">{v.label}</option>)}
         </select>
-        <span className="text-[#5f7891]">{c.origen === 'ia' ? 'Propuesto por la IA' : c.origen === 'regla' ? 'Regla automática' : `Manual · ${c.creado_por || ''}`} · {new Date(c.created_at).toLocaleString('es-CL', { dateStyle: 'short', timeStyle: 'short' })}</span>
+        <span className="text-[#5f7891]">{c.origen === 'ia' ? 'Propuesto por la IA' : c.origen === 'analista' ? 'Propuesto por el analista de resultados' : c.origen === 'regla' ? 'Regla automática' : `Manual · ${c.creado_por || ''}`} · {new Date(c.created_at).toLocaleString('es-CL', { dateStyle: 'short', timeStyle: 'short' })}</span>
       </div>
       {c.motivo && <p className="text-xs text-[#9aafc3]">{c.motivo}</p>}
       <CamposCambio tipo={tipo} datos={datos} setDatos={setDatos} ops={ops} bloqueado={!editable} />

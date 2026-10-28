@@ -33,7 +33,7 @@ const h2 = 'text-2xl font-bold text-white mb-4';
 const TRATAMIENTOS = [
   {
     quien: 'Visitantes del sitio',
-    datos: `Datos de navegación que no te identifican (páginas vistas, dispositivo, origen de la visita) mediante cookies de Google${CLARITY_ID ? ' y cómo se usa la página (clics y desplazamiento, con textos y formularios ocultos) con Microsoft Clarity' : ''}. Nunca tu nombre, correo, teléfono ni RUT`,
+    datos: `Datos de navegación que no te identifican (páginas vistas, dispositivo, origen de la visita) mediante cookies de Google, y estadísticas agregadas de edad, género e intereses de los visitantes (Google Signals)${CLARITY_ID ? ' y cómo se usa la página (clics y desplazamiento, con textos y formularios ocultos) con Microsoft Clarity' : ''}. Nunca tu nombre, correo, teléfono ni RUT`,
     para: 'Medir visitas y saber qué anuncios generan contactos',
     base: 'Medición del sitio con datos que no te identifican; puedes pedir que no te midamos (sección 10)',
     plazo: 'El que tenga configurado Google Analytics (como máximo 14 meses)',
@@ -254,6 +254,11 @@ export default function Privacy() {
                   herramientas guardan cookies en tu navegador y envían a Google datos de navegación que no te identifican (páginas
                   vistas, dispositivo, de dónde llegaste), que puede tratar fuera de Chile. Nunca les enviamos tu nombre, correo,
                   teléfono ni RUT, ni los usamos para mostrarte publicidad personalizada.
+                  {' '}Google Analytics tiene activo «Google Signals»: si tienes sesión iniciada en tu cuenta de Google y en ella
+                  permitiste la personalización de anuncios, Google nos muestra estadísticas agregadas de edad, género e intereses
+                  de quienes visitan el sitio. Solo vemos totales por grupo (Google oculta los grupos pequeños), nunca quién eres, y
+                  no lo usamos para remarketing ni para mostrarte anuncios. Puedes desactivarlo en la configuración de anuncios de
+                  tu cuenta de Google (myadcenter.google.com) o con el botón de abajo.
                   {CLARITY_ID && ' También usamos Microsoft Clarity para ver dónde se hace clic y hasta dónde se baja en cada página (mapas de calor y grabaciones con todos los textos y formularios ocultos); Microsoft puede tratar esos datos fuera de Chile.'}
                 </p>
                 <p className={p}>

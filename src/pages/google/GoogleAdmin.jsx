@@ -10,9 +10,12 @@ import { ErrorBox, btnGhost } from '../tareas/ui';
 import { VistaAds, VistaPalabras, VistaResumen, VistaSeo, VistaWeb } from './VistasDatos';
 import { VistaAnalisis, VistaCambios, VistaConfig } from './VistasGestion';
 import { VistaProductos, VistaVentas } from './VistasTienda';
+import ResumenClaro from './ResumenClaro';
 
 // `tienda`: solo para clientes con tienda online (p.tipo === 'tienda').
+// `propia`: la pestaña trae sus propios datos y su propio selector de fechas.
 const PESTANAS = [
+  { id: 'claro', label: 'Resumen claro', nuevo: true, propia: true },
   { id: 'resumen', label: 'Resumen' },
   { id: 'ventas', label: 'Ventas (Shopify)', tienda: true },
   { id: 'ads', label: 'Google Ads' },
@@ -54,6 +57,7 @@ function Panel({ cliente, elegir }) {
   const porRevisar = (p?.cambios || []).filter((c) => c.estado === 'propuesto').length;
   const irACambios = () => setPestana('cambios');
   const nombre = clientes.find((c) => c.id === cliente)?.nombre;
+  const propia = PESTANAS.find((t) => t.id === pestana)?.propia;
 
   return (
     <div className="space-y-4 max-w-7xl">
@@ -79,14 +83,18 @@ function Panel({ cliente, elegir }) {
               </select>
             </label>
           )}
-          <div className="flex rounded-lg border border-white/10 overflow-hidden" role="group" aria-label="Rango de días">
-            {RANGOS.map((r) => (
-              <button key={r} type="button" onClick={() => setDias(r)} className={`px-3 py-1.5 text-xs ${dias === r ? 'bg-[#1a3050] text-white' : 'text-[#9aafc3] hover:text-white'}`}>{r} días</button>
-            ))}
-          </div>
-          <button type="button" className={btnGhost} disabled={recargar.isPending} onClick={() => recargar.mutate()} title="Volver a leer Google ahora">
-            <RefreshCw className={`w-4 h-4 ${recargar.isPending ? 'animate-spin' : ''}`} />
-          </button>
+          {!propia && (
+            <>
+              <div className="flex rounded-lg border border-white/10 overflow-hidden" role="group" aria-label="Rango de días">
+                {RANGOS.map((r) => (
+                  <button key={r} type="button" onClick={() => setDias(r)} className={`px-3 py-1.5 text-xs ${dias === r ? 'bg-[#1a3050] text-white' : 'text-[#9aafc3] hover:text-white'}`}>{r} días</button>
+                ))}
+              </div>
+              <button type="button" className={btnGhost} disabled={recargar.isPending} onClick={() => recargar.mutate()} title="Volver a leer Google ahora">
+                <RefreshCw className={`w-4 h-4 ${recargar.isPending ? 'animate-spin' : ''}`} />
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -94,15 +102,17 @@ function Panel({ cliente, elegir }) {
         {PESTANAS.filter((t) => !t.tienda || p?.tipo === 'tienda').map((t) => (
           <button key={t.id} type="button" onClick={() => setPestana(t.id)}
             className={`px-3 py-2 text-sm whitespace-nowrap border-b-2 -mb-px ${pestana === t.id ? 'border-[#3987e5] text-white' : 'border-transparent text-[#9aafc3] hover:text-white'}`}>
-            {t.label}{t.id === 'cambios' && porRevisar > 0 && <span className="ml-1.5 rounded-full bg-[#fab219] px-1.5 text-[10px] font-bold text-[#0a1628]">{porRevisar}</span>}
+            {t.label}{t.nuevo && <span className="ml-1.5 rounded-full bg-[#3987e5] px-1.5 text-[10px] font-semibold text-white">nuevo</span>}
+            {t.id === 'cambios' && porRevisar > 0 && <span className="ml-1.5 rounded-full bg-[#fab219] px-1.5 text-[10px] font-bold text-[#0a1628]">{porRevisar}</span>}
           </button>
         ))}
       </nav>
 
-      {isLoading && <div className="text-sm text-[#9aafc3] py-10 text-center">Leyendo Google Ads, Analytics y Search Console…</div>}
-      {error && <ErrorBox error={error} />}
-      {recargar.error && <ErrorBox error={recargar.error} />}
-      {p && (
+      {pestana === 'claro' && <ResumenClaro key={cliente} irACambios={irACambios} />}
+      {!propia && isLoading && <div className="text-sm text-[#9aafc3] py-10 text-center">Leyendo Google Ads, Analytics y Search Console…</div>}
+      {!propia && error && <ErrorBox error={error} />}
+      {!propia && recargar.error && <ErrorBox error={recargar.error} />}
+      {p && !propia && (
         <>
           {pestana === 'resumen' && <VistaResumen p={p} />}
           {pestana === 'ads' && <VistaAds p={p} />}

@@ -2,6 +2,9 @@
 // Color de serie validado con dataviz/validate_palette.js en modo oscuro (#0d1e30);
 // estados = paleta de estado reservada (siempre con ícono + texto).
 export const SERIE = '#3987e5';
+// Periodo de comparación («Resumen claro»): 2.º color categórico, validado junto al azul
+// sobre #0d1e30 (CVD y visión normal OK). Siempre punteado + leyenda, nunca color solo.
+export const COMPARA = '#d95926';
 export const ESTADO = { bien: '#0ca30c', mejorar: '#fab219', alerta: '#d03b3b' };
 
 export const clp = (n) => (n == null ? '—' : `$${Math.round(n).toLocaleString('es-CL')}`);

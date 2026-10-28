@@ -91,6 +91,69 @@ export function useAnalizar() {
   });
 }
 
+// ── «Resumen claro»: cualquier rango de fechas + comparación + metas + analista ──
+// r = { desde, hasta, cdesde?, chasta? } (AAAA-MM-DD)
+const qsRango = (r) => new URLSearchParams(Object.entries(r).filter(([, v]) => v)).toString();
+
+export function useResumenClaro(r) {
+  const cliente = useCliente();
+  return useQuery({
+    queryKey: ['google-resumen', cliente, r],
+    queryFn: () => llamar(cliente, `/resumen?${qsRango(r)}`),
+    staleTime: 4 * 60_000,
+    refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
+  });
+}
+
+export function useRecargarResumen(r) {
+  const cliente = useCliente();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => llamar(cliente, `/resumen?${qsRango(r)}&fresco=1`),
+    onSuccess: (data) => qc.setQueryData(['google-resumen', cliente, r], data),
+  });
+}
+
+export function useGuardarMetas() {
+  const cliente = useCliente();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (metas) => llamar(cliente, '/metas', { metodo: 'PUT', cuerpo: { metas } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['google-resumen', cliente] }),
+  });
+}
+
+export function useHistorialAnalista() {
+  const cliente = useCliente();
+  return useQuery({ queryKey: ['google-analista', cliente], queryFn: () => llamar(cliente, '/analista'), staleTime: 60_000, retry: false });
+}
+
+export function useAnalizarResultados() {
+  const cliente = useCliente();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (r) => llamar(cliente, '/analista', { metodo: 'POST', cuerpo: r }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['google-analista', cliente] });
+      qc.invalidateQueries({ queryKey: ['google-resumen', cliente] });
+      qc.invalidateQueries({ queryKey: ['google-panel', cliente] });
+    },
+  });
+}
+
+export function usePreguntarAnalista() {
+  const cliente = useCliente();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, texto }) => llamar(cliente, `/analista/${id}/pregunta`, { metodo: 'POST', cuerpo: { texto } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['google-analista', cliente] });
+      qc.invalidateQueries({ queryKey: ['google-panel', cliente] });
+    },
+  });
+}
+
 // Tipos de cambio que el script de Google Ads sabe aplicar, con sus campos.
 export const TIPOS_CAMBIO = {
   negativa: { label: 'Agregar negativa', campos: ['campana', 'texto', 'concordancia'] },
