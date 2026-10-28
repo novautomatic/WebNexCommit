@@ -165,12 +165,19 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
   const setHora = (i, v) => set({ resumen_horas: horas.map((h, j) => (j === i ? v : h)) });
 
   const plantilla = plantillas.find((x) => x.id === a.plantilla_id) || null;
-  const lista = plantilla ? estadoMeta(plantilla).usable : false;
+  const aprobada = plantilla ? estadoMeta(plantilla).usable : false;
+  // Sin plantilla aprobada en Meta el aviso igual sirve, pero solo por correo.
+  const lista = Boolean(plantilla) && (aprobada || (!a.whatsapp_activo && a.correo_activo));
   const campos = camposDe(plantilla);
   const valores = a.valores || {};
   const usarPlantilla = (id) => {
     const p = plantillas.find((x) => x.id === id);
-    set({ plantilla_id: id || null, ...(p ? { nombre: a.nombre || p.nombre } : {}) });
+    set({
+      plantilla_id: id || null,
+      ...(p ? { nombre: a.nombre || p.nombre } : {}),
+      // Una que Meta todavía no aprueba: queda en solo correo mientras tanto.
+      ...(p && !estadoMeta(p).usable ? { whatsapp_activo: false, correo_activo: true } : {}),
+    });
   };
   const setValor = (c, v) => set({ valores: { ...valores, [c]: v } });
 
@@ -307,7 +314,9 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
           <label className={labelClass}>¿Por dónde sale? (puedes usar uno o los dos)</label>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-2">
-              <Interruptor activo={a.whatsapp_activo} onChange={(v) => set({ whatsapp_activo: v })} label="WhatsApp" icon={MessageCircle} />
+              <Interruptor activo={a.whatsapp_activo} onChange={(v) => set({ whatsapp_activo: v })} label="WhatsApp" icon={MessageCircle}
+                disabled={Boolean(plantilla) && !aprobada && !a.whatsapp_activo} />
+              {plantilla && !aprobada && <p className="text-xs text-amber-300">Se enciende cuando Meta apruebe la plantilla.</p>}
               <textarea className={`${inputClass} resize-none`} rows={2} placeholder="56912345678, 56987654321" disabled={!a.whatsapp_activo}
                 value={a.whatsapp_destinos || ''} onChange={(e) => set({ whatsapp_destinos: e.target.value })} />
               <p className="text-xs text-[#9aafc3]">Sale desde NexCommit {estado?.whatsapp?.numero || '+56 9 8511 0430'}. Con código de país; varios separados por coma.</p>
@@ -323,22 +332,22 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
         <div className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className={labelClass}>Plantilla (solo las aprobadas por Meta)</label>
+              <label className={labelClass}>Plantilla</label>
               <select className={inputClass} value={a.plantilla_id || ''} onChange={(e) => usarPlantilla(e.target.value)} required>
-                <option value="">— Elige una plantilla aprobada —</option>
+                <option value="">— Elige una plantilla —</option>
                 {Object.entries(porCategoria).map(([cat, ps]) => (
                   <optgroup key={cat} label={CATEGORIAS[cat] || cat}>
                     {ps.map((p) => <option key={p.id} value={p.id}>{p.nombre}{p.meta_categoria === 'MARKETING' ? ' · sale como marketing' : ''}</option>)}
                   </optgroup>
                 ))}
                 {noAprobadas.length > 0 && (
-                  <optgroup label="Todavía no se pueden usar (ver pestaña Plantillas)">
-                    {noAprobadas.map((p) => <option key={p.id} value={p.id} disabled>{p.nombre} · {estadoMeta(p).label}</option>)}
+                  <optgroup label="Sin aprobar en WhatsApp: por ahora solo correo">
+                    {noAprobadas.map((p) => <option key={p.id} value={p.id}>{p.nombre} · {estadoMeta(p).label}</option>)}
                   </optgroup>
                 )}
               </select>
               {!Object.keys(porCategoria).length && (
-                <p className="mt-1 text-xs text-amber-300">Aún no hay plantillas aprobadas. Envíalas a aprobar en la pestaña Plantillas.</p>
+                <p className="mt-1 text-xs text-amber-300">Aún no hay plantillas aprobadas en Meta: los avisos salen solo por correo hasta que se aprueben.</p>
               )}
             </div>
             <div>
@@ -346,12 +355,20 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
               <input className={inputClass} value={a.nombre} onChange={(e) => set({ nombre: e.target.value })} placeholder="Saldo OpenAI bajo" required />
             </div>
           </div>
-          {plantilla && !lista && (
-            <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">
-              La plantilla «{plantilla.nombre}» está {estadoMeta(plantilla).label.toLowerCase()}: elige una aprobada para poder guardar.
-            </p>
+          {plantilla && !aprobada && (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">
+              <span>
+                «{plantilla.nombre}» está {estadoMeta(plantilla).label.toLowerCase()} en Meta: por ahora el aviso sale <b>solo por correo</b>.
+                Cuando se apruebe, enciende WhatsApp en el aviso.
+              </span>
+              {(a.whatsapp_activo || !a.correo_activo) && (
+                <button type="button" className={btnGhost} onClick={() => set({ whatsapp_activo: false, correo_activo: true })}>
+                  <Mail className="w-4 h-4" /> Dejar solo correo
+                </button>
+              )}
+            </div>
           )}
-          {lista && campos.length > 0 && (
+          {plantilla && campos.length > 0 && (
             <div className="grid gap-3 sm:grid-cols-2">
               {campos.map((c) => (
                 <div key={c}>
@@ -361,9 +378,9 @@ function EditorAviso({ inicial, plantillas, estado, onClose }) {
               ))}
             </div>
           )}
-          {lista && (
+          {plantilla && (
             <div className="rounded-lg border border-[#22c55e]/30 bg-[#22c55e]/5 p-3 text-sm">
-              <div className="mb-1 text-xs font-medium text-[#86efac]">Así se verá (texto aprobado por Meta; solo cambian los datos)</div>
+              <div className="mb-1 text-xs font-medium text-[#86efac]">Así se verá ({aprobada ? 'texto aprobado por Meta; solo cambian los datos' : 'en el correo'})</div>
               <div className="font-semibold text-white">{rellenar(rellenarCampos(plantilla.asunto, valores), vars)}</div>
               <div className="mt-1 whitespace-pre-wrap text-[#cfe0f0]">{rellenar(rellenarCampos(plantilla.cuerpo, valores), vars)}</div>
             </div>
@@ -395,6 +412,7 @@ function FilaAviso({ a, tasa, plantilla, onEditar }) {
   const t = TIPOS[a.tipo];
   const Icon = t.icon;
   const cambiar = (c) => guardar.mutate({ id: a.id, ...c });
+  const waLista = Boolean(plantilla && estadoMeta(plantilla).usable);
 
   return (
     <div className={`${card} p-4 ${a.activo ? '' : 'opacity-60'}`}>
@@ -407,8 +425,14 @@ function FilaAviso({ a, tasa, plantilla, onEditar }) {
             <span className="font-medium text-white">{a.nombre}</span>
             <Pill color={t.color}>{t.label}</Pill>
             {!a.activo && <Pill color="#9aafc3">Apagado</Pill>}
-            {a.whatsapp_activo && !(plantilla && estadoMeta(plantilla).usable) && (
+            {a.whatsapp_activo && !waLista && (
               <Pill color="#f59e0b">{plantilla ? `Plantilla ${estadoMeta(plantilla).label.toLowerCase()}: el WhatsApp no sale` : 'Sin plantilla aprobada: edítalo'}</Pill>
+            )}
+            {!a.whatsapp_activo && a.correo_activo && plantilla && !waLista && (
+              <Pill color="#67c8f3">Solo correo hasta que Meta apruebe la plantilla</Pill>
+            )}
+            {!a.whatsapp_activo && waLista && a.whatsapp_destinos && (
+              <Pill color="#22c55e">Plantilla aprobada: ya puedes encender WhatsApp</Pill>
             )}
           </div>
           <p className="mt-0.5 text-xs text-[#9aafc3]">{condicion(a, tasa)}</p>
@@ -416,7 +440,8 @@ function FilaAviso({ a, tasa, plantilla, onEditar }) {
           {!a.ultimo_envio_at && a.ultimo_resultado && <p className="mt-0.5 text-xs text-amber-300">{a.ultimo_resultado}</p>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Interruptor activo={a.whatsapp_activo} onChange={(v) => cambiar({ whatsapp_activo: v })} label="WhatsApp" icon={MessageCircle} />
+          <Interruptor activo={a.whatsapp_activo} onChange={(v) => cambiar({ whatsapp_activo: v })} label="WhatsApp" icon={MessageCircle}
+            disabled={!a.whatsapp_activo && !waLista} />
           <Interruptor activo={a.correo_activo} onChange={(v) => cambiar({ correo_activo: v })} label="Correo" icon={Mail} color="#67c8f3" />
           <Interruptor activo={a.activo} onChange={(v) => cambiar({ activo: v })} label={a.activo ? 'Encendido' : 'Apagado'} color="#248bde" />
         </div>
@@ -573,8 +598,8 @@ function Plantillas({ plantillas, onUsar }) {
                 {st.clave === 'marketing' && <p className="mt-2 text-xs text-amber-300">Meta la clasificó como {String(p.meta_categoria).toLowerCase()}: se puede usar, pero cada envío cuesta más. Para que salga como utility, duplícala y reescríbela como aviso de servicio.</p>}
                 {p.meta_enviada_at && <p className="mt-1 text-[11px] text-[#5f7891]">Enviada a Meta: {fechaHora(p.meta_enviada_at)}{p.meta_nombre ? ` · ${p.meta_nombre}` : ''}</p>}
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button type="button" className={btnGhost} disabled={!st.usable} title={st.usable ? '' : 'Solo con plantillas aprobadas por Meta'} onClick={() => onUsar(p)}>
-                    <BellRing className="w-4 h-4" /> Crear aviso
+                  <button type="button" className={btnGhost} title={st.usable ? '' : 'Mientras Meta no la apruebe, el aviso sale solo por correo'} onClick={() => onUsar(p)}>
+                    <BellRing className="w-4 h-4" /> {st.usable ? 'Crear aviso' : 'Crear aviso (solo correo)'}
                   </button>
                   {st.enviable && (
                     <button type="button" className={btnGhost} disabled={enviarMeta.isPending} onClick={() => enviarMeta.mutate(p.id)}>
@@ -647,12 +672,14 @@ export default function AvisosAdmin() {
   const lista = plantillas.data || [];
 
   const nuevoSaldo = () => {
-    const p = lista.find((x) => x.nombre === 'Saldo OpenAI bajo' && estadoMeta(x).usable);
-    setEditando({ nombre: 'Saldo OpenAI bajo', tipo: 'saldo_openai', umbral_usd: 5, plantilla_id: p?.id ?? null });
+    const p = lista.find((x) => x.nombre === 'Saldo OpenAI bajo');
+    const wa = Boolean(p && estadoMeta(p).usable);
+    setEditando({ nombre: 'Saldo OpenAI bajo', tipo: 'saldo_openai', umbral_usd: 5, plantilla_id: p?.id ?? null, whatsapp_activo: wa, correo_activo: true });
   };
   const desdePlantilla = (p) => {
     const tipo = p.categoria === 'saldo' ? 'saldo_openai' : /\{\{\s*resumen\s*\}\}/.test(p.cuerpo) ? 'resumen_chatbot' : 'manual';
-    setEditando({ nombre: p.nombre, tipo, plantilla_id: p.id });
+    // Sin aprobar en Meta: arranca en solo correo.
+    setEditando({ nombre: p.nombre, tipo, plantilla_id: p.id, ...(estadoMeta(p).usable ? {} : { whatsapp_activo: false, correo_activo: true }) });
     setPestana('avisos');
   };
 
