@@ -68,6 +68,11 @@ export const PLANES = [
   },
 ];
 
+// Los 3 planes que se muestran en las páginas que reciben el tráfico de Google Ads
+// (/precios y /lp/*). Decisión del dueño 2026-10-29: menos opciones = más contactos.
+// Reservas y citas y el plan con IA siguen existiendo, pero no se ofrecen ahí.
+export const PLANES_FOCO = ['landing-page', 'ecommerce', 'web-empresarial'];
+
 // Producto base (definido por el dueño el 2026-10-21; renovación anual =
 // mismo valor + IPC): la persona arma su
 // página gratis con el Creador (/crea-tu-web) y la publicamos con 1 año
@@ -103,10 +108,20 @@ export const SERVICIOS_FORM = [
   { id: 'otro', label: 'Otro / no estoy seguro' },
 ];
 
+// Opciones del formulario en las páginas de Ads: solo los 3 planes + «no estoy seguro».
+export const SERVICIOS_FOCO = SERVICIOS_FORM.filter((s) => [...PLANES_FOCO, 'otro'].includes(s.id));
+
 export const NOTA_PRECIOS =
-  'Valores en pesos chilenos + IVA, por el plan base. Si necesitas algo adicional (más páginas, otro medio de pago, integraciones), te lo cotizamos antes de partir: la propuesta llega con alcance, plazo y precio cerrado. Hosting, dominio y mantención se contratan aparte en un plan mensual.';
+  'Valores en pesos chilenos + IVA, por el plan base. Se pagan 50% al aprobar la propuesta y 50% al publicar. Si necesitas algo adicional (más páginas, otro medio de pago, integraciones), te lo cotizamos antes de partir: la propuesta llega con alcance, plazo y precio cerrado. Hosting, dominio y mantención se contratan aparte en un plan mensual.';
+
+// Condición de pago (definida por el dueño el 2026-10-29).
+export const PAGO = '50% al aprobar la propuesta y 50% al publicar';
 
 export const FAQ_PRECIOS = [
+  {
+    question: '¿Cómo se paga?',
+    answer: `En dos partes: ${PAGO}. No pagas nada por cotizar.`,
+  },
   {
     question: '¿Los precios incluyen IVA?',
     answer: 'No. Todos los valores son + IVA y corresponden al plan base de cada servicio.',

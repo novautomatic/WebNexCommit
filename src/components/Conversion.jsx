@@ -45,7 +45,7 @@ export function IrACotizar({ servicio, placement, className = 'cx-btn cx-btn-bra
 
 const VACIO = { nombre: '', email: '', telefono: '', servicio: '', mensaje: '', sitio: '' };
 
-export function ContactoForm({ servicio = '', placement }) {
+export function ContactoForm({ servicio = '', placement, servicios = SERVICIOS_FORM }) {
   const [f, setF] = useState({ ...VACIO, servicio });
   const [captcha, setCaptcha] = useState('');
   const [version, setVersion] = useState(0);
@@ -127,7 +127,7 @@ export function ContactoForm({ servicio = '', placement }) {
         <label><span>¿Qué necesitas?</span>
           <select value={f.servicio} onChange={set('servicio')}>
             <option value="">Elige una opción</option>
-            {SERVICIOS_FORM.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+            {servicios.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
           </select>
         </label>
       </div>
@@ -158,6 +158,8 @@ export function ContactoSeccion({
   topic = 'una página web',
   titulo = '¿Cuánto cuesta lo que necesitas? Te respondemos hoy.',
   servicio = '',
+  desde = PLAN_BASE.precio,
+  servicios,
 }) {
   return (
     <section id="contacto" className="cx cx-seccion">
@@ -169,7 +171,7 @@ export function ContactoSeccion({
           <ul className="cx-lista">
             <li><Check aria-hidden="true" />Precio y plazo cerrados, por escrito, antes de partir</li>
             <li><Check aria-hidden="true" />Respuesta el mismo día hábil, sin llamadas de venta insistentes</li>
-            <li><Check aria-hidden="true" />Planes desde {clp(PLAN_BASE.precio)} + IVA</li>
+            <li><Check aria-hidden="true" />Planes desde {clp(desde)} + IVA</li>
           </ul>
           <div className="cx-alt">
             <p>¿Prefieres conversarlo?</p>
@@ -183,7 +185,7 @@ export function ContactoSeccion({
             </div>
           </div>
         </div>
-        <ContactoForm servicio={servicio} placement={placement} />
+        <ContactoForm servicio={servicio} placement={placement} servicios={servicios} />
       </div>
     </section>
   );
@@ -219,7 +221,10 @@ export function CtaFranja({
   );
 }
 
-/** Tarjetas de precio. `slugs` elige y ordena los planes (por defecto, todos); `detalle="todo"` muestra todo lo que incluye. */
+/**
+ * Tarjetas de precio. `slugs` elige y ordena los planes (por defecto, todos); `detalle="todo"` muestra todo lo que incluye.
+ * El botón principal es WhatsApp (lo más fácil para quien llega de un anuncio); el formulario queda de segunda opción.
+ */
 export function PlanesGrid({ placement, slugs, detalle = true }) {
   const planes = slugs ? slugs.map((s) => PLANES.find((p) => p.slug === s)).filter(Boolean) : PLANES;
   return (
@@ -237,10 +242,10 @@ export function PlanesGrid({ placement, slugs, detalle = true }) {
               </ul>
             )}
             <div className="cx-btns">
-              <IrACotizar servicio={p.slug} placement={`${placement}_plan_${p.slug}`}>Cotizar</IrACotizar>
-              <WhatsAppLink topic={p.topic} placement={`${placement}_plan_${p.slug}`} className="cx-btn cx-btn-ghost" aria-label={`Cotizar ${p.nombre} por WhatsApp`}>
-                <MessageCircle aria-hidden="true" /> WhatsApp
+              <WhatsAppLink topic={p.topic} placement={`${placement}_plan_${p.slug}`} className="cx-btn cx-btn-wa" aria-label={`Cotizar ${p.nombre} por WhatsApp`}>
+                <MessageCircle aria-hidden="true" /> Lo quiero
               </WhatsAppLink>
+              <IrACotizar servicio={p.slug} placement={`${placement}_plan_${p.slug}`} className="cx-btn cx-btn-ghost">Formulario</IrACotizar>
             </div>
           </article>
         ))}

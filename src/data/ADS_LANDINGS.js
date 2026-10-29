@@ -6,13 +6,14 @@
 // Copy rule: plain words for a business owner (no "SEO", "UX/UI", "leads"):
 // what they get, how much it costs and how fast.
 
-import { PLANES } from './PRECIOS.js'; // con extensión: scripts/generate-sitemap.mjs lo importa desde Node
+import { PAGO, PLANES, PLANES_FOCO } from './PRECIOS.js'; // con extensión: scripts/generate-sitemap.mjs lo importa desde Node
 
 export const ADS_LANDINGS = [
   {
     slug: 'paginas-web',
-    queries: ['precio pagina web chile', 'cotizar pagina web', 'diseño web profesional chile', 'pagina web para mi negocio'],
-    planes: ['landing-page', 'ecommerce', 'reservas-y-citas', 'web-empresarial'],
+    // Las búsquedas que más clics traen (Ads, 14–28 oct 2026).
+    queries: ['cotizar pagina web', 'precio pagina web', 'pagina web para mi negocio', 'landing page para empresas'],
+    planes: PLANES_FOCO,
     topic: 'una página web',
     eyebrow: 'Páginas web para negocios en Chile',
     title: 'Tu página web profesional,',
@@ -155,7 +156,11 @@ export const LANDING_FAQS = [
   {
     question: '¿Cuánto cuesta una página web?',
     answer:
-      `Una landing page cuesta ${precioDe('landing-page')} + IVA, una tienda online ${precioDe('ecommerce')} + IVA, un sistema de reservas ${precioDe('reservas-y-citas')} + IVA y una página empresarial de varias secciones ${precioDe('web-empresarial')} + IVA. Si necesitas algo extra, te lo cotizamos antes de empezar: el precio que acordamos por escrito es el que pagas.`,
+      `Una landing page cuesta ${precioDe('landing-page')} + IVA, una tienda online ${precioDe('ecommerce')} + IVA y una página empresarial de varias secciones ${precioDe('web-empresarial')} + IVA. Si necesitas algo extra, te lo cotizamos antes de empezar: el precio que acordamos por escrito es el que pagas.`,
+  },
+  {
+    question: '¿Cómo se paga?',
+    answer: `En dos partes: ${PAGO}. No pagas nada por cotizar.`,
   },
   {
     question: '¿Cuánto se demora?',

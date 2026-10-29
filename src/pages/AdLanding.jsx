@@ -9,10 +9,10 @@ import { ArrowRight, Check, MessageCircle, Phone, Tag } from 'lucide-react';
 import SEO from '../components/SEO';
 import { WhatsAppLink, CallLink } from '../components/ContactButtons';
 import { BuildingBrowser, QuienesSomos, SearchTyper, ShowcaseMarquee } from '../components/NhPiezas';
-import { ContactoSeccion, CtaFranja, IrACotizar, PlanBaseCard, PlanesGrid } from '../components/Conversion';
+import { ContactoSeccion, CtaFranja, IrACotizar, PlanesGrid } from '../components/Conversion';
 import { PHONE_DISPLAY } from '../config/contact';
 import { getAdLanding, PROCESS_STEPS, LANDING_FAQS } from '../data/ADS_LANDINGS';
-import { PLANES } from '../data/PRECIOS';
+import { PLANES, PLANES_FOCO, SERVICIOS_FOCO } from '../data/PRECIOS';
 import { SHOWCASE } from '../data/HOME';
 import ResenasSeccion from '../components/Resenas';
 import { LANDING_SERVICIO } from '../data/RESENAS';
@@ -25,8 +25,8 @@ export default function AdLanding() {
   const landing = getAdLanding(slug);
   if (!landing) return <Navigate to="/" replace />;
   const planes = landing.planes || [];
-  // El producto base (página con IA) solo compite con las páginas simples.
-  const conBase = planes.includes('landing-page');
+  // Si la landing solo ofrece planes del foco, el formulario también (menos opciones).
+  const soloFoco = planes.length > 0 && planes.every((s) => PLANES_FOCO.includes(s));
   const faqs = landing.faqs || LANDING_FAQS;
   const precios = PLANES.filter((p) => planes.includes(p.slug)).map((p) => p.precio);
   const desde = precios.length ? Math.min(...precios) : null;
@@ -72,6 +72,7 @@ export default function AdLanding() {
             </p>
             <div className="nh-trust">
               <span><i />Respondemos el mismo día hábil</span>
+              {desde && <span><i />Pagas 50% al partir y 50% al publicar</span>}
               <span><i />{SHOWCASE.length} proyectos publicados</span>
               <span><i />Empresa chilena, clientes en todo Chile</span>
             </div>
@@ -105,7 +106,6 @@ export default function AdLanding() {
             <h2>Cuánto cuesta, sin rodeos.</h2>
             <p className="nh-sub">Valores + IVA. Antes de empezar te mandamos por escrito qué incluye, el plazo y el precio final: el que acordamos es el que pagas.</p>
             <PlanesGrid slugs={planes} placement={`lp_${landing.slug}`} />
-            {conBase && <PlanBaseCard placement={`lp_${landing.slug}`} />}
             <p className="nh-sub" style={{ marginTop: 18 }}>
               <Link to="/precios" className="nh-service-more">Ver todo lo que incluye cada plan <ArrowRight aria-hidden="true" /></Link>
             </p>
@@ -152,7 +152,14 @@ export default function AdLanding() {
 
       <QuienesSomos />
 
-      <ContactoSeccion placement={`lp_${landing.slug}`} topic={landing.topic} servicio={planes[0]} titulo={`Cotiza ${landing.topic} hoy.`} />
+      <ContactoSeccion
+        placement={`lp_${landing.slug}`}
+        topic={landing.topic}
+        servicio={planes.length === 1 ? planes[0] : ''}
+        titulo={`Cotiza ${landing.topic} hoy.`}
+        {...(desde ? { desde } : {})}
+        {...(soloFoco ? { servicios: SERVICIOS_FOCO } : {})}
+      />
 
       {/* Preguntas frecuentes */}
       <section id="faq" className="nh-block">
