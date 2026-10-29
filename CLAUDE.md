@@ -99,6 +99,13 @@ npm run preview   # Preview production build locally
 - `supabase/functions/auto-generate-post` - Edge Function that writes blog posts with AI.
 - `insforge/` and `backend/` are leftovers from the previous InsForge backend and are not used by the frontend.
 
+**Documentation rule (every relevant change):** update this file in the same PR (the PR template, `.github/pull_request_template.md`, has the checkbox). Do not create a new doc if the one that fits already exists.
+- A new or changed panel tab, route, migration, table, cron, env var or back endpoint → its section in this file (list the migration file names there, in run order).
+- Tasks / client portal → `docs/tareas-clientes.md`; MCP for tasks → `docs/mcp-tareas-checklist.md`; personal data → `docs/ley-21719/` and bump `POLITICA.version` in `src/config/legal.js`.
+- If the change needs no documentation, say so in the PR checkbox (do not leave it blank).
+- This repo is PUBLIC: documentation and PR descriptions never carry client data, emails, phone numbers, tokens or conversation texts.
+- Chatbot behavior changes live in the back repo (`novautomatic/back_chat_next`). If a PR here still changes what a chatbot does, or the «Chatbots → Auditoría SofIA» screen itself, fill the «Registro para Qué hicimos» block of the PR template: a ready-to-paste row for the panel (`/admin?tab=auditoria-chatbots` → Qué hicimos → Registrar cambio) with the form fields: fecha, qué se encontró, qué se hizo, dónde, efecto esperado, estado (hecho / en prueba / por confirmar). A cloud session cannot write to the panel: a person pastes it.
+
 **Key patterns:**
 - **Routing:** SPA routing using `react-router-dom` with `vercel.json` rewrites for production. Any one-segment path (`/algo`) not listed in `vercel.json` is proxied to the Creador back as a client page (`/:slug` → `back-chat-next.vercel.app/creador/p/:slug`), so every new single-segment route must be added to `vercel.json` (→ `/spa`) AND to `RESERVADOS` in the back's `src/creador/slugs.js`.
 - **SEO:** per-page metadata via `src/components/SEO.jsx` (react-helmet-async); `scripts/generate-sitemap.mjs` builds the sitemap. Canonical host is `https://www.nexcommit.com` (apex 308-redirects to www) — never write URLs without `www`.
