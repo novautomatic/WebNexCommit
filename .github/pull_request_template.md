@@ -12,12 +12,18 @@
 <!--
 SOLO si el PR cambia lo que hace un chatbot o la pantalla «Chatbots → Auditoría SofIA».
 Si no, borra esta sección completa.
-Pégalo en nexcommit.com/admin?tab=auditoria-chatbots → Qué hicimos → Registrar cambio.
-Redáctalo en general, sin datos de clientas.
+
+Es IDÉNTICO al formulario del panel (nexcommit.com/admin?tab=auditoria-chatbots → Qué hicimos →
+Registrar cambio): mismas etiquetas, mismo orden. Se copia cada línea en su campo, sin reinterpretar nada.
+Déjalo ya listo así:
+  - «Dónde» lleva el repo y el NÚMERO del PR (ej.: WebNexCommit #27). Nunca «este PR». Como el número
+    no existe al abrir el PR, edita esta descripción apenas el PR exista.
+  - «Estado» es el real: «En prueba» hasta confirmar; al confirmarlo, cámbialo a «Hecho».
+  - Este repo es público: redáctalo en general, sin datos de clientas.
 -->
 - **Fecha:** AAAA-MM-DD
+- **Estado:** Hecho | En prueba | Por confirmar
 - **Qué se encontró:**
 - **Qué se hizo:**
-- **Dónde:** este PR, y la migración o ajuste de panel si aplica
+- **Dónde (PR, SQL, panel…):** WebNexCommit #NN
 - **Efecto esperado:**
-- **Estado:** Hecho | En prueba | Por confirmar
