@@ -44,7 +44,7 @@ function Fila({ c }) {
   });
   const nombre = c.nombre.split(' ')[0];
   const wa = c.telefono
-    ? `https://wa.me/${c.telefono}?text=${encodeURIComponent(`Hola ${nombre}! Soy de NexCommit, recibimos tu solicitud de cotización (${SERVICIO[c.servicio] || 'tu proyecto'}).`)}`
+    ? `https://wa.me/${String(c.telefono).replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${nombre}! Soy de NexCommit, recibimos tu solicitud de cotización (${SERVICIO[c.servicio] || 'tu proyecto'}).`)}`
     : null;
 
   return (

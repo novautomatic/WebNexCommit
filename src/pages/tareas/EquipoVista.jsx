@@ -39,7 +39,7 @@ export default function EquipoVista({ equipo, tareas }) {
                 </div>
               </div>
               <div className="text-xs text-[#9aafc3] w-40">
-                {m.whatsapp ? `+${m.whatsapp}` : <span className="text-amber-300">Sin WhatsApp (solo correo)</span>}
+                {m.whatsapp ? m.whatsapp : <span className="text-amber-300">Sin WhatsApp (solo correo)</span>}
               </div>
               <div className="text-xs text-[#9aafc3] w-24">{abiertas} abiertas</div>
               <button type="button" onClick={() => setEditando(m)} className="text-[#9aafc3] hover:text-white" aria-label={`Editar ${m.nombre}`}>
@@ -72,7 +72,8 @@ function MiembroForm({ miembro, onClose }) {
 
   const onSubmit = (e) => {
     e.preventDefault();
-    const whatsapp = f.whatsapp.replace(/\D/g, '').replace(/^00/, '');
+    // La base lo deja como +569 + los 8 últimos dígitos (trigger celular_antes_de_guardar).
+    const whatsapp = f.whatsapp.trim();
     guardar.mutate(
       {
         id: miembro.id,
@@ -102,8 +103,8 @@ function MiembroForm({ miembro, onClose }) {
           <input id="m-email" type="email" className={inputClass} value={f.email} onChange={set('email')} required />
         </div>
         <div>
-          <label className={labelClass} htmlFor="m-wsp">WhatsApp con código de país</label>
-          <input id="m-wsp" className={inputClass} value={f.whatsapp} onChange={set('whatsapp')} placeholder="56912345678" inputMode="tel" pattern="[+\d\s]{8,20}" />
+          <label className={labelClass} htmlFor="m-wsp">Celular (WhatsApp)</label>
+          <input id="m-wsp" className={inputClass} value={f.whatsapp} onChange={set('whatsapp')} placeholder="9 1234 5678" inputMode="tel" pattern="[+\d\s\-]{8,20}" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
