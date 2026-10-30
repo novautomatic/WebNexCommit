@@ -10,7 +10,7 @@
 
 ## Registro para «Qué hicimos»
 <!--
-SOLO si el PR cambia lo que hace un chatbot o la pantalla «Chatbots → Auditoría SofIA».
+SOLO si el PR cambia lo que hace un chatbot. Los cambios a la pantalla «Chatbots → Auditoría SofIA» (herramienta interna del panel) no lo llevan.
 Si no, borra esta sección completa.
 
 Es IDÉNTICO al formulario del panel (nexcommit.com/admin?tab=auditoria-chatbots → Qué hicimos →
