@@ -231,7 +231,7 @@ function FilaLead({ lead }) {
   };
 
   const wa = lead.telefono
-    ? `https://wa.me/${lead.telefono}?text=${encodeURIComponent(`Hola ${lead.nombre?.split(' ')[0] || ''}! Soy de NexCommit. Vi que creaste tu página ${p ? `nexcommit.com/${p.slug}` : 'de prueba'} y quería contarte cómo dejarla permanente.`)}`
+    ? `https://wa.me/${String(lead.telefono).replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${lead.nombre?.split(' ')[0] || ''}! Soy de NexCommit. Vi que creaste tu página ${p ? `nexcommit.com/${p.slug}` : 'de prueba'} y quería contarte cómo dejarla permanente.`)}`
     : null;
 
   return (
