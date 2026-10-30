@@ -27,6 +27,8 @@ const HORAS_RESUMEN = ['16:00', '20:00'];
 const MUESTRA_RESUMEN = {
   desde: '20:00 del día anterior', hasta: '16:00', conversaciones: '14', mensajes: '63', derivadas: '2',
   resumen: 'Aquí va el resumen del tramo hecho con IA: de qué se habló, qué pidieron más y qué quedó pendiente.',
+  scripts_estado: 'los 3 OK',
+  scripts_ads: '✅ NexCommit: corrió hoy 07:04, 38 reportes ok · ✅ Acupuntura MTCH: corrió hoy 07:02, 34 reportes ok · ✅ Dye Tales: corrió hoy 07:03, 38 reportes ok',
 };
 // Cada corte resume desde el corte anterior (el último de la lista mira al día anterior).
 function tramos(horas) {
@@ -36,7 +38,7 @@ function tramos(horas) {
 const FRECUENCIAS = { una_vez: 'Una vez', diaria: 'Todos los días', semanal: 'Cada semana', mensual: 'Cada mes' };
 const CATEGORIAS = { saldo: 'Saldo OpenAI', cobros: 'Cobros', pagos: 'Pagos', marketing: 'Marketing', equipo: 'Equipo', chatbots: 'Chatbots', general: 'General' };
 const VARIABLES = ['aviso', 'fecha', 'hora', 'saldo_usd', 'saldo_clp', 'umbral_usd', 'umbral_clp', 'enlace_recarga', 'panel',
-  'chatbot', 'desde', 'hasta', 'conversaciones', 'mensajes', 'derivadas', 'resumen'];
+  'chatbot', 'desde', 'hasta', 'conversaciones', 'mensajes', 'derivadas', 'resumen', 'scripts_estado', 'scripts_ads'];
 
 const usd = (n) => `US$ ${Number(n || 0).toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const clp = (n) => `$${Math.round(Number(n || 0)).toLocaleString('es-CL')}`;
