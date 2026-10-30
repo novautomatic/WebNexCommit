@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Copy, Eye, EyeOff, KeyRound, LifeBuoy, Lock, Mail, Pencil, Plus, RefreshCw, Search, ShieldCheck, Trash2, Unlock } from 'lucide-react';
+import { Copy, Eye, EyeOff, FolderKey, KeyRound, LifeBuoy, Lock, Mail, Pencil, Plus, RefreshCw, Search, ShieldCheck, Trash2, Unlock } from 'lucide-react';
 import { useAuth } from '../../components/AuthContext';
 import {
   useBovedaConfig,
@@ -25,8 +25,9 @@ import {
   envolverConNuevaPassword,
   generarClave,
 } from '../../lib/boveda';
+import { useClientes, useProyectoClientes, useProyectos } from '../../hooks/tareas';
 import { hostDe } from '../configuracion/utils';
-import { ErrorBox, Modal, btnGhost, btnPrimary, card, inputClass, labelClass } from '../tareas/ui';
+import { ErrorBox, Modal, Pill, btnGhost, btnPrimary, card, inputClass, labelClass } from '../tareas/ui';
 
 const BLOQUEO_MS = 5 * 60 * 1000; // lock after 5 minutes without activity
 const LIMPIAR_PORTAPAPELES_MS = 30 * 1000;
@@ -419,8 +420,13 @@ function ReiniciarSinRespaldo() {
 function Boveda({ config, estado, llave, onBloquear }) {
   const { data: filas = [], isLoading, error } = useBovedaEntradas(true);
   const eliminar = useEliminarEntradaBoveda();
+  const { data: proyectos = [] } = useProyectos();
+  const { data: clientes = [] } = useClientes();
+  const { data: vinculos = [] } = useProyectoClientes();
   const [items, setItems] = useState([]);
   const [busqueda, setBusqueda] = useState('');
+  // 'todos' | 'sin' (sin proyecto) | id del proyecto
+  const [filtro, setFiltro] = useState('todos');
   const [editando, setEditando] = useState(null);
   const [cambiandoPass, setCambiandoPass] = useState(false);
   const [visibles, setVisibles] = useState(() => new Set());
@@ -433,9 +439,9 @@ function Boveda({ config, estado, llave, onBloquear }) {
     Promise.all(
       filas.map(async (f) => {
         try {
-          return { id: f.id, datos: f.datos, ...(await descifrarDatos(llave, f.datos)) };
+          return { id: f.id, datos: f.datos, proyecto_id: f.proyecto_id, ...(await descifrarDatos(llave, f.datos)) };
         } catch {
-          return { id: f.id, datos: f.datos, sitio: '(no se pudo descifrar)', usuario: '', clave: '', error: true };
+          return { id: f.id, datos: f.datos, proyecto_id: f.proyecto_id, sitio: '(no se pudo descifrar)', usuario: '', clave: '', error: true };
         }
       }),
     ).then((r) => vigente && setItems(r));
@@ -482,10 +488,27 @@ function Boveda({ config, estado, llave, onBloquear }) {
     if (window.confirm(`¿Eliminar la clave de "${it.sitio}"? No se puede deshacer.`)) eliminar.mutate(it.id);
   };
 
+  const clientesDe = (proyectoId) =>
+    vinculos
+      .filter((v) => v.proyecto_id === proyectoId)
+      .map((v) => clientes.find((c) => c.id === v.cliente_id)?.nombre)
+      .filter(Boolean);
+  const nombreProyecto = (id) => proyectos.find((p) => p.id === id)?.nombre;
+
+  const cuenta = new Map();
+  items.forEach((it) => cuenta.set(it.proyecto_id || 'sin', (cuenta.get(it.proyecto_id || 'sin') || 0) + 1));
+  // Archived projects only show up while they still hold keys.
+  const proyectosVisibles = proyectos
+    .filter((p) => !p.archivado || cuenta.has(p.id))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+
   const q = busqueda.trim().toLowerCase();
+  const textoDe = (it) => `${it.sitio} ${it.usuario} ${nombreProyecto(it.proyecto_id) || ''} ${clientesDe(it.proyecto_id).join(' ')}`.toLowerCase();
+  const enFiltro = (it) => filtro === 'todos' || (filtro === 'sin' ? !it.proyecto_id : it.proyecto_id === filtro);
   const lista = items
-    .filter((it) => !q || `${it.sitio} ${it.usuario}`.toLowerCase().includes(q))
+    .filter((it) => enFiltro(it) && (!q || textoDe(it).includes(q)))
     .sort((a, b) => a.sitio.localeCompare(b.sitio, 'es'));
+  const proyectoActual = proyectos.find((p) => p.id === filtro);
 
   return (
     <>
@@ -499,15 +522,15 @@ function Boveda({ config, estado, llave, onBloquear }) {
           <button type="button" className={btnGhost} onClick={onBloquear}>
             <Lock className="w-4 h-4" /> Bloquear
           </button>
-          <button type="button" className={btnPrimary} onClick={() => setEditando({})}>
+          <button type="button" className={btnPrimary} onClick={() => setEditando({ proyecto_id: proyectoActual?.id || '' })}>
             <Plus className="w-4 h-4" /> Agregar clave
           </button>
         </div>
       </Encabezado>
 
-      <div className="relative mb-4 max-w-sm">
+      <div className="relative mb-4 max-w-md">
         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9aafc3]" />
-        <input className={`${inputClass} pl-9`} placeholder="Buscar por web o usuario" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} aria-label="Buscar" />
+        <input className={`${inputClass} pl-9`} placeholder="Buscar por web, usuario, proyecto o cliente" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} aria-label="Buscar" />
       </div>
 
       <ErrorBox error={error || eliminar.error} />
@@ -518,57 +541,107 @@ function Boveda({ config, estado, llave, onBloquear }) {
           Aún no hay claves guardadas. Agrega la primera con «Agregar clave».
         </div>
       )}
-      {!isLoading && items.length > 0 && lista.length === 0 && (
-        <div className={`${card} px-4 py-8 text-center text-sm text-[#9aafc3]`}>Sin resultados para «{busqueda}».</div>
+
+      {items.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)] gap-4 items-start">
+          <nav aria-label="Proyectos" className={`${card} p-2 space-y-0.5 max-h-72 lg:max-h-[70vh] overflow-y-auto`}>
+            <FiltroProyecto activo={filtro === 'todos'} onClick={() => setFiltro('todos')} nombre="Todas las claves" cantidad={items.length} />
+            {proyectosVisibles.map((p) => (
+              <FiltroProyecto
+                key={p.id}
+                activo={filtro === p.id}
+                onClick={() => setFiltro(p.id)}
+                nombre={p.nombre}
+                detalle={clientesDe(p.id).join(', ')}
+                cantidad={cuenta.get(p.id) || 0}
+                color={p.color}
+              />
+            ))}
+            <FiltroProyecto activo={filtro === 'sin'} onClick={() => setFiltro('sin')} nombre="Sin proyecto" cantidad={cuenta.get('sin') || 0} />
+          </nav>
+
+          <div className="min-w-0">
+            {proyectoActual && (
+              <p className="text-sm text-white font-medium mb-2 flex flex-wrap items-center gap-2">
+                <FolderKey className="w-4 h-4 text-[#67c8f3]" /> {proyectoActual.nombre}
+                {clientesDe(proyectoActual.id).map((c) => <Pill key={c} color="#e0a64b">{c}</Pill>)}
+              </p>
+            )}
+            {lista.length === 0 && (
+              <div className={`${card} px-4 py-8 text-center text-sm text-[#9aafc3]`}>
+                {q ? `Sin resultados para «${busqueda}».` : 'No hay claves aquí todavía. Agrega una con «Agregar clave».'}
+              </div>
+            )}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+            {lista.map((it) => {
+              const link = enlaceDe(it.sitio);
+              const visible = visibles.has(it.id);
+              const proyecto = filtro === 'todos' ? nombreProyecto(it.proyecto_id) : null;
+              return (
+                <div key={it.id} className={`${card} p-4 space-y-2`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      {link ? (
+                        <a href={link} target="_blank" rel="noopener noreferrer" className="block text-sm font-medium text-white hover:text-[#67c8f3] truncate">{it.sitio}</a>
+                      ) : (
+                        <span className="block text-sm font-medium text-white truncate">{it.sitio}</span>
+                      )}
+                      {link && <span className="block text-[11px] text-[#9aafc3] truncate">{hostDe(link)}</span>}
+                      {proyecto && <span className="block text-[11px] text-[#67c8f3] truncate">{proyecto}</span>}
+                    </div>
+                    {!it.error && (
+                      <div className="flex gap-3 shrink-0">
+                        <button type="button" onClick={() => setEditando(it)} className="text-[#9aafc3] hover:text-white" aria-label={`Editar ${it.sitio}`}><Pencil className="w-4 h-4" /></button>
+                        <button type="button" onClick={() => borrar(it)} className="text-[#9aafc3] hover:text-red-400" aria-label={`Eliminar ${it.sitio}`}><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    )}
+                  </div>
+                  {!it.error && (
+                    <>
+                      <Campo etiqueta="Usuario" valor={it.usuario || '—'} onCopiar={it.usuario ? () => copiar(it.usuario, 'Usuario') : null} />
+                      <Campo
+                        etiqueta="Clave"
+                        valor={visible ? it.clave : '••••••••••'}
+                        mono
+                        onCopiar={() => copiar(it.clave, 'Clave')}
+                        extra={
+                          <button type="button" onClick={() => alternar(it.id)} className="text-[#9aafc3] hover:text-white" aria-label={visible ? 'Ocultar clave' : 'Mostrar clave'}>
+                            {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        }
+                      />
+                      {it.notas && <p className="text-xs text-[#9aafc3] whitespace-pre-wrap break-words">{it.notas}</p>}
+                    </>
+                  )}
+                </div>
+              );
+            })}
+            </div>
+          </div>
+        </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {lista.map((it) => {
-          const link = enlaceDe(it.sitio);
-          const visible = visibles.has(it.id);
-          return (
-            <div key={it.id} className={`${card} p-4 space-y-2`}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  {link ? (
-                    <a href={link} target="_blank" rel="noopener noreferrer" className="block text-sm font-medium text-white hover:text-[#67c8f3] truncate">{it.sitio}</a>
-                  ) : (
-                    <span className="block text-sm font-medium text-white truncate">{it.sitio}</span>
-                  )}
-                  {link && <span className="block text-[11px] text-[#9aafc3] truncate">{hostDe(link)}</span>}
-                </div>
-                {!it.error && (
-                  <div className="flex gap-3 shrink-0">
-                    <button type="button" onClick={() => setEditando(it)} className="text-[#9aafc3] hover:text-white" aria-label={`Editar ${it.sitio}`}><Pencil className="w-4 h-4" /></button>
-                    <button type="button" onClick={() => borrar(it)} className="text-[#9aafc3] hover:text-red-400" aria-label={`Eliminar ${it.sitio}`}><Trash2 className="w-4 h-4" /></button>
-                  </div>
-                )}
-              </div>
-              {!it.error && (
-                <>
-                  <Campo etiqueta="Usuario" valor={it.usuario || '—'} onCopiar={it.usuario ? () => copiar(it.usuario, 'Usuario') : null} />
-                  <Campo
-                    etiqueta="Clave"
-                    valor={visible ? it.clave : '••••••••••'}
-                    mono
-                    onCopiar={() => copiar(it.clave, 'Clave')}
-                    extra={
-                      <button type="button" onClick={() => alternar(it.id)} className="text-[#9aafc3] hover:text-white" aria-label={visible ? 'Ocultar clave' : 'Mostrar clave'}>
-                        {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    }
-                  />
-                  {it.notas && <p className="text-xs text-[#9aafc3] whitespace-pre-wrap break-words">{it.notas}</p>}
-                </>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {editando && <EntradaForm entrada={editando} llave={llave} onClose={() => setEditando(null)} />}
+      {editando && <EntradaForm entrada={editando} llave={llave} proyectos={proyectos} clientesDe={clientesDe} onClose={() => setEditando(null)} />}
       {cambiandoPass && <CambiarPassword config={config} onClose={() => setCambiandoPass(false)} />}
     </>
+  );
+}
+
+function FiltroProyecto({ activo, onClick, nombre, detalle, cantidad, color }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-current={activo ? 'true' : undefined}
+      className={`w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors ${activo ? 'bg-[#248bde]/20 text-white' : 'text-[#c5d3e0] hover:bg-white/5'}`}
+    >
+      {color && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} aria-hidden="true" />}
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm truncate">{nombre}</span>
+        {detalle && <span className="block text-[11px] text-[#9aafc3] truncate">{detalle}</span>}
+      </span>
+      <span className="text-xs text-[#9aafc3] shrink-0">{cantidad}</span>
+    </button>
   );
 }
 
@@ -587,7 +660,7 @@ function Campo({ etiqueta, valor, onCopiar, extra, mono }) {
   );
 }
 
-function EntradaForm({ entrada, llave, onClose }) {
+function EntradaForm({ entrada, llave, proyectos, clientesDe, onClose }) {
   const guardar = useGuardarEntradaBoveda();
   const [errorLocal, setErrorLocal] = useState(null);
   const [verClave, setVerClave] = useState(!entrada.id);
@@ -596,6 +669,7 @@ function EntradaForm({ entrada, llave, onClose }) {
     usuario: entrada.usuario || '',
     clave: entrada.clave || '',
     notas: entrada.notas || '',
+    proyecto_id: entrada.proyecto_id || '',
   });
   const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }));
 
@@ -609,7 +683,7 @@ function EntradaForm({ entrada, llave, onClose }) {
         clave: f.clave,
         notas: f.notas.trim(),
       });
-      guardar.mutate({ id: entrada.id, datos }, { onSuccess: onClose });
+      guardar.mutate({ id: entrada.id, datos, proyecto_id: f.proyecto_id || null }, { onSuccess: onClose });
     } catch (err) {
       setErrorLocal(err);
     }
@@ -618,6 +692,19 @@ function EntradaForm({ entrada, llave, onClose }) {
   return (
     <Modal titulo={entrada.id ? 'Editar clave' : 'Agregar clave'} onClose={onClose} ancho="max-w-lg">
       <form onSubmit={onSubmit} className="space-y-4">
+        <div>
+          <label className={labelClass} htmlFor="bv-proyecto">Proyecto o cliente (opcional)</label>
+          <select id="bv-proyecto" className={inputClass} value={f.proyecto_id} onChange={set('proyecto_id')}>
+            <option value="">Sin proyecto</option>
+            {proyectos
+              .filter((p) => !p.archivado || p.id === f.proyecto_id)
+              .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
+              .map((p) => {
+                const cs = clientesDe(p.id);
+                return <option key={p.id} value={p.id}>{p.nombre}{cs.length ? ` · ${cs.join(', ')}` : ''}</option>;
+              })}
+          </select>
+        </div>
         <div>
           <label className={labelClass} htmlFor="bv-sitio">Web o servicio</label>
           <input id="bv-sitio" className={inputClass} value={f.sitio} onChange={set('sitio')} maxLength={200} required autoFocus placeholder="github.com" />
