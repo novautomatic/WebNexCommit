@@ -54,6 +54,11 @@ export const useCrearCambio = (chatbot) => useEscribir((cuerpo) => llamar('/camb
 export const useEditarCambio = () => useEscribir(({ id, ...cuerpo }) => llamar(`/cambios/${id}`, { metodo: 'PATCH', cuerpo }));
 export const useBorrarCambio = () => useEscribir((id) => llamar(`/cambios/${id}`, { metodo: 'DELETE' }));
 
+// Comentarios de cada nota de «Qué hicimos»: se marcan resueltos cuando se atienden.
+export const useCrearComentario = () => useEscribir(({ cambioId, texto }) => llamar(`/cambios/${cambioId}/comentarios`, { metodo: 'POST', cuerpo: { texto } }));
+export const useEditarComentario = () => useEscribir(({ id, ...cuerpo }) => llamar(`/comentarios/${id}`, { metodo: 'PATCH', cuerpo }));
+export const useBorrarComentario = () => useEscribir((id) => llamar(`/comentarios/${id}`, { metodo: 'DELETE' }));
+
 export const useCrearPendiente = (chatbot) => useEscribir((cuerpo) => llamar('/pendientes', { metodo: 'POST', cuerpo: { chatbot, ...cuerpo } }));
 export const useEditarPendiente = () => useEscribir(({ id, ...cuerpo }) => llamar(`/pendientes/${id}`, { metodo: 'PATCH', cuerpo }));
 export const useBorrarPendiente = () => useEscribir((id) => llamar(`/pendientes/${id}`, { metodo: 'DELETE' }));
