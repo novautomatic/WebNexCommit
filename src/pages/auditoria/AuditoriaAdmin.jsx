@@ -21,6 +21,8 @@ export default function AuditoriaAdmin() {
   const [mes, setMes] = useState(() => claveMes());
   const { data: datos, isLoading, error } = useAuditoriaDatos(chatbot);
   const abiertos = (datos?.pendientes || []).filter((p) => !p.hecho).length;
+  // Notas de «Qué hicimos» con al menos un comentario sin resolver.
+  const porIterar = new Set((datos?.comentarios || []).filter((k) => !k.resuelto).map((k) => k.cambio_id)).size;
 
   return (
     <div className="space-y-4 max-w-7xl">
@@ -42,7 +44,9 @@ export default function AuditoriaAdmin() {
         {PESTANAS.map((t) => (
           <button key={t.id} type="button" onClick={() => setPestana(t.id)}
             className={`px-3 py-2 text-sm whitespace-nowrap border-b-2 -mb-px ${pestana === t.id ? 'border-[#3987e5] text-white' : 'border-transparent text-[#9aafc3] hover:text-white'}`}>
-            {t.label}{t.id === 'pendientes' && abiertos > 0 && <span className="ml-1.5 rounded-full bg-[#fab219] px-1.5 text-[10px] font-bold text-[#0a1628]">{abiertos}</span>}
+            {t.label}
+            {t.id === 'pendientes' && abiertos > 0 && <span className="ml-1.5 rounded-full bg-[#fab219] px-1.5 text-[10px] font-bold text-[#0a1628]">{abiertos}</span>}
+            {t.id === 'cambios' && porIterar > 0 && <span className="ml-1.5 rounded-full bg-[#fab219] px-1.5 text-[10px] font-bold text-[#0a1628]" title="Notas con comentarios sin resolver">{porIterar}</span>}
           </button>
         ))}
       </nav>

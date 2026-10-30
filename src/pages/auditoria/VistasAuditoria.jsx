@@ -2,10 +2,10 @@
 // clienta y Pendientes. Estructura genérica en ./contenido.js; los datos vienen del back
 // (src/hooks/auditoria.js).
 import { useState } from 'react';
-import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardCheck, Minus, Pencil, Plus, Save, Trash2 } from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardCheck, MessageSquare, Minus, Pencil, Plus, Save, Trash2 } from 'lucide-react';
 import {
-  useBorrarCambio, useBorrarPendiente, useCrearCambio, useCrearPendiente, useEditarCambio,
-  useEditarPendiente, useGuardarMes, useIndicadores,
+  useBorrarCambio, useBorrarComentario, useBorrarPendiente, useCrearCambio, useCrearComentario, useCrearPendiente,
+  useEditarCambio, useEditarComentario, useEditarPendiente, useGuardarMes, useIndicadores,
 } from '../../hooks/auditoria';
 import { ErrorBox, Modal, Pill, btnGhost, btnPrimary, card, inputClass, labelClass } from '../tareas/ui';
 import { Kpi, Seccion, Vacio } from '../google/graficos';
@@ -196,13 +196,81 @@ function FormCambio({ inicial, onGuardar, onCerrar, guardando, error }) {
   );
 }
 
+const AMBAR = '#fab219';
+const fechaHora = (iso) => new Date(iso).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+const autorDe = (email) => (email ? email.split('@')[0] : '');
+
+// Hilo de comentarios de una nota: lo que pidió la clienta al presentar, con casilla «Resuelto».
+function Comentarios({ cambioId, comentarios }) {
+  const crear = useCrearComentario();
+  const editar = useEditarComentario();
+  const borrar = useBorrarComentario();
+  const [texto, setTexto] = useState('');
+
+  const agregar = (e) => {
+    e.preventDefault();
+    if (!texto.trim()) return;
+    crear.mutate({ cambioId, texto }, { onSuccess: () => setTexto('') });
+  };
+
+  return (
+    <div className="mt-3 border-t border-white/10 pt-3 space-y-2">
+      {comentarios.map((k) => (
+        <div key={k.id} className={`flex items-start gap-2 rounded-lg px-3 py-2 ${k.resuelto ? 'bg-white/[0.02]' : 'bg-[#fab219]/10 border border-[#fab219]/30'}`}>
+          <input
+            type="checkbox"
+            className="mt-1 h-4 w-4 shrink-0 accent-[#3ecf8e]"
+            checked={k.resuelto}
+            disabled={editar.isPending}
+            onChange={(e) => editar.mutate({ id: k.id, resuelto: e.target.checked })}
+            aria-label={k.resuelto ? 'Marcar como sin resolver' : 'Marcar como resuelto'}
+          />
+          <div className="min-w-0 flex-1">
+            <p className={`text-sm whitespace-pre-wrap break-words ${k.resuelto ? 'text-[#5f7891] line-through' : 'text-[#e6eef7]'}`}>{k.texto}</p>
+            <p className="mt-0.5 text-[11px] text-[#5f7891]">
+              {autorDe(k.creado_por)} · {fechaHora(k.created_at)}
+              {k.resuelto && ` · resuelto${k.resuelto_por ? ` por ${autorDe(k.resuelto_por)}` : ''}${k.resuelto_at ? ` el ${fechaHora(k.resuelto_at)}` : ''}`}
+            </p>
+          </div>
+          <button type="button" className="text-[#5f7891] hover:text-red-400 shrink-0" aria-label="Borrar comentario"
+            onClick={() => { if (window.confirm('¿Borrar este comentario?')) borrar.mutate(k.id); }}>
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ))}
+      <form onSubmit={agregar} className="flex gap-2">
+        <textarea
+          className={`${inputClass} min-h-[2.5rem]`}
+          rows={2}
+          maxLength={2000}
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+          placeholder="Qué quiere cambiar o iterar la clienta…"
+          aria-label="Nuevo comentario"
+        />
+        <button type="submit" className={`${btnPrimary} self-start`} disabled={crear.isPending || !texto.trim()}>Agregar</button>
+      </form>
+      <ErrorBox error={crear.error || editar.error || borrar.error} />
+    </div>
+  );
+}
+
 export function VistaCambios({ chatbot, datos }) {
   const crear = useCrearCambio(chatbot);
   const editar = useEditarCambio();
   const borrar = useBorrarCambio();
   const [edicion, setEdicion] = useState(null);
   const [estado, setEstado] = useState('');
-  const lista = (datos.cambios || []).filter((c) => !estado || c.estado === estado);
+  const [soloPendientes, setSoloPendientes] = useState(false);
+  // id → true/false cuando la persona abre o cierra el hilo; sin tocar, se abre solo si hay algo sin resolver.
+  const [hilos, setHilos] = useState({});
+  const porNota = new Map();
+  (datos.comentarios || []).forEach((k) => porNota.set(k.cambio_id, [...(porNota.get(k.cambio_id) || []), k]));
+  const sinResolver = (id) => (porNota.get(id) || []).filter((k) => !k.resuelto).length;
+  const totalSinResolver = (datos.cambios || []).filter((c) => sinResolver(c.id) > 0).length;
+  const lista = (datos.cambios || [])
+    .filter((c) => !estado || c.estado === estado)
+    .filter((c) => !soloPendientes || sinResolver(c.id) > 0);
   const vacio = { fecha: hoyISO(), hallazgo: '', accion: '', donde: '', efecto: '', estado: 'hecho' };
 
   const guardar = (f) => {
@@ -213,23 +281,42 @@ export function VistaCambios({ chatbot, datos }) {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <select className={`${inputClass} !w-auto`} value={estado} onChange={(e) => setEstado(e.target.value)} aria-label="Filtrar por estado">
-          <option value="">Todos los estados</option>
-          {Object.entries(ESTADOS_CAMBIO).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-        </select>
+        <div className="flex flex-wrap items-center gap-2">
+          <select className={`${inputClass} !w-auto`} value={estado} onChange={(e) => setEstado(e.target.value)} aria-label="Filtrar por estado">
+            <option value="">Todos los estados</option>
+            {Object.entries(ESTADOS_CAMBIO).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+          </select>
+          <button
+            type="button"
+            className={`${btnGhost} ${soloPendientes ? '!border-[#fab219] !text-[#fab219]' : ''}`}
+            aria-pressed={soloPendientes}
+            onClick={() => setSoloPendientes((v) => !v)}
+          >
+            <MessageSquare className="w-4 h-4" /> Con comentarios sin resolver
+            {totalSinResolver > 0 && <span className="rounded-full bg-[#fab219] px-1.5 text-[10px] font-bold text-[#0a1628]">{totalSinResolver}</span>}
+          </button>
+        </div>
         <button type="button" className={btnPrimary} onClick={() => setEdicion(vacio)}><Plus className="w-4 h-4" /> Registrar cambio</button>
       </div>
       <ErrorBox error={borrar.error} />
-      {lista.length === 0 && <div className={`${card} p-4`}><Vacio>Sin cambios registrados.</Vacio></div>}
-      {lista.map((c) => (
-        <article key={c.id} className={`${card} p-4`}>
+      {lista.length === 0 && <div className={`${card} p-4`}><Vacio>{soloPendientes ? 'No hay notas con comentarios sin resolver.' : 'Sin cambios registrados.'}</Vacio></div>}
+      {lista.map((c) => {
+        const comentarios = porNota.get(c.id) || [];
+        const pendientes = sinResolver(c.id);
+        const abierto = hilos[c.id] ?? pendientes > 0;
+        return (
+        <article key={c.id} className={`${card} p-4 ${pendientes > 0 ? '!border-[#fab219]/60 shadow-[0_0_0_1px_rgba(250,178,25,0.25)]' : ''}`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs text-[#9aafc3]">
               <span className="tabular-nums">{fechaCorta(c.fecha)}</span>
               <Pill color={ESTADOS_CAMBIO[c.estado]?.color || '#9aafc3'}>{ESTADOS_CAMBIO[c.estado]?.label || c.estado}</Pill>
+              {pendientes > 0 && <Pill color={AMBAR}><MessageSquare className="w-3 h-3" /> {pendientes} sin resolver</Pill>}
               {c.donde && <span className="text-[#5f7891]">· {c.donde}</span>}
             </div>
             <div className="flex gap-1">
+              <button type="button" className={btnGhost} aria-expanded={abierto} onClick={() => setHilos((h) => ({ ...h, [c.id]: !abierto }))}>
+                <MessageSquare className="w-3.5 h-3.5" /> {comentarios.length > 0 ? `Comentarios (${comentarios.length})` : 'Comentar'}
+              </button>
               <button type="button" className={btnGhost} onClick={() => setEdicion(c)} aria-label="Editar"><Pencil className="w-3.5 h-3.5" /></button>
               <button type="button" className={btnGhost} aria-label="Borrar" onClick={() => { if (window.confirm('¿Borrar este cambio del registro?')) borrar.mutate(c.id); }}><Trash2 className="w-3.5 h-3.5" /></button>
             </div>
@@ -239,8 +326,10 @@ export function VistaCambios({ chatbot, datos }) {
             <div><dt className="text-[11px] uppercase tracking-wider text-[#5f7891]">Se hizo</dt><dd className="text-[#c4d3e2]">{c.accion}</dd></div>
             <div><dt className="text-[11px] uppercase tracking-wider text-[#5f7891]">Efecto esperado</dt><dd className="text-[#c4d3e2]">{c.efecto || '–'}</dd></div>
           </dl>
+          {abierto && <Comentarios cambioId={c.id} comentarios={comentarios} />}
         </article>
-      ))}
+        );
+      })}
       {edicion && (
         <FormCambio inicial={edicion} onCerrar={() => setEdicion(null)} onGuardar={guardar}
           guardando={crear.isPending || editar.isPending} error={crear.error || editar.error} />
