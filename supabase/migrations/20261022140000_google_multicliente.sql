@@ -51,7 +51,7 @@ DO $$
 BEGIN
   IF to_regclass('supabase_migrations.schema_migrations') IS NOT NULL THEN
     INSERT INTO supabase_migrations.schema_migrations (version, name)
-    VALUES ('20261022120000', 'google_multicliente')
+    VALUES ('20261022140000', 'google_multicliente')
     ON CONFLICT DO NOTHING;
   END IF;
 END $$;

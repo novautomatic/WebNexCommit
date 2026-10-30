@@ -180,17 +180,24 @@ function BotonEnviarCodigo({ envio }) {
 }
 
 const CampoCodigo = ({ value, onChange }) => (
-  <input
-    id="bv-codigo"
-    className={`${inputClass} text-center text-xl tracking-[0.4em] font-mono`}
-    value={value}
-    onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
-    inputMode="numeric"
-    autoComplete="one-time-code"
-    maxLength={6}
-    placeholder="000000"
-    required
-  />
+  <>
+    <input
+      id="bv-codigo"
+      className={`${inputClass} text-center text-xl tracking-[0.4em] font-mono`}
+      value={value}
+      onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+      inputMode="numeric"
+      autoComplete="one-time-code"
+      maxLength={6}
+      placeholder="000000"
+      required
+    />
+    {value.length > 0 && value.length < 6 && (
+      <p className="mt-1 text-xs text-amber-200">
+        Faltan {6 - value.length} {6 - value.length === 1 ? 'dígito' : 'dígitos'}: el código tiene 6.
+      </p>
+    )}
+  </>
 );
 
 function CrearBoveda({ onListo }) {

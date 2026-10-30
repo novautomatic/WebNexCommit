@@ -70,9 +70,10 @@ BEGIN
   IF EXISTS (SELECT 1 FROM public.boveda_config WHERE clave_respaldo IS NOT NULL) THEN
     RAISE EXCEPTION 'Esta bóveda tiene respaldo: usa «Olvidé mi contraseña» en vez de borrarla.';
   END IF;
-  DELETE FROM public.boveda_entradas;
+  -- WHERE true: pg_safeupdate rechaza DELETE sin WHERE.
+  DELETE FROM public.boveda_entradas WHERE true;
   GET DIAGNOSTICS borradas = ROW_COUNT;
-  DELETE FROM public.boveda_config;
+  DELETE FROM public.boveda_config WHERE true;
   RETURN borradas;
 END $$;
 

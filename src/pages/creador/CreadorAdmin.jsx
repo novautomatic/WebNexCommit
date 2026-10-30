@@ -370,7 +370,7 @@ export default function CreadorAdmin() {
         <h2 className="text-white font-medium flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#67c8f3]" /> Creador de páginas</h2>
         <p className="text-sm text-[#9aafc3] max-w-3xl">
           Leads de <a href={`${SITIO}/crea-tu-web`} target="_blank" rel="noopener noreferrer" className="text-[#67c8f3] hover:underline">/crea-tu-web</a>.
-          Cada página publicada crea una tarea en «Ventas – Creador web». Datos personales: úsalos solo para contactarlos por su página
+          Cada página publicada crea una tarea en «Ventas y Campañas Ads». Datos personales: úsalos solo para contactarlos por su página
           (las ofertas generales, solo a quienes marcaron «Acepta ofertas»). El consumo de IA de cada página está en la sección OpenAI.
         </p>
       </div>

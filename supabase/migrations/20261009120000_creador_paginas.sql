@@ -161,13 +161,9 @@ DROP TRIGGER IF EXISTS creador_config_updated ON public.creador_config;
 CREATE TRIGGER creador_config_updated BEFORE UPDATE ON public.creador_config
   FOR EACH ROW EXECUTE FUNCTION public.creador_tocar_updated_at();
 
--- ─── Área de ventas + tarea por cada página publicada ──────────────────────
-INSERT INTO public.proyectos (nombre, descripcion, color, tipo, area_responsable_id)
-SELECT 'Ventas – Creador web',
-       'Leads que crearon su página de prueba en nexcommit.com/crea-tu-web. Contactar antes de que venza.',
-       '#22d3ee', 'area', c.responsable_id
-  FROM public.creador_config c WHERE c.id = 1
-ON CONFLICT ((lower(nombre))) DO NOTHING;
+-- ─── Tarea por cada página publicada (área «Ventas y Campañas Ads») ─────────
+-- Antes existía un área propia «Ventas – Creador web»; se unió con Ventas y
+-- Campañas Ads el 23-10-2026 (migración 20261023120000).
 
 CREATE OR REPLACE FUNCTION public.creador_tarea_por_pagina()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
@@ -177,7 +173,7 @@ DECLARE
   resp   uuid;
 BEGIN
   SELECT * INTO l FROM public.creador_leads WHERE id = NEW.lead_id;
-  SELECT * INTO area FROM public.proyectos WHERE lower(nombre) = lower('Ventas – Creador web') AND tipo = 'area';
+  SELECT * INTO area FROM public.proyectos WHERE lower(nombre) = lower('Ventas y Campañas Ads') AND tipo = 'area';
   IF area.id IS NULL THEN
     RETURN NEW;
   END IF;
