@@ -1,6 +1,7 @@
 // Data layer for the team password vault. Tables and functions live in
 // supabase/migrations/20261015120000_boveda_claves.sql, 20261015180000_boveda_compartida.sql
-// and 20261016120000..121000_boveda_2fa_*.sql (email code + recovery).
+// 20261016120000..121000_boveda_2fa_*.sql (email code + recovery) and
+// 20261030120000_boveda_por_proyecto.sql (optional proyecto_id on each entry).
 // Everything stored here is already encrypted in the browser (see src/lib/boveda.js).
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
@@ -64,17 +65,17 @@ export function useBovedaEntradas(enabled) {
   return useQuery({
     queryKey: ['boveda', 'entradas'],
     enabled,
-    queryFn: () => unwrap(supabase.from('boveda_entradas').select('id, datos, updated_at').order('created_at')),
+    queryFn: () => unwrap(supabase.from('boveda_entradas').select('id, datos, proyecto_id, updated_at').order('created_at')),
   });
 }
 
 export function useGuardarEntradaBoveda() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, datos }) => {
+    mutationFn: async ({ id, datos, proyecto_id = null }) => {
       const filas = id
-        ? await unwrap(supabase.from('boveda_entradas').update({ datos, updated_at: new Date().toISOString() }).eq('id', id).select())
-        : await unwrap(supabase.from('boveda_entradas').insert({ datos }).select());
+        ? await unwrap(supabase.from('boveda_entradas').update({ datos, proyecto_id, updated_at: new Date().toISOString() }).eq('id', id).select())
+        : await unwrap(supabase.from('boveda_entradas').insert({ datos, proyecto_id }).select());
       if (!filas?.length) throw new Error('No se pudo guardar la clave.');
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['boveda', 'entradas'] }),
