@@ -35,6 +35,16 @@ export const DATOS_RESENAS = [
   { valor: '89%', texto: 'espera que respondas' },
 ];
 
+// Fotos del ejemplo «Perfil gestionado» (public/crece-google/). Licencia Pexels: uso comercial
+// sin atribución. Fuentes: pexels.com/photo/ 19756443 (local), 12340557 (estantería),
+// 38575493 (herramientas), 28867253 (tornillos).
+export const FOTOS_FERRETERIA = [
+  { src: '/crece-google/local.jpg', alt: 'Dueño atendiendo su ferretería' },
+  { src: '/crece-google/estanteria.jpg', alt: 'Estantería de grifería en la ferretería' },
+  { src: '/crece-google/herramientas.jpg', alt: 'Muro de herramientas a la venta' },
+  { src: '/crece-google/tornillos.jpg', alt: 'Cajas de tornillos ordenadas' },
+];
+
 export const BUSQUEDAS = ['gasfiter en Ñuñoa', 'sushi cerca de mí', 'ferretería abierta', 'cerrajero urgente', 'café en Providencia'];
 
 export const FAQ_GOOGLE = [
