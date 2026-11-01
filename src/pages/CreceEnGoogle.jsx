@@ -7,7 +7,7 @@ import { MessageCircle, Search, MapPinCheck, Star } from 'lucide-react';
 import SEO from '../components/SEO';
 import { WhatsAppLink } from '../components/ContactButtons';
 import { PHONE_DISPLAY } from '../config/contact';
-import { BUSQUEDAS, DATOS_RESENAS, FAQ_GOOGLE, FUENTE_DATOS, PLANES_GOOGLE } from '../data/CRECE_GOOGLE';
+import { BUSQUEDAS, DATOS_RESENAS, FAQ_GOOGLE, FOTOS_FERRETERIA, FUENTE_DATOS, PLANES_GOOGLE } from '../data/CRECE_GOOGLE';
 import './home.css';
 import './crece-google.css';
 
@@ -61,10 +61,18 @@ function Perfil({ tipo }) {
     <div className={`cg-perfil ${bueno ? 'bueno' : 'malo'}`}>
       <span className="cg-etq">{bueno ? 'Perfil gestionado' : 'Perfil abandonado'}</span>
       <div className="cg-biz">
-        <b>Ferretería X</b>
+        <b>Ferretería Mis Herramientas</b>
         <span><i>{bueno ? '★★★★★' : '★★★'}</i> {bueno ? '4,8 · 126 reseñas' : '3,6 · 9 reseñas'}</span>
       </div>
-      <div className="cg-fotos" aria-hidden="true"><span /><span /><span /><span /></div>
+      {bueno ? (
+        <div className="cg-fotos">
+          {FOTOS_FERRETERIA.map((f) => (
+            <img key={f.src} src={f.src} alt={f.alt} width="160" height="160" loading="lazy" decoding="async" />
+          ))}
+        </div>
+      ) : (
+        <div className="cg-fotos" aria-hidden="true"><span /><span /><span /><span /></div>
+      )}
       <ul className="cg-ticks">
         {(bueno
           ? ['Fotos reales del local', 'Abierto ahora · horario al día', 'Responde cada reseña']
