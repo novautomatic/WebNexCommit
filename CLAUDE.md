@@ -22,6 +22,7 @@ npm run preview   # Preview production build locally
 - `/servicios`, `/servicios/:slug` - `ServicesIndex.jsx` / `Services.jsx`, content in `src/data/SERVICE_PAGES.js`
 - `/blog`, `/blog/:slug` - `pages/blog/BlogList.tsx` / `BlogPost.tsx`
 - `/lp/:slug` - `AdLanding.jsx`: Google Ads landing pages (noindex), content in `src/data/ADS_LANDINGS.js`
+- `/crece_en_google` - `CreceEnGoogle.jsx` (+ `crece-google.css`, `cg-` classes over the `nh-*` pieces): Google Business Profile management service (Maps + reviews), short visual page with 3 plans and WhatsApp CTAs. Plans, prices (CLP + IVA, proposal), stats and FAQ in `src/data/CRECE_GOOGLE.js`. Prerendered; not linked from the home yet. Underscore slug never matches the Creador `/:slug` proxy regex, but it is listed in `vercel.json` anyway.
 - `/login` - Supabase email/password login
 - `/admin` - protected (`ProtectedRoute`), lazy-loaded `Admin.jsx` with tabs Blog (`BlogAdmin.tsx`) and Cotizador (`Cotizador.jsx`, data in `PROJECT_MODULES` / `SERVICE_CATEGORIES` / `PROJECT_PRICING`). Team shortcuts/links live in the Tareas → Accesos sub-tab (`?tab=tareas&vista=accesos`, `pages/configuracion/ConfiguracionAdmin.jsx`; stored in table `accesos_directos`, migration `20261007160000_accesos_directos.sql`, hooks in `src/hooks/tareas.js`; also shown as the "Accesos" dropdown in the panel header via `AccesosMenu.jsx`)
 - `/privacy`, `/terms`

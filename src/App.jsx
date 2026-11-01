@@ -24,6 +24,7 @@ import SiteMeta from './components/SiteMeta';
 import AdLanding from './pages/AdLanding';
 import CreaTuWeb from './pages/CreaTuWeb';
 import Precios from './pages/Precios';
+import CreceEnGoogle from './pages/CreceEnGoogle';
 import { ContactDock, WhatsAppLink } from './components/ContactButtons';
 import { IrACotizar } from './components/Conversion';
 import { RESPONSABLE } from './config/legal';
@@ -223,6 +224,7 @@ function App() {
           <Route path="/lp/:slug" element={<AdLanding />} />
           <Route path="/crea-tu-web" element={<CreaTuWeb />} />
           <Route path="/precios" element={<Precios />} />
+          <Route path="/crece_en_google" element={<CreceEnGoogle />} />
           <Route path="/mi-tienda" element={<Suspense fallback={null}><MiTienda /></Suspense>} />
           <Route path="/confirmar-datos" element={<Suspense fallback={null}><ConfirmarDatos /></Suspense>} />
           <Route path="/mi-espacio" element={<Suspense fallback={null}><MiEspacio /></Suspense>} />
