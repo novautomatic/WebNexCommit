@@ -37,6 +37,7 @@ const routes = [
   '/terms',
   '/crea-tu-web',
   '/precios',
+  '/crece_en_google',
   ...ADS_LANDINGS.map((l) => `/lp/${l.slug}`),
 ];
 
