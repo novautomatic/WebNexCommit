@@ -167,6 +167,12 @@ const ESTADOS_CAMBIO = {
   por_confirmar: { label: 'Por confirmar', color: '#9aafc3' },
 };
 const hoyISO = () => new Date().toISOString().slice(0, 10);
+// AAAA-MM-DD de un Date en la hora LOCAL (hoyISO usa UTC: de noche en Chile ya es «mañana»).
+const aISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const haceDias = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return aISO(d); };
+const primeroDeMes = () => { const d = new Date(); d.setDate(1); return aISO(d); };
+// «Desde» y «Hasta» incluyen su propio día. Una nota sin fecha válida nunca queda fuera por error de formato.
+const enRango = (fecha, desde, hasta) => (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
 
 function FormCambio({ inicial, onGuardar, onCerrar, guardando, error }) {
   const [f, setF] = useState(inicial);
@@ -262,15 +268,23 @@ export function VistaCambios({ chatbot, datos }) {
   const [edicion, setEdicion] = useState(null);
   const [estado, setEstado] = useState('');
   const [soloPendientes, setSoloPendientes] = useState(false);
+  // Rango de fechas (AAAA-MM-DD, ambos incluidos): p. ej. «desde» = el día de la reunión con la clienta.
+  const [desde, setDesde] = useState('');
+  const [hasta, setHasta] = useState('');
   // id → true/false cuando la persona abre o cierra el hilo; sin tocar, se abre solo si hay algo sin resolver.
   const [hilos, setHilos] = useState({});
   const porNota = new Map();
   (datos.comentarios || []).forEach((k) => porNota.set(k.cambio_id, [...(porNota.get(k.cambio_id) || []), k]));
   const sinResolver = (id) => (porNota.get(id) || []).filter((k) => !k.resuelto).length;
   const totalSinResolver = (datos.cambios || []).filter((c) => sinResolver(c.id) > 0).length;
+  const hayRango = !!(desde || hasta);
+  const rangoInvertido = !!(desde && hasta && desde > hasta);
   const lista = (datos.cambios || [])
     .filter((c) => !estado || c.estado === estado)
-    .filter((c) => !soloPendientes || sinResolver(c.id) > 0);
+    .filter((c) => !soloPendientes || sinResolver(c.id) > 0)
+    .filter((c) => enRango(c.fecha, desde, hasta));
+  const hayFiltro = !!estado || soloPendientes || hayRango;
+  const total = (datos.cambios || []).length;
   const vacio = { fecha: hoyISO(), hallazgo: '', accion: '', donde: '', efecto: '', estado: 'hecho' };
 
   const guardar = (f) => {
@@ -298,8 +312,40 @@ export function VistaCambios({ chatbot, datos }) {
         </div>
         <button type="button" className={btnPrimary} onClick={() => setEdicion(vacio)}><Plus className="w-4 h-4" /> Registrar cambio</button>
       </div>
+
+      {/* Filtro por fechas: «qué hicimos después de la reunión» = poner la fecha de la reunión en «Desde». */}
+      <div className="flex flex-wrap items-end gap-2" role="group" aria-label="Filtrar por fechas">
+        <div>
+          <label className={labelClass} htmlFor="cambios-desde">Desde</label>
+          <input id="cambios-desde" type="date" className={`${inputClass} !w-auto`} value={desde} max={hasta || undefined} onChange={(e) => setDesde(e.target.value)} />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="cambios-hasta">Hasta</label>
+          <input id="cambios-hasta" type="date" className={`${inputClass} !w-auto`} value={hasta} min={desde || undefined} onChange={(e) => setHasta(e.target.value)} />
+        </div>
+        <button type="button" className={btnGhost} onClick={() => { setDesde(haceDias(6)); setHasta(''); }}>Últimos 7 días</button>
+        <button type="button" className={btnGhost} onClick={() => { setDesde(haceDias(29)); setHasta(''); }}>Últimos 30 días</button>
+        <button type="button" className={btnGhost} onClick={() => { setDesde(primeroDeMes()); setHasta(''); }}>Este mes</button>
+        {hayRango && <button type="button" className={btnGhost} onClick={() => { setDesde(''); setHasta(''); }}>Quitar fechas</button>}
+      </div>
+      {rangoInvertido && <p role="alert" className="text-xs text-[#fab219]">«Desde» es posterior a «Hasta»: no hay ningún día en ese rango. Cambia una de las dos fechas.</p>}
+      {hayFiltro && !rangoInvertido && (
+        <p className="text-xs text-[#9aafc3]" aria-live="polite">
+          Mostrando {lista.length} de {total} cambio{total === 1 ? '' : 's'}
+          {hayRango && ` · ${desde ? `desde el ${fechaCorta(desde)}` : ''}${desde && hasta ? ' ' : ''}${hasta ? `hasta el ${fechaCorta(hasta)}` : ''} (ambos días incluidos)`}
+        </p>
+      )}
       <ErrorBox error={borrar.error} />
-      {lista.length === 0 && <div className={`${card} p-4`}><Vacio>{soloPendientes ? 'No hay notas con comentarios sin resolver.' : 'Sin cambios registrados.'}</Vacio></div>}
+      {lista.length === 0 && (
+        <div className={`${card} p-4`}>
+          <Vacio>
+            {total === 0 ? 'Sin cambios registrados.'
+              : hayRango ? 'No hay cambios registrados en ese rango de fechas.'
+              : soloPendientes ? 'No hay notas con comentarios sin resolver.'
+              : 'No hay cambios con ese filtro.'}
+          </Vacio>
+        </div>
+      )}
       {lista.map((c) => {
         const comentarios = porNota.get(c.id) || [];
         const pendientes = sinResolver(c.id);
