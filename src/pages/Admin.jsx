@@ -11,6 +11,7 @@ import {
   ClipboardCheck,
   Calculator,
   Contact,
+  FileSignature,
   FileText,
   FolderKanban,
   Handshake,
@@ -32,6 +33,7 @@ import {
 } from 'lucide-react';
 import { BlogAdmin } from './blog/BlogAdmin';
 import Cotizador from './Cotizador';
+import CotizacionesAdmin from './cotizaciones/CotizacionesAdmin';
 import CreadorAdmin from './creador/CreadorAdmin';
 import ContactosWebAdmin from './contactos/ContactosWebAdmin';
 import ResenasAdmin from './resenas/ResenasAdmin';
@@ -94,6 +96,7 @@ const GRUPOS = [
       { id: 'resenas', label: 'Reseñas', icon: MessageSquareQuote },
       { id: 'blog', label: 'Blog', icon: FileText },
       { id: 'cotizador', label: 'Cotizador', icon: Calculator },
+      { id: 'cotizaciones', label: 'Cotizaciones con Claude', icon: FileSignature },
       { id: 'creador', label: 'Creador', icon: Wand2 },
     ],
   },
@@ -332,6 +335,7 @@ export default function Admin() {
             {seccion === 'avisos' && <AvisosAdmin />}
             {seccion === 'blog' && <BlogAdmin />}
             {seccion === 'cotizador' && <Cotizador />}
+            {seccion === 'cotizaciones' && <CotizacionesAdmin />}
             {seccion === 'creador' && <CreadorAdmin />}
             {seccion === 'contactos' && <ContactosWebAdmin />}
             {seccion === 'resenas' && <ResenasAdmin />}
