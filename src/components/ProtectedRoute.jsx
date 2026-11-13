@@ -14,13 +14,14 @@ export default function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   const esAdmin = Boolean(user && ADMIN_EMAILS.includes(user.email));
   // Anyone registered in the `equipo` table (tasks system) can also enter.
-  const [equipo, setEquipo] = useState({ email: null, ok: false });
+  // Vendedores y captadores (ventas_personas) van a su app, /ventas.
+  const [equipo, setEquipo] = useState({ email: null, ok: false, vendedor: false });
 
   useEffect(() => {
     if (!user || esAdmin) return undefined;
     let vigente = true;
-    supabase.rpc('es_equipo').then(({ data }) => {
-      if (vigente) setEquipo({ email: user.email, ok: Boolean(data) });
+    Promise.all([supabase.rpc('es_equipo'), supabase.rpc('es_vendedor')]).then(([eq, ve]) => {
+      if (vigente) setEquipo({ email: user.email, ok: Boolean(eq.data), vendedor: Boolean(ve.data) });
     });
     return () => {
       vigente = false;
@@ -43,6 +44,9 @@ export default function ProtectedRoute({ children }) {
 
   // Logged in but not on the team: a client from /mi-espacio (or someone else). The
   // portal shows their space, or tells them they have none.
+  if (!esAdmin && !equipo.ok && equipo.vendedor) {
+    return <Navigate to="/ventas" replace />;
+  }
   if (!esAdmin && !equipo.ok) {
     return <Navigate to="/mi-espacio" replace />;
   }

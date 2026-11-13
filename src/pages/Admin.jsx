@@ -37,6 +37,7 @@ import ContactosWebAdmin from './contactos/ContactosWebAdmin';
 import ResenasAdmin from './resenas/ResenasAdmin';
 import OpenAIAdmin from './openai/OpenAIAdmin';
 import GoogleAdmin from './google/GoogleAdmin';
+import VentasAdmin from './ventas/VentasAdmin';
 import AuditoriaAdmin from './auditoria/AuditoriaAdmin';
 import BovedaAdmin from './boveda/BovedaAdmin';
 import AvisosAdmin from './avisos/AvisosAdmin';
@@ -95,6 +96,13 @@ const GRUPOS = [
       { id: 'blog', label: 'Blog', icon: FileText },
       { id: 'cotizador', label: 'Cotizador', icon: Calculator },
       { id: 'creador', label: 'Creador', icon: Wand2 },
+    ],
+  },
+  {
+    titulo: 'Ventas',
+    nacion: 'tierra',
+    items: [
+      { id: 'ventas', label: 'Vendedores (CRM)', icon: Handshake },
     ],
   },
   {
@@ -337,6 +345,7 @@ export default function Admin() {
             {seccion === 'resenas' && <ResenasAdmin />}
             {seccion === 'openai' && <OpenAIAdmin />}
             {seccion === 'google' && <GoogleAdmin />}
+            {seccion === 'ventas' && <VentasAdmin />}
             {seccion === 'auditoria-chatbots' && <AuditoriaAdmin />}
           </main>
         </div>
