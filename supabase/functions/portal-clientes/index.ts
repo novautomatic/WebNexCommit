@@ -8,6 +8,9 @@
 //                                           contraseña fácil y manda la bienvenida
 //   POST { accion: "purgar", secreto }      cron de retención: borra de Storage
 //                                           los archivos quitados o vencidos
+//   POST { accion: "dar_acceso_vendedor", persona_id }   (sesión de un dueño)
+//                                           crea o reinicia el usuario de un vendedor
+//                                           o captador y devuelve la contraseña al panel
 //
 // Despliegue: supabase functions deploy portal-clientes --no-verify-jwt
 // (cada acción verifica lo suyo: el token del enlace, la sesión del equipo o
@@ -142,6 +145,52 @@ async function darAcceso(req: Request, b: Record<string, unknown>) {
   return { ok: true, email: c.email };
 }
 
+// CRM de vendedores: la jefatura (dueños) da acceso a un vendedor o captador. La
+// contraseña vuelve UNA vez al panel para que la jefatura se la pase por WhatsApp.
+async function darAccesoVendedor(req: Request, b: Record<string, unknown>) {
+  const auth = req.headers.get("authorization") ?? "";
+  const comoUsuario = createClient(URL_SUPABASE, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    global: { headers: { Authorization: auth } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data: jefe } = await comoUsuario.rpc("ventas_jefe");
+  if (jefe !== true) throw new Aviso("No autorizado.");
+  const id = typeof b.persona_id === "string" ? b.persona_id : "";
+  const { data: p, error } = await admin
+    .from("ventas_personas")
+    .select("id, email, nombre, user_id, activo")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!p || !p.activo) throw new Aviso("La persona no existe o está desactivada.");
+  const { data: delEquipo } = await admin.from("equipo").select("id").ilike("email", p.email).maybeSingle();
+  if (delEquipo) throw new Aviso("Ese correo es de alguien del equipo.");
+
+  const clave = claveFacil();
+  let userId: string | null = p.user_id;
+  if (userId) {
+    const { error: e } = await admin.auth.admin.updateUserById(userId, { password: clave });
+    if (e) userId = null;
+  }
+  if (!userId) {
+    const { data: creado } = await admin.auth.admin.createUser({
+      email: p.email,
+      password: clave,
+      email_confirm: true,
+      user_metadata: { tipo: "ventas", nombre: p.nombre },
+    });
+    userId = creado?.user?.id ?? (await buscarUsuario(p.email));
+    if (!userId) throw new Error("No se pudo crear el usuario.");
+    if (!creado?.user) {
+      const { error: e3 } = await admin.auth.admin.updateUserById(userId, { password: clave, email_confirm: true });
+      if (e3) throw e3;
+    }
+  }
+  const { error: e4 } = await admin.from("ventas_personas").update({ user_id: userId }).eq("id", p.id);
+  if (e4) throw e4;
+  return { ok: true, email: p.email, clave };
+}
+
 async function purgar(b: Record<string, unknown>) {
   const { data: rutas, error } = await admin.rpc("portal_purga_pendiente", { p_secreto: String(b.secreto ?? "") });
   if (error) throw new Aviso("No autorizado.");
@@ -163,6 +212,7 @@ Deno.serve(async (req: Request) => {
     if (b.accion === "entrar") r = await entrar(b);
     else if (b.accion === "dar_acceso") r = await darAcceso(req, b);
     else if (b.accion === "purgar") r = await purgar(b);
+    else if (b.accion === "dar_acceso_vendedor") r = await darAccesoVendedor(req, b);
     else throw new Aviso("Acción desconocida.");
     return new Response(JSON.stringify(r), { headers: h });
   } catch (err) {

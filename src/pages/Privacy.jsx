@@ -53,6 +53,13 @@ const TRATAMIENTOS = [
     plazo: '12 meses desde la solicitud; si pasas a ser cliente, se conserva como parte de la relación comercial',
   },
   {
+    quien: 'Negocios que se inscriben con nuestro equipo de ventas (en terreno o por contacto directo)',
+    datos: 'Nombre, nombre y rubro del negocio, comuna, WhatsApp, correo (opcional) y qué te interesa',
+    para: 'Contactarte por WhatsApp y enviarte una propuesta. Los ve solo nuestra jefatura de ventas y el vendedor que te atiende. Nunca para publicidad ni se comparten',
+    base: 'Tu autorización, que marcas tú al inscribirte',
+    plazo: '12 meses sin movimiento si no contratas, y se borran solos; si contratas, se conservan como parte de la relación comercial',
+  },
+  {
     quien: 'Clientes y personas de contacto de nuestros clientes',
     datos: 'Nombre, correo, teléfono, cargo, empresa; tareas, archivos y notas del portal «Mi espacio»',
     para: 'Ejecutar el servicio contratado: coordinar tareas y entregas, soporte y facturación',

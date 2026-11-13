@@ -11,6 +11,7 @@ const MiTienda = lazy(() => import('./pages/creador/tienda/MiTienda'));
 const ConfirmarDatos = lazy(() => import('./pages/ConfirmarDatos'));
 const MiEspacio = lazy(() => import('./pages/portal/MiEspacio'));
 const Resena = lazy(() => import('./pages/Resena'));
+const VentasApp = lazy(() => import('./pages/ventas/VentasApp'));
 import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import Privacy from './pages/Privacy';
@@ -229,6 +230,7 @@ function App() {
           <Route path="/confirmar-datos" element={<Suspense fallback={null}><ConfirmarDatos /></Suspense>} />
           <Route path="/mi-espacio" element={<Suspense fallback={null}><MiEspacio /></Suspense>} />
           <Route path="/resena" element={<Suspense fallback={null}><Resena /></Suspense>} />
+          <Route path="/ventas" element={<Suspense fallback={null}><VentasApp /></Suspense>} />
         </Routes>
 
         {!isAdmin && (<>
