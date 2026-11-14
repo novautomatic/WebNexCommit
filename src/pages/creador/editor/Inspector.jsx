@@ -257,6 +257,31 @@ export function FormSeccion({ seccion, indice, contenido, mod, campo, set, abrir
           <p className="ed-nota">El botón abre tu WhatsApp (o el formulario de contacto si no tienes WhatsApp).</p>
         </>
       );
+    case 'manifiesto':
+      return (
+        <>
+          {campo(ruta('titulo'), 'Etiqueta (opcional)', L.tituloSeccion)}
+          {campo(ruta('texto'), 'Frase', L.cta + 100, true)}
+        </>
+      );
+    case 'lista':
+      return (
+        <>
+          {campo(ruta('titulo'), 'Título', L.tituloSeccion)}
+          <Lista titulo="Puntos" items={p.items || []} max={L.lista || 8} nuevo={itemIcono} iconos={iconos} svg={svg}
+            campos={[{ k: 'titulo', l: 'Punto', max: L.itemTitulo }, { k: 'texto', l: 'Detalle', max: L.itemTexto, multi: true }]}
+            onCambio={(v) => set(ruta('items'), v)} />
+        </>
+      );
+    case 'comparacion':
+      return (
+        <>
+          {campo(ruta('titulo'), 'Título', L.tituloSeccion)}
+          <Lista titulo="Comparaciones" items={p.items || []} max={L.comparacion || 6} nuevo={() => ({ titulo: '', texto: '' })}
+            campos={[{ k: 'titulo', l: 'Lo típico', max: L.itemTexto, multi: true }, { k: 'texto', l: 'Con nosotros', max: L.itemTexto, multi: true }]}
+            onCambio={(v) => set(ruta('items'), v)} />
+        </>
+      );
     default:
       return null;
   }
@@ -342,6 +367,20 @@ export function PanelDiseno({ contenido, mod, campo, set, logo, abrirLogo }) {
           ))}
         </div>
       </div>
+      {/* Dirección de arte: solo si el back ya la soporta (esquema con DISENO). */}
+      {mod.esquema.DISENO && (
+        <>
+          <Opciones label="Portada" valor={contenido.diseno?.hero || 'inmersivo'} onCambio={(v) => set('diseno.hero', v)}
+            opciones={[{ v: 'inmersivo', l: 'Foto completa' }, { v: 'dividido', l: 'Texto + foto' }, { v: 'editorial', l: 'Titular grande' }]} />
+          <Opciones label="Esquinas" valor={contenido.diseno?.forma || 'redonda'} onCambio={(v) => set('diseno.forma', v)}
+            opciones={[{ v: 'redonda', l: 'Redondas' }, { v: 'suave', l: 'Suaves' }, { v: 'recta', l: 'Rectas' }]} />
+          <Opciones label="Textura" valor={contenido.diseno?.textura || 'limpia'} onCambio={(v) => set('diseno.textura', v)}
+            opciones={[{ v: 'limpia', l: 'Limpia' }, { v: 'grano', l: 'Grano' }, { v: 'aurora', l: 'Luz de color' }]} />
+          <Opciones label="Cinta con tus servicios bajo la portada" valor={contenido.diseno?.cinta ? 'si' : 'no'} onCambio={(v) => set('diseno.cinta', v === 'si')}
+            opciones={[{ v: 'si', l: 'Mostrar' }, { v: 'no', l: 'Ocultar' }]} />
+          {campo('hero.destacado', 'Palabras destacadas del título', 40, false, '', 'Escríbelas tal cual aparecen en el título: se pintan con tu color de acento.')}
+        </>
+      )}
       {campo('seo_descripcion', 'Descripción para Google y WhatsApp', L.seo, true, '', 'Es el texto que aparece al compartir tu link.')}
     </div>
   );
@@ -354,6 +393,9 @@ export function Paleta({ mod, onAgregar }) {
     faq: 'Preguntas y respuestas desplegables.',
     galeria: 'Hasta 9 fotos de tu negocio.',
     banda: 'Franja de color con un botón a WhatsApp.',
+    manifiesto: 'Una frase grande, tu declaración de marca.',
+    lista: 'Puntos con ícono: qué incluye, para quién es…',
+    comparacion: 'Lo típico del rubro frente a cómo lo haces tú.',
   };
   return (
     <div className="ed-paleta">

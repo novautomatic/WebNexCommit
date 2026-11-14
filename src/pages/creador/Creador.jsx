@@ -378,19 +378,25 @@ function PasoFormulario({ lead, limites, onCreada }) {
 }
 
 // ─── Paso 4: generando ──────────────────────────────────────────────────────
+// La creación tiene dos pasadas de IA (borrador + revisión de director
+// creativo) y búsqueda de fotos: toma entre 30 s y 1 min.
 const FRASES = [
   'Leyendo lo que nos contaste…',
+  'Definiendo la dirección de arte de tu marca…',
   'Escribiendo los textos de tu página…',
-  'Eligiendo colores para tu marca…',
+  'Eligiendo tipografías y colores…',
+  'Diseñando las secciones que necesita tu negocio…',
+  'Revisando cada texto como lo haría un director creativo…',
+  'Puliendo títulos y llamados a la acción…',
   'Buscando fotos de tu rubro…',
-  'Armando tu link…',
+  'Armando tu galería…',
   'Dando los últimos retoques…',
 ];
 
 function PasoGenerando() {
   const [i, setI] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setI((n) => Math.min(n + 1, FRASES.length - 1)), 2600);
+    const t = setInterval(() => setI((n) => Math.min(n + 1, FRASES.length - 1)), 5500);
     return () => clearInterval(t);
   }, []);
   return (
