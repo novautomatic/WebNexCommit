@@ -111,7 +111,7 @@ const GRUPOS = [
     titulo: 'Chatbots',
     nacion: 'agua',
     items: [
-      { id: 'auditoria-chatbots', label: 'Auditoría SofIA', icon: ClipboardCheck },
+      { id: 'auditoria-chatbots', label: 'Auditoría de chatbots', icon: ClipboardCheck },
     ],
   },
   {

@@ -1,7 +1,8 @@
 // /admin?tab=auditoria-chatbots — Chatbots → Auditoría (solo dueños): lo que se hizo en cada
 // chatbot, la auditoría de cada mes, lo que se presenta a la clienta y los pendientes, con
 // indicadores en vivo. Datos: back de Agente-Next /nexcommit/auditoria (src/hooks/auditoria.js).
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuditoriaDatos } from '../../hooks/auditoria';
 import { ErrorBox } from '../tareas/ui';
 import { claveMes } from './contenido';
@@ -15,11 +16,37 @@ const PESTANAS = [
   { id: 'pendientes', label: 'Pendientes' },
 ];
 
+const CHATBOT_DEFECTO = 'sofia-v2';
+const RECUERDO = 'nc_auditoria_chatbot';
+// El último chatbot elegido se recuerda en este navegador (si el almacenamiento no
+// está disponible, simplemente no se recuerda).
+const leerRecuerdo = () => { try { return localStorage.getItem(RECUERDO); } catch { return null; } };
+const guardarRecuerdo = (id) => { try { localStorage.setItem(RECUERDO, id); } catch { /* sin recuerdo */ } };
+
 export default function AuditoriaAdmin() {
   const [pestana, setPestana] = useState('resumen');
-  const [chatbot, setChatbot] = useState('sofia-v2');
+  // Igual que el panel de Google: el chatbot activo va en la URL (&chatbot=…); sin él,
+  // el último elegido; si no hay, SofIA.
+  const [params, setParams] = useSearchParams();
+  const chatbot = params.get('chatbot') || leerRecuerdo() || CHATBOT_DEFECTO;
+  const elegir = (id) => {
+    guardarRecuerdo(id);
+    const n = new URLSearchParams(params);
+    n.set('chatbot', id);
+    setParams(n, { replace: true });
+  };
   const [mes, setMes] = useState(() => claveMes());
   const { data: datos, isLoading, error } = useAuditoriaDatos(chatbot);
+  // La lista de chatbots la entrega el back; se recuerda para que el selector no
+  // desaparezca mientras carga el chatbot siguiente.
+  const [chatbots, setChatbots] = useState([]);
+  if (datos?.chatbots?.length && datos.chatbots !== chatbots) setChatbots(datos.chatbots);
+  const nombre = chatbots.find((c) => c.id === chatbot)?.nombre;
+  // Un chatbot recordado que ya no existe: se vuelve al de siempre.
+  useEffect(() => {
+    if (error && chatbot !== CHATBOT_DEFECTO && /desconocido/i.test(error.message || '')) elegir(CHATBOT_DEFECTO);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]);
   const abiertos = (datos?.pendientes || []).filter((p) => !p.hecho).length;
   // Notas de «Qué hicimos» con al menos un comentario sin resolver.
   const porIterar = new Set((datos?.comentarios || []).filter((k) => !k.resuelto).map((k) => k.cambio_id)).size;
@@ -28,16 +55,22 @@ export default function AuditoriaAdmin() {
     <div className="space-y-4 max-w-7xl">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-white text-xl font-semibold">Auditoría de chatbots</h2>
+          <h2 className="text-white text-xl font-semibold">Auditoría de chatbots{nombre ? ` · ${nombre}` : ''}</h2>
           <p className="text-xs text-[#9aafc3]">Lo que hicimos, la revisión de cada mes y lo que se presenta a la clienta. Cifras en vivo desde la base del chatbot.</p>
         </div>
-        {(datos?.chatbots?.length || 0) > 1 && (
-          <select value={chatbot} onChange={(e) => setChatbot(e.target.value)} aria-label="Chatbot"
-            className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
-            {datos.chatbots.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-          </select>
+        {chatbots.length > 1 && (
+          <label className="flex items-center gap-2 text-xs text-[#9aafc3]">
+            Chatbot
+            <select
+              id="auditoria-chatbot"
+              value={chatbot}
+              onChange={(e) => elegir(e.target.value)}
+              className="rounded-lg border border-white/10 bg-[#0d1e30] px-2 py-1.5 text-sm text-white"
+            >
+              {chatbots.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+            </select>
+          </label>
         )}
-        {(datos?.chatbots?.length || 0) === 1 && <span className="text-sm text-[#9aafc3]">{datos.chatbots[0].nombre}</span>}
       </div>
 
       <nav className="flex gap-1 overflow-x-auto border-b border-white/10" aria-label="Secciones de la auditoría">
@@ -54,13 +87,13 @@ export default function AuditoriaAdmin() {
       {isLoading && <div className="text-sm text-[#9aafc3] py-10 text-center">Cargando la auditoría…</div>}
       {error && <ErrorBox error={error} />}
       {datos && (
-        <>
+        <div key={chatbot}>
           {pestana === 'resumen' && <VistaResumen chatbot={chatbot} datos={datos} mes={mes} irA={setPestana} />}
           {pestana === 'cambios' && <VistaCambios chatbot={chatbot} datos={datos} />}
           {pestana === 'mes' && <VistaMes chatbot={chatbot} datos={datos} mes={mes} setMes={setMes} />}
           {pestana === 'reunion' && <VistaReunion chatbot={chatbot} datos={datos} mes={mes} setMes={setMes} />}
           {pestana === 'pendientes' && <VistaPendientes chatbot={chatbot} datos={datos} />}
-        </>
+        </div>
       )}
     </div>
   );
