@@ -9,7 +9,6 @@ import {
   Briefcase,
   CalendarDays,
   ClipboardCheck,
-  Calculator,
   Contact,
   FileSignature,
   FileText,
@@ -95,8 +94,9 @@ const GRUPOS = [
       { id: 'contactos', label: 'Contactos web', icon: Inbox },
       { id: 'resenas', label: 'Reseñas', icon: MessageSquareQuote },
       { id: 'blog', label: 'Blog', icon: FileText },
-      { id: 'cotizador', label: 'Cotizador', icon: Calculator },
-      { id: 'cotizaciones', label: 'Cotizaciones con Claude', icon: FileSignature },
+      // El Cotizador antiguo (calculadora de módulos, Cotizador.jsx) quedó escondido el
+      // 18-nov-2026: ahora hay un solo cotizador, con IA. El código se conserva por si acaso.
+      { id: 'cotizaciones', label: 'Cotizaciones', icon: FileSignature },
       { id: 'creador', label: 'Creador', icon: Wand2 },
     ],
   },

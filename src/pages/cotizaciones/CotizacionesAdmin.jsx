@@ -1,34 +1,20 @@
-// Panel → Cotizaciones: conversar con Claude para armar una propuesta comercial y
-// descargarla en PDF. Lo mismo se puede hacer desde la app de Claude con el conector
-// MCP de NexCommit (herramientas guia_cotizaciones, guardar_cotizacion, generar_pdf_cotizacion…).
+// Panel → Cotizaciones: el cotizador único de NexCommit. Se conversa con la IA (50x, en
+// el back de Agente-Next), que lee las notas pegadas, busca precios de proyectos
+// parecidos, hace una tanda de preguntas y deja la propuesta en PDF y Word. La misma
+// conversación se puede seguir desde la app de Claude (herramienta `cotizar` del
+// conector MCP de NexCommit): vive en la tabla cotizaciones_chats.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import {
-  BookOpen, Download, FileText, Loader2, MessageSquarePlus, RefreshCw, Search, Send, Trash2, X,
+  BookOpen, Download, FileText, FileType, Loader2, MessageSquarePlus, MessagesSquare, RefreshCw, Search, Send, Trash2, X,
 } from 'lucide-react';
 import {
-  ESTADOS, abrirUltimoPdf, burbujas, clp, useBorrarCotizacion, useCotizacion, useCotizaciones,
-  useEstadoCotizacion, useGenerarPdf, useGuardarNotas, useGuiaCotizacion, useNotasCotizacion, useTurnoChat,
+  ESTADOS, abrirUltimoPdf, burbujas, clp, useBorrarCotizacion, useChat, useChatsAbiertos, useCotizacion, useCotizaciones,
+  useEstadoCotizacion, useGenerarPdf, useGenerarWord, useGuardarNotas, useGuiaCotizacion, useNotasCotizacion,
+  useQuitarRegla, useReglasCotizacion, useTurnoChat,
 } from '../../hooks/cotizaciones';
 import { useEquipo, useMiEquipoId } from '../../hooks/tareas';
-
-const BORRADOR = 'nc_cotizacion_borrador';
-const leerBorrador = () => {
-  try {
-    return JSON.parse(window.localStorage.getItem(BORRADOR) || '[]');
-  } catch {
-    return [];
-  }
-};
-const guardarBorrador = (m) => {
-  try {
-    if (m?.length) window.localStorage.setItem(BORRADOR, JSON.stringify(m));
-    else window.localStorage.removeItem(BORRADOR);
-  } catch {
-    /* sin almacenamiento: el borrador dura solo esta visita */
-  }
-};
 
 // Markdown del chat y de la guía (el panel no usa el plugin de tipografía de Tailwind).
 const MD = {
@@ -46,11 +32,10 @@ const MD = {
   code: (props) => <code className="rounded bg-black/30 px-1" {...props} />,
 };
 
-const SUGERENCIAS = [
-  'Necesito cotizar una landing page para una clínica dental en Providencia que va a hacer Google Ads.',
-  'Toma como base la última cotización de tienda Shopify y adáptala para una tienda de ropa.',
-  'Cotiza un chatbot con IA para Instagram y WhatsApp de un centro de estética, con plan mensual.',
-];
+const AYUDA = 'Pega tus notas de lo que hablaste con el cliente (qué necesita, módulos, plazos, si es referido…). La IA revisa precios de proyectos parecidos, te hace una sola tanda de preguntas y arma la propuesta completa.';
+
+const ocupado = (chat) => Boolean(chat?.ocupado_desde) && Date.now() - new Date(chat.ocupado_desde).getTime() < 6 * 60_000;
+const fechaCorta = (iso) => (iso ? new Date(iso).toLocaleString('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
 
 function Estado({ estado }) {
   const e = ESTADOS.find((x) => x.id === estado) || ESTADOS[0];
@@ -63,13 +48,14 @@ function Estado({ estado }) {
 
 function montos(c) {
   const p = [];
-  if (c.total_unico) p.push(`${clp(c.total_unico)} + IVA`);
+  if (c.total_unico) p.push(`${clp(c.total_unico)} neto`);
   if (c.total_mensual) p.push(`${clp(c.total_mensual)}/mes`);
   return p.join(' · ') || 'sin montos';
 }
 
-function Lista({ seleccion, onElegir }) {
+function Lista({ seleccion, chatSeleccion, onElegir, onElegirChat }) {
   const { data = [], isLoading, error } = useCotizaciones();
+  const { data: chats = [] } = useChatsAbiertos();
   const [texto, setTexto] = useState('');
   const [estado, setEstado] = useState('');
   const filtradas = useMemo(() => {
@@ -93,6 +79,21 @@ function Lista({ seleccion, onElegir }) {
         </select>
       </div>
       <div className="flex-1 overflow-y-auto p-2 space-y-1 max-h-[60vh] lg:max-h-none">
+        {chats.length > 0 && (
+          <div className="pb-2 mb-1 border-b border-white/10">
+            <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-[#5f7891]">Conversaciones en curso</p>
+            {chats.map((c) => (
+              <button key={c.id} type="button" onClick={() => onElegirChat(c.id)}
+                className={`w-full text-left rounded-lg px-3 py-2 transition-colors ${chatSeleccion === c.id ? 'bg-[#1a3050]' : 'hover:bg-white/5'}`}>
+                <div className="flex items-center gap-2 text-[11px] text-[#9aafc3]">
+                  <MessagesSquare className="w-3.5 h-3.5" /> {fechaCorta(c.updated_at)}{c.origen === 'mcp' ? ' · desde Claude' : ''}
+                  {ocupado(c) && <Loader2 className="w-3 h-3 animate-spin ml-auto" aria-label="La IA está respondiendo" />}
+                </div>
+                <div className="text-sm text-white truncate">{c.titulo || 'Sin título'}</div>
+              </button>
+            ))}
+          </div>
+        )}
         {isLoading && <p className="p-3 text-sm text-[#9aafc3]">Cargando…</p>}
         {error && <p className="p-3 text-sm text-red-300">{/does not exist|schema cache/i.test(error.message) ? 'Faltan las migraciones de cotizaciones en Supabase.' : error.message}</p>}
         {!isLoading && !filtradas.length && !error && <p className="p-3 text-sm text-[#9aafc3]">No hay cotizaciones.</p>}
@@ -113,47 +114,66 @@ function Lista({ seleccion, onElegir }) {
   );
 }
 
-function Chat({ cotizacionId, onCreada }) {
+function Descarga({ archivo, tipo, onCerrar }) {
+  return (
+    <div className="mx-3 mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-[#4ade80]/30 bg-[#4ade80]/10 px-3 py-2 text-sm text-[#bbf7d0]">
+      {tipo === 'Word' ? <FileType className="w-4 h-4" /> : <FileText className="w-4 h-4" />} {tipo} listo ({archivo.numero}, versión {archivo.version}).
+      <a href={archivo.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold underline">
+        <Download className="w-4 h-4" /> Descargar
+      </a>
+      <button type="button" onClick={onCerrar} className="ml-auto" aria-label="Cerrar aviso"><X className="w-4 h-4" /></button>
+    </div>
+  );
+}
+
+function Chat({ cotizacionId, chatId, onCreada, onChat, onBorrada }) {
   const { data: cot } = useCotizacion(cotizacionId);
+  const { data: chat } = useChat({ chatId, cotizacionId });
   const turno = useTurnoChat();
   const generar = useGenerarPdf();
+  const generarWord = useGenerarWord();
   const cambiarEstado = useEstadoCotizacion();
   const borrar = useBorrarCotizacion();
   const { data: equipo = [] } = useEquipo();
   const { data: yo } = useMiEquipoId();
   const esDueno = equipo.some((m) => m.id === yo && m.rol === 'dueno');
 
-  // Mientras no se escriba nada, se muestra la conversación guardada (vacía si nació por el
-  // conector MCP); una nueva parte del borrador local.
-  const [propios, setMensajes] = useState(() => (cotizacionId ? null : leerBorrador()));
-  const mensajes = propios ?? (Array.isArray(cot?.conversacion) ? cot.conversacion : []);
+  // Lo escrito en esta visita manda; si no, la conversación guardada en el servidor
+  // (que también se alimenta desde Claude) o, en cotizaciones antiguas, la de la cotización.
+  // `propios` vale mientras el servidor no tenga una versión más nueva (p. ej. un turno
+  // que llegó desde Claude): se compara con el updated_at que había al escribir.
+  const [propios, setPropios] = useState(null);
+  const guardados = Array.isArray(chat?.conversacion) ? chat.conversacion : Array.isArray(cot?.conversacion) ? cot.conversacion : [];
+  const vigentes = propios && (turno.isPending || !chat || chat.updated_at === propios.base);
+  const mensajes = vigentes ? propios.mensajes : guardados;
+  const setMensajes = (m) => setPropios({ mensajes: m, base: chat?.updated_at ?? null });
+  const [chatActual, setChatActual] = useState(chatId || null);
   const [texto, setTexto] = useState('');
   const [pdf, setPdf] = useState(null);
+  const [word, setWord] = useState(null);
   const [aviso, setAviso] = useState('');
   const fin = useRef(null);
+  const trabajandoAfuera = !turno.isPending && ocupado(chat);
+  const idChat = chatActual || chat?.id || null;
 
-  useEffect(() => {
-    if (!cotizacionId) guardarBorrador(propios);
-  }, [cotizacionId, propios]);
   useEffect(() => {
     fin.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [mensajes.length, turno.isPending]);
-
   const enviar = (t = texto) => {
     const limpio = t.trim();
-    if (!limpio || turno.isPending) return;
+    if (!limpio || turno.isPending || trabajandoAfuera) return;
     setAviso('');
     const previos = mensajes;
     setMensajes([...previos, { role: 'user', content: limpio }]);
     setTexto('');
-    turno.mutate({ cotizacion_id: cotizacionId || undefined, mensajes: previos, texto: limpio }, {
+    turno.mutate({ chat_id: idChat || undefined, cotizacion_id: cotizacionId || undefined, mensajes: previos, texto: limpio }, {
       onSuccess: (r) => {
         setMensajes(r.mensajes);
         if (r.pdf?.url) setPdf(r.pdf);
-        if (!cotizacionId && r.cotizacion?.id) {
-          guardarBorrador([]);
-          onCreada(r.cotizacion.id);
-        }
+        if (r.word?.url) setWord(r.word);
+        if (r.chat_id) setChatActual(r.chat_id);
+        if (!cotizacionId && r.cotizacion?.id) onCreada(r.cotizacion.id);
+        else if (!cotizacionId && r.chat_id && r.chat_id !== chatId) onChat(r.chat_id);
       },
       onError: (e) => {
         setMensajes(previos);
@@ -164,6 +184,7 @@ function Chat({ cotizacionId, onCreada }) {
   };
 
   const verPdf = () => generar.mutate(cotizacionId, { onSuccess: setPdf, onError: (e) => setAviso(e.message) });
+  const verWord = () => generarWord.mutate(cotizacionId, { onSuccess: setWord, onError: (e) => setAviso(e.message) });
   const vistas = burbujas(mensajes);
 
   return (
@@ -182,7 +203,11 @@ function Chat({ cotizacionId, onCreada }) {
             </select>
             <button type="button" onClick={verPdf} disabled={generar.isPending}
               className="inline-flex items-center gap-1.5 rounded-lg bg-[#248bde] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1f7bc5] disabled:opacity-60">
-              {generar.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Generar PDF
+              {generar.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} PDF
+            </button>
+            <button type="button" onClick={verWord} disabled={generarWord.isPending}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-1.5 text-xs text-white hover:bg-white/5 disabled:opacity-60">
+              {generarWord.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileType className="w-3.5 h-3.5" />} Word
             </button>
             {cot.pdf_path && (
               <button type="button" onClick={() => abrirUltimoPdf(cot).catch((e) => setAviso(e.message))}
@@ -193,7 +218,7 @@ function Chat({ cotizacionId, onCreada }) {
             {esDueno && (
               <button type="button" aria-label="Borrar cotización" title="Borrar cotización"
                 onClick={() => window.confirm(`¿Borrar ${cot.numero} (${cot.cliente_nombre})? No se puede deshacer.`)
-                  && borrar.mutate(cot.id, { onSuccess: () => onCreada(null), onError: (e) => setAviso(e.message) })}
+                  && borrar.mutate(cot.id, { onSuccess: onBorrada, onError: (e) => setAviso(e.message) })}
                 className="rounded-lg p-1.5 text-red-300 hover:bg-red-500/10">
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -201,35 +226,20 @@ function Chat({ cotizacionId, onCreada }) {
           </>
         ) : (
           <div className="mr-auto">
-            <div className="text-sm font-semibold text-white">Nueva cotización</div>
-            <div className="text-xs text-[#9aafc3]">Cuéntale a Claude qué quieres cotizar; te hará las preguntas que falten.</div>
+            <div className="text-sm font-semibold text-white">{chat?.titulo || 'Nueva cotización'}</div>
+            <div className="text-xs text-[#9aafc3]">{chat?.origen === 'mcp' ? 'Conversación empezada desde Claude: puedes seguirla aquí.' : 'La IA te hará una sola tanda de preguntas y armará la propuesta.'}</div>
           </div>
         )}
       </div>
 
-      {pdf?.url && (
-        <div className="mx-3 mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-[#4ade80]/30 bg-[#4ade80]/10 px-3 py-2 text-sm text-[#bbf7d0]">
-          <FileText className="w-4 h-4" /> PDF listo ({pdf.numero}, versión {pdf.version}).
-          <a href={pdf.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold underline">
-            <Download className="w-4 h-4" /> Descargar
-          </a>
-          <button type="button" onClick={() => setPdf(null)} className="ml-auto" aria-label="Cerrar aviso"><X className="w-4 h-4" /></button>
-        </div>
-      )}
+      {pdf?.url && <Descarga archivo={pdf} tipo="PDF" onCerrar={() => setPdf(null)} />}
+      {word?.url && <Descarga archivo={word} tipo="Word" onCerrar={() => setWord(null)} />}
 
       <div className="flex-1 overflow-y-auto p-3 space-y-3 max-h-[65vh]">
         {!vistas.length && !turno.isPending && (
-          <div className="space-y-2">
-            <p className="text-sm text-[#9aafc3]">
-              {cot ? 'Esta cotización no tiene conversación en el panel (se hizo desde Claude). Pídele cambios y Claude la revisa antes de editarla.' : 'Algunas ideas para partir:'}
-            </p>
-            {!cot && SUGERENCIAS.map((s) => (
-              <button key={s} type="button" onClick={() => enviar(s)}
-                className="block w-full text-left rounded-lg border border-white/10 px-3 py-2 text-sm text-[#cfe0f0] hover:bg-white/5">
-                {s}
-              </button>
-            ))}
-          </div>
+          <p className="text-sm text-[#9aafc3]">
+            {cot ? 'Esta cotización no tiene conversación guardada. Pídele cambios a la IA y los hará sobre esta misma cotización (nueva versión).' : AYUDA}
+          </p>
         )}
         {vistas.map((m, i) => (m.rol === 'accion' ? (
           <div key={i} className="text-center text-[11px] text-[#5f7891]">— {m.texto} —</div>
@@ -240,9 +250,10 @@ function Chat({ cotizacionId, onCreada }) {
             )}
           </div>
         )))}
-        {turno.isPending && (
+        {(turno.isPending || trabajandoAfuera) && (
           <div className="flex items-center gap-2 text-sm text-[#9aafc3]">
-            <Loader2 className="w-4 h-4 animate-spin" /> Claude está trabajando… (armar o guardar la propuesta puede tardar 1–2 minutos)
+            <Loader2 className="w-4 h-4 animate-spin" />
+            {trabajandoAfuera ? 'La IA está respondiendo un mensaje enviado desde Claude…' : 'La IA está trabajando… (armar o guardar la propuesta puede tardar 1–2 minutos)'}
           </div>
         )}
         <div ref={fin} />
@@ -250,11 +261,12 @@ function Chat({ cotizacionId, onCreada }) {
 
       {aviso && <p className="mx-3 mb-2 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-300">{aviso}</p>}
       <form className="flex items-end gap-2 p-3 border-t border-white/10" onSubmit={(e) => { e.preventDefault(); enviar(); }}>
-        <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={2} maxLength={8000}
+        <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={vistas.length ? 2 : 6} maxLength={8000}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar(); } }}
-          placeholder="Escribe aquí (Enter envía, Shift+Enter cambia de línea)" aria-label="Mensaje para Claude"
+          placeholder={vistas.length ? 'Responde o pide cambios (Enter envía, Shift+Enter cambia de línea)' : 'Pega aquí tus notas del cliente (Shift+Enter cambia de línea)'}
+          aria-label="Mensaje para la IA"
           className="flex-1 resize-none rounded-lg bg-white/5 px-3 py-2 text-sm text-white placeholder:text-[#5f7891] border border-white/10 outline-none focus:border-[#248bde]" />
-        <button type="submit" disabled={turno.isPending || !texto.trim()} aria-label="Enviar"
+        <button type="submit" disabled={turno.isPending || trabajandoAfuera || !texto.trim()} aria-label="Enviar"
           className="rounded-lg bg-[#248bde] p-2.5 text-white hover:bg-[#1f7bc5] disabled:opacity-50">
           <Send className="w-4 h-4" />
         </button>
@@ -266,6 +278,8 @@ function Chat({ cotizacionId, onCreada }) {
 function LoQueSabe({ onCerrar }) {
   const { data: guia, isLoading, error } = useGuiaCotizacion(true);
   const { data: config } = useNotasCotizacion();
+  const { data: reglas = [] } = useReglasCotizacion();
+  const quitar = useQuitarRegla();
   const guardar = useGuardarNotas();
   const { data: equipo = [] } = useEquipo();
   const { data: yo } = useMiEquipoId();
@@ -276,14 +290,33 @@ function LoQueSabe({ onCerrar }) {
   return (
     <div className="rounded-xl border border-white/10 bg-[#0d1e30] p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-white font-semibold">Lo que Claude sabe para cotizar</h2>
+        <h2 className="text-white font-semibold">Lo que sabe la IA para cotizar</h2>
         <button type="button" onClick={onCerrar} className="p-1 text-[#9aafc3] hover:text-white" aria-label="Cerrar"><X className="w-5 h-5" /></button>
       </div>
       <div>
-        <h3 className="text-sm font-semibold text-white mb-1">Notas internas de los dueños</h3>
+        <h3 className="text-sm font-semibold text-white mb-1">Reglas aprendidas</h3>
         <p className="text-xs text-[#9aafc3] mb-2">
-          Reglas de precio, descuentos, aprendizajes de propuestas que se cerraron o se perdieron. Claude las lee antes de cotizar
-          (en el panel y en el conector) y mandan sobre la guía. {esDueno ? '' : 'Solo los dueños pueden editarlas.'}
+          Cuando corriges algo que sirve para el futuro, la IA te propone anotarlo y solo lo guarda si le dices que sí. Las lee antes de cada cotización.
+        </p>
+        {!reglas.length && <p className="text-sm text-[#5f7891]">Todavía no hay reglas anotadas.</p>}
+        <ul className="space-y-1">
+          {reglas.map((r) => (
+            <li key={r.id} className="flex items-start gap-2 rounded-lg bg-white/5 px-3 py-2 text-sm text-[#cfe0f0]">
+              <span className="flex-1">{r.regla}</span>
+              {esDueno && (
+                <button type="button" aria-label="Quitar regla" title="Quitar regla" disabled={quitar.isPending}
+                  onClick={() => window.confirm('¿Quitar esta regla? La IA dejará de usarla.') && quitar.mutate(r.id)}
+                  className="p-1 text-red-300 hover:bg-red-500/10 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h3 className="text-sm font-semibold text-white mb-1">Notas internas de los socios</h3>
+        <p className="text-xs text-[#9aafc3] mb-2">
+          Reglas de precio, descuentos, aprendizajes de propuestas que se cerraron o se perdieron. La IA las lee antes de cotizar
+          (en el panel y desde Claude) y mandan sobre la guía. {esDueno ? '' : 'Solo los socios pueden editarlas.'}
         </p>
         <textarea value={valor} onChange={(e) => setNotas(e.target.value)} disabled={!esDueno} rows={6} maxLength={20000}
           className="w-full rounded-lg bg-white/5 px-3 py-2 text-sm text-white border border-white/10 disabled:opacity-70" aria-label="Notas internas para cotizar" />
@@ -313,15 +346,17 @@ function LoQueSabe({ onCerrar }) {
 export default function CotizacionesAdmin() {
   const [params, setParams] = useSearchParams();
   const seleccion = params.get('cotizacion') || null;
+  const chatSeleccion = params.get('chat') || null;
   const [guiaAbierta, setGuiaAbierta] = useState(false);
-  // La key fuerza un chat limpio al cambiar de cotización o al empezar una nueva.
-  const [nueva, setNueva] = useState(0);
+  // La key fuerza un chat limpio SOLO cuando la persona elige otra cotización o empieza una
+  // nueva; si el propio chat crea la cotización o la conversación, sigue montado (no pierde
+  // el aviso de descarga ni lo escrito).
+  const [clave, setClave] = useState(0);
 
-  const elegir = (id) => {
-    const p = { tab: 'cotizaciones' };
-    if (id) p.cotizacion = id;
-    setParams(p, { replace: true });
-  };
+  const ir = (extra) => setParams({ tab: 'cotizaciones', ...extra }, { replace: true });
+  const abrir = (extra) => { ir(extra); setClave((n) => n + 1); };
+  const elegir = (id) => abrir(id ? { cotizacion: id } : {});
+  const elegirChat = (id) => abrir(id ? { chat: id } : {});
 
   return (
     <div className="space-y-4">
@@ -329,15 +364,15 @@ export default function CotizacionesAdmin() {
         <div>
           <h1 className="text-xl font-semibold text-white">Cotizaciones</h1>
           <p className="text-sm text-[#9aafc3]">
-            Conversa con Claude para armar la propuesta y descárgala en PDF. También puedes pedírselo a Claude en el celular con el conector NexCommit.
+            Pega tus notas y la IA arma la propuesta en PDF y Word, con precios basados en lo que ya cotizamos. También puedes seguir la misma conversación desde Claude (conector NexCommit → «cotizar»).
           </p>
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={() => setGuiaAbierta((v) => !v)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/5">
-            <BookOpen className="w-4 h-4" /> Lo que sabe Claude
+            <BookOpen className="w-4 h-4" /> Lo que sabe la IA
           </button>
-          <button type="button" onClick={() => { guardarBorrador([]); elegir(null); setNueva((n) => n + 1); }}
+          <button type="button" onClick={() => elegir(null)}
             className="inline-flex items-center gap-1.5 rounded-lg bg-[#248bde] px-3 py-2 text-sm font-medium text-white hover:bg-[#1f7bc5]">
             <MessageSquarePlus className="w-4 h-4" /> Nueva cotización
           </button>
@@ -347,8 +382,9 @@ export default function CotizacionesAdmin() {
       {guiaAbierta && <LoQueSabe onCerrar={() => setGuiaAbierta(false)} />}
 
       <div className="grid gap-4 lg:grid-cols-[320px_1fr] lg:h-[calc(100vh-230px)]">
-        <Lista seleccion={seleccion} onElegir={elegir} />
-        <Chat key={seleccion || `nueva-${nueva}`} cotizacionId={seleccion} onCreada={elegir} />
+        <Lista seleccion={seleccion} chatSeleccion={chatSeleccion} onElegir={elegir} onElegirChat={elegirChat} />
+        <Chat key={clave} cotizacionId={seleccion} chatId={seleccion ? null : chatSeleccion}
+          onCreada={(id) => ir({ cotizacion: id })} onChat={(id) => ir({ chat: id })} onBorrada={() => elegir(null)} />
       </div>
     </div>
   );

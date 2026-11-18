@@ -39,6 +39,14 @@ Migraciones `20261021130100`–`20261021130500_resenas_*.sql`. Panel → Reseña
 |---|---|---|---|---|---|
 | `contactos_web` | Quienes piden una cotización en el formulario «Cotiza en 1 minuto» | nombre, correo, WhatsApp (opcional), servicio, mensaje libre, página de origen, si vino de Google Ads, hash de IP | Responder y preparar la cotización; acuse de recibo por correo | Medidas precontractuales a pedido del titular (sin casilla; se informa junto al formulario). Sin marketing | 12 meses salvo estado `ganado` (cron `contactos-web-retencion`). El mensaje libre puede traer datos sensibles: el formulario pide no incluirlos |
 
+## Cotizaciones (panel, solo equipo)
+
+| Tabla | Personas | Datos | Finalidad | Base | Plazo |
+|---|---|---|---|---|---|
+| `cotizaciones` | Contacto de la empresa a la que se cotiza | nombre de la empresa y del contacto, rubro, correo y teléfono (estos dos no salen en el PDF), propuesta | Preparar y enviar la propuesta comercial | Medidas precontractuales a pedido del interesado | Mientras dure la relación comercial; revisar antes del 1-dic-2027 |
+| `cotizaciones_chats` | Ídem | notas que pega el socio sobre lo conversado con el cliente (puede traer datos que el socio escriba) | Que la IA (50x en el back de Agente-Next; respaldo Claude) redacte la propuesta | Ídem. Se pide no pegar datos sensibles ni bancarios | Sin cotización: se borran a los 90 días (cron `cotizaciones-chats-limpiar`); con cotización, como la cotización |
+| `cotizaciones_reglas` | Nadie (reglas generales de precio) | texto de la regla, sin nombres ni datos personales | Que la IA cotice como lo hace el equipo | — | Hasta que un socio la quite |
+
 ## Creador de páginas (crea-tu-web)
 
 | Tabla | Personas | Datos | Finalidad | Base | Plazo |
