@@ -120,6 +120,11 @@ export const CIFRAS = [
 // Las tres que más pesan en la conversación con la clienta.
 export const CIFRAS_CLAVE = ['conv', 'sinresp', 'entreg'];
 
+// Cifras que el equipo ve siempre, pero que se pueden ocultar de la tabla de la reunión
+// (botón «Ocultar gasto») cuando la pantalla se comparte con la clienta: el gasto de IA no
+// se le muestra (decisión 19-nov-2026). Siguen guardándose en la «foto de cifras».
+export const CIFRAS_OCULTABLES = ['costo'];
+
 // ── Fechas ───────────────────────────────────────────────────────────────────
 export const claveMes = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 

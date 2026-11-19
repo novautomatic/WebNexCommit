@@ -2,7 +2,7 @@
 // clienta y Pendientes. Estructura genérica en ./contenido.js; los datos vienen del back
 // (src/hooks/auditoria.js).
 import { useState } from 'react';
-import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardCheck, MessageSquare, Minus, Pencil, Plus, Save, Trash2 } from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardCheck, Eye, EyeOff, MessageSquare, Minus, Pencil, Plus, Save, Trash2 } from 'lucide-react';
 import {
   useBorrarCambio, useBorrarComentario, useBorrarPendiente, useCrearCambio, useCrearComentario, useCrearPendiente,
   useEditarCambio, useEditarComentario, useEditarPendiente, useGuardarMes, useIndicadores,
@@ -10,7 +10,7 @@ import {
 import { ErrorBox, Modal, Pill, btnGhost, btnPrimary, card, inputClass, labelClass } from '../tareas/ui';
 import { Kpi, Seccion, Vacio } from '../google/graficos';
 import {
-  CHECKLIST_MENSUAL, CHECKLIST_REUNION, CIFRAS, CIFRAS_CLAVE, GUION_REUNION, mesAnterior, nombreMes,
+  CHECKLIST_MENSUAL, CHECKLIST_REUNION, CIFRAS, CIFRAS_CLAVE, CIFRAS_OCULTABLES, GUION_REUNION, mesAnterior, nombreMes,
   progreso, ultimosMeses,
 } from './contenido';
 
@@ -433,7 +433,17 @@ export function VistaMes({ chatbot, datos, mes, setMes }) {
 }
 
 // ── Reunión con la clienta ───────────────────────────────────────────────────
-function TablaCifras({ m, prev, base, mesActual, mesPrevio }) {
+// «Ocultar gasto» se recuerda en este navegador (solo comodidad: si no hay almacenamiento, parte visible).
+const CLAVE_OCULTAR = 'nc_auditoria_ocultar_gasto';
+function leerOcultar() {
+  try { return window.localStorage.getItem(CLAVE_OCULTAR) === '1'; } catch { return false; }
+}
+function guardarOcultar(v) {
+  try { window.localStorage.setItem(CLAVE_OCULTAR, v ? '1' : '0'); } catch { /* sin almacenamiento: no pasa nada */ }
+}
+
+function TablaCifras({ m, prev, base, mesActual, mesPrevio, ocultarGasto = false }) {
+  const cifras = ocultarGasto ? CIFRAS.filter((c) => !CIFRAS_OCULTABLES.includes(c.id)) : CIFRAS;
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -447,7 +457,7 @@ function TablaCifras({ m, prev, base, mesActual, mesPrevio }) {
           </tr>
         </thead>
         <tbody>
-          {CIFRAS.map((c) => {
+          {cifras.map((c) => {
             const a = m ? c.valor(m) : null;
             const p = prev ? c.valor(prev) : null;
             const b = base ? c.valor(base) : null;
@@ -479,6 +489,8 @@ function CuerpoReunion({ chatbot, datos, mes }) {
   const prev = anterior.data?.indicadores || filaMes(datos, previo)?.indicadores;
   const prog = progreso(CHECKLIST_REUNION, estado.checklist_cliente);
   const sucio = estado.decisiones !== (fila?.decisiones || '');
+  const [ocultarGasto, setOcultarGasto] = useState(leerOcultar);
+  const alternarGasto = () => setOcultarGasto((v) => { guardarOcultar(!v); return !v; });
 
   return (
     <div className="space-y-4">
@@ -496,7 +508,15 @@ function CuerpoReunion({ chatbot, datos, mes }) {
       <Seccion titulo={`Cifras para presentar · ${nombreMes(mes)}`} extra={actual.data?.generado ? `leído ${new Date(actual.data.generado).toLocaleTimeString('es-CL', { timeStyle: 'short' })}` : ''}>
         <ErrorBox error={actual.error || anterior.error} />
         {actual.isLoading && <Vacio>Calculando las cifras…</Vacio>}
-        {m && <TablaCifras m={m} prev={prev} base={base} mesActual={mes} mesPrevio={previo} />}
+        {m && (
+          <div className="mb-2 flex items-center justify-end gap-3">
+            {ocultarGasto && <span className="text-[11px] text-[#5f7891]">El gasto de IA está oculto en esta tabla (el equipo lo sigue viendo en «Resumen»).</span>}
+            <button type="button" className={btnGhost} onClick={alternarGasto} aria-pressed={ocultarGasto}>
+              {ocultarGasto ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />} {ocultarGasto ? 'Mostrar gasto' : 'Ocultar gasto'}
+            </button>
+          </div>
+        )}
+        {m && <TablaCifras m={m} prev={prev} base={base} mesActual={mes} mesPrevio={previo} ocultarGasto={ocultarGasto} />}
         {!base && m && (
           <p className="mt-3 flex items-start gap-2 rounded-lg border border-[#fab219]/30 bg-[#fab219]/10 px-3 py-2 text-xs text-[#fab219]">
             <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" /> Todavía no hay línea base cargada: la columna queda vacía.
