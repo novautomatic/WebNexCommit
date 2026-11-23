@@ -59,6 +59,13 @@ Plantillas semanales (día lunes a viernes) o mensuales (día 1 a 28). A las 07:
 tarea: el plazo del cliente es la fecha de creación más N días, y el del encargado, el del cliente
 más M días.
 
+### Descargar todo
+
+En el detalle de la tarea (panel), si hay 2 o más archivos, el botón **«Descargar todo»** arma en el
+navegador un `.zip` con todos los archivos vigentes, una carpeta por entregable más «Otros archivos»
+(`descargarTodo` en `src/hooks/tareasCliente.js`, librería `fflate`, sin compresión). No usa el
+servidor: baja cada archivo desde Storage con la sesión del equipo.
+
 ### Retención
 
 Archivos: 180 días tras cerrar la tarea. Tareas: 24 meses. Contactos desactivados: se anonimizan a

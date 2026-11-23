@@ -6,6 +6,7 @@ import {
   ESTADO_CLIENTE,
   ESTADO_ENCARGADO,
   abrirArchivo,
+  descargarTodo,
   diasHasta,
   esperaCliente,
   estaCerrada,
@@ -59,6 +60,7 @@ export default function TareaClienteDetalle({ tarea: t, onClose, onEditar }) {
   const [devolviendo, setDevolviendo] = useState(false);
   const [textoDevolver, setTextoDevolver] = useState('');
   const [subiendo, setSubiendo] = useState(false);
+  const [bajando, setBajando] = useState(null); // { hechos, total } while zipping
   const inputArchivo = useRef(null);
   const destino = useRef(null);
 
@@ -114,6 +116,20 @@ export default function TareaClienteDetalle({ tarea: t, onClose, onEditar }) {
 
   const ec = ESTADO_CLIENTE[t.estado_cliente];
   const hechos = t.entregables.filter((x) => x.hecho).length;
+  const descargables = (data?.archivos ?? []).filter((a) => !a.borrado_at);
+  const pesoTotal = descargables.reduce((s, a) => s + (a.tamano || 0), 0);
+  const bajarTodo = async () => {
+    setBajando({ hechos: 0, total: descargables.length });
+    await correr(() =>
+      descargarTodo({
+        archivos: descargables,
+        entregables: t.entregables,
+        nombreZip: `${t.cliente?.empresa || t.cliente?.nombre || 'Cliente'} - #${t.numero} ${t.titulo}`,
+        alAvanzar: (h, total) => setBajando({ hechos: h, total }),
+      }),
+    );
+    setBajando(null);
+  };
 
   return (
     <Modal titulo={`#${t.numero} · ${t.titulo}`} onClose={onClose} ancho="max-w-4xl">
@@ -142,7 +158,19 @@ export default function TareaClienteDetalle({ tarea: t, onClose, onEditar }) {
           </div>
           <Plazo fecha={t.fecha_cliente} activo={esperaCliente(t)} />
           <p className="mt-2 text-sm text-[#d6e2ee] whitespace-pre-line">{t.tarea_cliente}</p>
-          <div className="mt-3 text-xs text-[#9aafc3]">Entregables · {hechos}/{t.entregables.length}</div>
+          <div className="mt-3 flex items-center gap-2 text-xs text-[#9aafc3]">
+            <span>Entregables · {hechos}/{t.entregables.length}</span>
+            {descargables.length > 1 && (
+              <button type="button" disabled={!!bajando} onClick={bajarTodo}
+                title={`Descarga los ${descargables.length} archivos en un .zip, una carpeta por entregable`}
+                className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1 text-[#c5d3e0] hover:text-white hover:border-white/30 disabled:opacity-70">
+                <Download className="w-3.5 h-3.5" />
+                {bajando
+                  ? bajando.hechos < bajando.total ? `Descargando ${bajando.hechos}/${bajando.total}…` : 'Armando el .zip…'
+                  : `Descargar todo (${descargables.length} · ${pesoLegible(pesoTotal)})`}
+              </button>
+            )}
+          </div>
           <ul className="mt-1 space-y-2">
             {t.entregables.map((x) => (
               <li key={x.id} className="rounded-lg bg-black/10 px-2.5 py-2">
