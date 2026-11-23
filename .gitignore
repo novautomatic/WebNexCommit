@@ -43,3 +43,6 @@ Claude outputs/
 
 # Supabase CLI local state (project ref, versions)
 supabase/.temp/
+
+# Cotizaciones de clientes (repo público)
+COTIZACION*.pdf

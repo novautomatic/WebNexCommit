@@ -7,7 +7,7 @@ export const RESPONSABLE = {
   razonSocial: 'TPB Soluciones Digitales Limitada',
   rut: '78.375.968-3',
   // Statute art. 7: joint administration, any two of the three partners sign together.
-  representanteLegal: 'sus socios administradores Fabián Ignacio Tobar Muñoz, Juan Pablo Andrés Pizarro Martínez y Stephania Jasmín Bilbao La Vieja Peñaranda',
+  representanteLegal: 'sus socios administradores Fabián Ignacio Tobar Muñoz, Juan Pablo Andrés Pizarro Martínez y Stephania Jasmin Bilbao La Vieja Peñaranda', // «Jasmin» con s y sin tilde (corregido el 9-nov-2026)
   // Registered seat per statute art. 3. Never use a partner's home address here.
   domicilio: 'la comuna de Las Condes, Región Metropolitana de Santiago',
   correo: 'nexcommit@gmail.com', // where data subjects send their requests (Ley 19.628 art. 12; answer within 2 business days, art. 16)

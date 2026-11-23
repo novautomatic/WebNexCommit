@@ -199,15 +199,14 @@ export function useResincronizar() {
   });
 }
 
-// Pulls GitHub changes while the panel is open (the DB cron also does it every minute).
+// Muestra el estado de la sincronización con GitHub. La sincronización la hace
+// solo el cron de la base (cada 2 min): antes cada pestaña abierta disparaba
+// github_sync_tick cada 30 s y eso ayudó a saturar la base el 16-11-2026.
 export function useSyncGithub() {
   const qc = useQueryClient();
   const estado = useQuery({
     queryKey: ['tareas', 'sync'],
-    queryFn: async () => {
-      await supabase.rpc('github_sync_tick');
-      return unwrap(supabase.from('github_sync_estado').select('*').maybeSingle());
-    },
+    queryFn: () => unwrap(supabase.from('github_sync_estado').select('*').maybeSingle()),
     refetchInterval: 30000,
     refetchIntervalInBackground: false,
   });
