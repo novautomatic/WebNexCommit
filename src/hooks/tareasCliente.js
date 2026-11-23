@@ -250,6 +250,49 @@ export async function abrirArchivo(ruta, nombre) {
   window.open(data.signedUrl, '_blank', 'noopener');
 }
 
+const nombreCarpeta = (texto) =>
+  (texto || 'Archivos').replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 60) || 'Archivos';
+
+/**
+ * Downloads every (non-purged) file of a task as ONE zip, one folder per deliverable.
+ * Built in the browser (fflate, no compression: photos/PDFs are already compressed).
+ * `alAvanzar(hechos, total)` reports progress.
+ */
+export async function descargarTodo({ archivos, entregables, nombreZip, alAvanzar }) {
+  const vivos = archivos.filter((a) => !a.borrado_at);
+  if (!vivos.length) return;
+  const { zip } = await import('fflate');
+  const textoDe = new Map(entregables.map((x, i) => [x.id, `${String(i + 1).padStart(2, '0')} ${x.texto}`]));
+  const usados = new Set();
+  const contenido = {};
+  let hechos = 0;
+  alAvanzar?.(0, vivos.length);
+  for (const a of vivos) {
+    const { data, error } = await supabase.storage.from(BUCKET).download(a.ruta);
+    if (error) throw Object.assign(new Error(`No se pudo descargar «${a.nombre}». Intenta de nuevo.`), { amigable: true });
+    const carpeta = nombreCarpeta(a.entregable_id ? textoDe.get(a.entregable_id) : 'Otros archivos');
+    let ruta = `${carpeta}/${a.nombre}`;
+    for (let n = 2; usados.has(ruta.toLowerCase()); n++) {
+      const punto = a.nombre.lastIndexOf('.');
+      ruta = punto > 0
+        ? `${carpeta}/${a.nombre.slice(0, punto)} (${n})${a.nombre.slice(punto)}`
+        : `${carpeta}/${a.nombre} (${n})`;
+    }
+    usados.add(ruta.toLowerCase());
+    contenido[ruta] = [new Uint8Array(await data.arrayBuffer()), { level: 0 }];
+    alAvanzar?.(++hechos, vivos.length);
+  }
+  const bytes = await new Promise((ok, mal) => zip(contenido, (err, out) => (err ? mal(err) : ok(out))));
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${nombreCarpeta(nombreZip)}.zip`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
 export function pesoLegible(bytes) {
   if (!bytes) return '';
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
