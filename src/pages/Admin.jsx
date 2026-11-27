@@ -28,6 +28,7 @@ import {
   Sparkles,
   TrendingUp,
   Users,
+  Wallet,
   Wand2,
   X,
 } from 'lucide-react';
@@ -42,6 +43,7 @@ import GoogleAdmin from './google/GoogleAdmin';
 import AuditoriaAdmin from './auditoria/AuditoriaAdmin';
 import BovedaAdmin from './boveda/BovedaAdmin';
 import AvisosAdmin from './avisos/AvisosAdmin';
+import CobrosAdmin from './cobros/CobrosAdmin';
 import TareasAdmin from './tareas/TareasAdmin';
 import TareasClienteAdmin from './tareasCliente/TareasClienteAdmin';
 import { ClientesPagina, EquipoPagina, ProyectosPagina } from './tareas/GestionPaginas';
@@ -86,6 +88,7 @@ const GRUPOS = [
       { id: 'accesos', label: 'Accesos', icon: Link2 },
       { id: 'boveda', label: 'Bóveda', icon: KeyRound },
       { id: 'avisos', label: 'Avisos', icon: BellRing },
+      { id: 'cobros', label: 'Cobros', icon: Wallet },
     ],
   },
   {
@@ -333,6 +336,7 @@ export default function Admin() {
             {seccion === 'accesos' && <ConfiguracionAdmin />}
             {seccion === 'boveda' && <BovedaAdmin />}
             {seccion === 'avisos' && <AvisosAdmin />}
+            {seccion === 'cobros' && <CobrosAdmin />}
             {seccion === 'blog' && <BlogAdmin />}
             {seccion === 'cotizador' && <Cotizador />}
             {seccion === 'cotizaciones' && <CotizacionesAdmin />}
