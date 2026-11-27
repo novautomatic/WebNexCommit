@@ -59,6 +59,7 @@ function MiembroForm({ miembro, onClose }) {
   const guardar = useGuardarMiembro();
   const [f, setF] = useState({
     nombre: miembro.nombre || '',
+    nombre_corto: miembro.nombre_corto || '',
     email: miembro.email || '',
     whatsapp: miembro.whatsapp || '',
     rol: miembro.rol || 'miembro',
@@ -78,6 +79,7 @@ function MiembroForm({ miembro, onClose }) {
       {
         id: miembro.id,
         nombre: f.nombre.trim(),
+        nombre_corto: f.nombre_corto.trim() || null,
         email: f.email.trim().toLowerCase(),
         whatsapp: whatsapp || null,
         rol: f.rol,
@@ -97,6 +99,10 @@ function MiembroForm({ miembro, onClose }) {
         <div>
           <label className={labelClass} htmlFor="m-nombre">Nombre</label>
           <input id="m-nombre" className={inputClass} value={f.nombre} onChange={set('nombre')} required autoFocus />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="m-corto">Nombre corto (cómo te saludan los mensajes)</label>
+          <input id="m-corto" className={inputClass} value={f.nombre_corto} onChange={set('nombre_corto')} maxLength={30} placeholder="Si lo dejas vacío, se usa la primera palabra del nombre" />
         </div>
         <div>
           <label className={labelClass} htmlFor="m-email">Correo (el mismo con el que inicia sesión)</label>

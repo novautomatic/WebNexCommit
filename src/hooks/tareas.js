@@ -142,7 +142,7 @@ export function useGuardarTarea() {
   const invalidar = useInvalidar();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, cliente_id, ...campos }) => {
+    mutationFn: async ({ id, cliente_id, responsables, ...campos }) => {
       // The associated client is local-only (never goes to GitHub): its own RPC.
       const asignarCliente = (tareaId) =>
         unwrap(supabase.rpc('tarea_asignar_cliente', { p_tarea: tareaId, p_cliente: cliente_id || null }));
@@ -151,18 +151,25 @@ export function useGuardarTarea() {
         if (cliente_id !== undefined) await asignarCliente(id);
         return null;
       }
-      const nuevaId = await unwrap(supabase.rpc('tarea_crear', {
-        p_proyecto: campos.proyecto_id,
-        p_titulo: campos.titulo,
-        p_descripcion: campos.descripcion,
-        p_responsable: campos.responsable_id,
-        p_prioridad: campos.prioridad,
-        p_estado: campos.estado,
-        p_fecha: campos.fecha_limite,
-        p_etiquetas: campos.etiquetas,
-      }));
-      if (cliente_id && nuevaId) await asignarCliente(nuevaId);
-      return nuevaId;
+      // «Todos»: una tarea por persona (cada una con su aviso, su resumen diario y su estado).
+      // Una por una, para no mandar varias escrituras a GitHub a la vez.
+      const asignados = responsables?.length ? responsables : [campos.responsable_id];
+      let primera = null;
+      for (const responsable of asignados) {
+        const nuevaId = await unwrap(supabase.rpc('tarea_crear', {
+          p_proyecto: campos.proyecto_id,
+          p_titulo: campos.titulo,
+          p_descripcion: campos.descripcion,
+          p_responsable: responsable,
+          p_prioridad: campos.prioridad,
+          p_estado: campos.estado,
+          p_fecha: campos.fecha_limite,
+          p_etiquetas: campos.etiquetas,
+        }));
+        if (cliente_id && nuevaId) await asignarCliente(nuevaId);
+        primera ??= nuevaId;
+      }
+      return primera;
     },
     // Optimistic update so drag & drop feels instant.
     onMutate: async ({ id, ...campos }) => {
