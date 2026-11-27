@@ -16,6 +16,9 @@ import {
 } from '../../hooks/tareas';
 import { Avatar, ErrorBox, Modal, Pill, btnGhost, btnPrimary, inputClass, labelClass } from './ui';
 
+// Valor del selector «Todos» (solo en tareas nuevas): crea una tarea por persona.
+const TODOS = '__todos__';
+
 const VACIA = {
   titulo: '',
   descripcion: '',
@@ -75,6 +78,7 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
 
   const set = (campo) => (e) => setForm((f) => ({ ...f, [campo]: e.target.value }));
   const activos = equipo.filter((m) => m.activo);
+  const paraTodos = esNueva && form.responsable_id === TODOS;
   // Only projects backed by a GitHub repo can hold tasks.
   const abiertos = proyectos.filter((p) => (p.github_repo || p.tipo === 'area') && (!p.archivado || p.id === form.proyecto_id));
   // An area task can move to another area; a GitHub task stays in its repo.
@@ -88,13 +92,14 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
       descripcion: form.descripcion.trim() || null,
       proyecto_id: form.proyecto_id,
       cliente_id: form.cliente_id || null,
-      responsable_id: form.responsable_id || null,
+      responsable_id: paraTodos ? null : form.responsable_id || null,
       estado: form.estado,
       prioridad: form.prioridad,
       fecha_limite: form.fecha_limite || null,
       etiquetas: form.etiquetas.split(',').map((s) => s.trim()).filter(Boolean),
     };
     if (esNueva) {
+      if (paraTodos) campos.responsables = activos.map((m) => m.id);
       guardar.mutate(campos, { onSuccess: () => { onCreada?.(); onClose(); } });
       return;
     }
@@ -112,7 +117,7 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
     guardar.mutate({ id: tarea.id, ...cambios }, { onSuccess: onClose });
   };
 
-  const responsable = activos.find((m) => m.id === form.responsable_id);
+  const responsable = activos.find((m) => m.id === form.responsable_id); // undefined con «Todos»
   const canalesAviso = [
     responsable?.avisos_correo !== false && 'correo',
     responsable?.whatsapp && 'WhatsApp',
@@ -171,6 +176,7 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
             <label className={labelClass} htmlFor="t-resp">Responsable</label>
             <select id="t-resp" className={inputClass} value={form.responsable_id} onChange={set('responsable_id')}>
               <option value="">{esArea && esNueva ? 'Quien lidera el área' : 'Sin asignar'}</option>
+              {esNueva && activos.length > 1 && <option value={TODOS}>Todos ({activos.length} personas)</option>}
               {activos.map((m) => (
                 <option key={m.id} value={m.id}>{m.nombre}{m.whatsapp ? '' : ' (sin WhatsApp)'}</option>
               ))}
@@ -220,7 +226,14 @@ export default function TareaModal({ tarea, defaults, equipo, proyectos, onClose
           <input id="t-tags" className={inputClass} value={form.etiquetas} onChange={set('etiquetas')} placeholder="bug, frontend" />
         </div>
 
-        {form.responsable_id && (esNueva || form.responsable_id !== tarea?.responsable_id) && (
+        {paraTodos && (
+          <p className="text-xs text-[#9aafc3] flex items-center gap-2">
+            <MessageCircle className="w-3.5 h-3.5 text-[#34d399]" />
+            Se creará una tarea para cada una de las {activos.length} personas ({activos.map((m) => m.nombre.split(' ')[0]).join(', ')}), cada una con su propio aviso y su propio estado.
+            {!esArea && ' En un proyecto de GitHub serán ' + activos.length + ' issues.'}
+          </p>
+        )}
+        {form.responsable_id && !paraTodos && (esNueva || form.responsable_id !== tarea?.responsable_id) && (
           <p className="text-xs text-[#9aafc3] flex items-center gap-2">
             <MessageCircle className="w-3.5 h-3.5 text-[#34d399]" />
             {canalesAviso.length
